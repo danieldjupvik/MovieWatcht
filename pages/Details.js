@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     color: 'white',
-    marginTop: 8,
+    // marginTop: 8,
     marginLeft: 22,
     marginTop: 30,
     marginBottom: 30,
