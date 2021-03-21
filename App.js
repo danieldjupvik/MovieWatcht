@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Home from './pages/Home';
 import Details from './pages/Details';
-import Constants from 'expo-constants';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 

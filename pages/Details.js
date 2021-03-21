@@ -46,7 +46,11 @@ const Details = ({ route }) => {
   }
 
   const iconStar = (
-    <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />
+    <FontAwesome5
+      name={'star'}
+      solid
+      style={{ color: 'red', fontSize: globalFontsize }}
+    />
   );
 
   return (
@@ -76,10 +80,13 @@ const Details = ({ route }) => {
               <Text style={styles.tagline}>{movie.tagline}</Text>
             ) : null}
             <Text style={styles.rating}>
-              {iconStar} {movie.vote_average}/10 from {movie.vote_count} users
+              {iconStar} {movie.vote_average}/10 ({movie.vote_count} votes)
             </Text>
-            <Text style={styles.genre}>{runtime}</Text>
             <Text style={styles.genre}>
+              <Text style={styles.category}>Runtime</Text> {runtime}
+            </Text>
+            <Text style={styles.genre}>
+              <Text style={styles.category}>Genres</Text>{' '}
               {movie.genres?.map((genre) => genre.name + ' ')}
             </Text>
             <Text style={styles.overview}>{movie.overview}</Text>
@@ -90,20 +97,21 @@ const Details = ({ route }) => {
   );
 };
 
+const globalFontsize = 19;
+const globalPadding = 5;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
     alignItems: 'center',
-    // justifyContent: 'center',
-    color: 'white',
   },
   main: {
     width: Dimensions.get('window').width,
   },
   backdrop: {
     width: '100%',
-    height: 260,
+    height: 250,
   },
   posterImg: {
     width: 120,
@@ -116,18 +124,29 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 10,
     marginLeft: 22,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   overview: {
     color: 'white',
     marginLeft: 22,
     marginRight: 22,
+    fontSize: globalFontsize,
+    marginTop: 20,
   },
   genre: {
     color: 'white',
     marginLeft: 22,
-    marginBottom: 30,
+    fontSize: globalFontsize,
+    marginTop: globalPadding,
+    marginBottom: globalPadding,
+  },
+  runtime: {
+    color: 'white',
+    marginLeft: 22,
+    fontSize: globalFontsize,
+    marginTop: globalPadding,
+    marginBottom: globalPadding,
   },
   child: {
     flex: 1,
@@ -135,16 +154,20 @@ const styles = StyleSheet.create({
   },
   rating: {
     color: 'white',
-    // marginTop: 8,
     marginLeft: 22,
-    marginTop: 30,
-    marginBottom: 30,
+    fontSize: globalFontsize,
+    marginTop: 20,
+    marginBottom: globalPadding,
   },
   tagline: {
     color: 'white',
     marginLeft: 22,
-    marginTop: 6,
     opacity: 0.7,
+    fontSize: 16,
+    // marginBottom: 20,s
+  },
+  category: {
+    opacity: 0.6,
   },
 });
 export default Details;

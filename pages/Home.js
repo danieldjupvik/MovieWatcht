@@ -50,6 +50,9 @@ const Home = ({ navigation }) => {
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [heading, setHeading] = useState('Popular');
+  const [pageDescription, setPageDescription] = useState(
+    'Popular movies right now'
+  );
 
   useEffect(() => {
     const getMovies = async () => {
@@ -85,7 +88,6 @@ const Home = ({ navigation }) => {
     setLoader(true);
     var title = inputValue.replace(/\d+/g, '').trim();
     if (inputValue.length >= 1) {
-      // setHeading('Searching');
       getSearch(title);
     } else {
       if (heading === 'Popular') {
@@ -106,6 +108,7 @@ const Home = ({ navigation }) => {
       const response = await axios.get(`${baseUrl}`);
       setMovies(response.data.results);
       setHeading('Popular');
+      setPageDescription('Popular movies right now');
     } catch (e) {
       console.log(e);
     } finally {
@@ -120,6 +123,7 @@ const Home = ({ navigation }) => {
       setMovies(response.data.results);
       setQuery(!query);
       setHeading('Top Rated');
+      setPageDescription('All time top rated movies');
     } catch (e) {
       console.log(e);
     } finally {
@@ -134,6 +138,7 @@ const Home = ({ navigation }) => {
       setMovies(response.data.results);
       setQuery(!query);
       setHeading('Upcoming');
+      setPageDescription('Upcoming movies in near future');
     } catch (e) {
       console.log(e);
     } finally {
@@ -146,8 +151,7 @@ const Home = ({ navigation }) => {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle='light-content' />
         <SearchBar
-          // style={styles.searchBar}
-          placeholder='Search'
+          placeholder='Search Movies'
           onChangeText={(text) => handleSearch(text)}
           round={true}
           containerStyle={{
@@ -159,39 +163,42 @@ const Home = ({ navigation }) => {
           value={search}
         />
         <Text style={styles.subheading}>{heading}</Text>
+        <Text style={styles.description}>{pageDescription}</Text>
         <ScrollView style={styles.scrollView}>
-          {loader ? (
-            <Loader />
-          ) : (
-            <View style={styles.main}>
-              {movies.map((movie) => {
-                if (movie.poster_path !== null) {
-                  return (
-                    <TouchableOpacity
-                      key={movie.id}
-                      style={styles.cards}
-                      onPress={() =>
-                        navigation.navigate('Details', {
-                          id: movie.id,
-                          headerTitle: movie.title,
-                        })
-                      }
-                    >
-                      <Image
-                        source={{
-                          uri: `${basePosterUrl + movie.poster_path}`,
-                        }}
-                        style={styles.image}
-                      />
-                      <Text style={styles.rating}>
-                        {iconStar} {movie.vote_average}/10
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }
-              })}
-            </View>
-          )}
+          <View style={styles.mainParent}>
+            {loader ? (
+              <Loader />
+            ) : (
+              <View style={styles.main}>
+                {movies.map((movie) => {
+                  if (movie.poster_path !== null) {
+                    return (
+                      <TouchableOpacity
+                        key={movie.id}
+                        style={styles.cards}
+                        onPress={() =>
+                          navigation.navigate('Details', {
+                            id: movie.id,
+                            headerTitle: movie.title,
+                          })
+                        }
+                      >
+                        <Image
+                          source={{
+                            uri: `${basePosterUrl + movie.poster_path}`,
+                          }}
+                          style={styles.image}
+                        />
+                        <Text style={styles.rating}>
+                          {iconStar} {movie.vote_average}/10
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }
+                })}
+              </View>
+            )}
+          </View>
           <View style={styles.view}></View>
         </ScrollView>
       </SafeAreaView>
@@ -237,8 +244,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   view: {
-    flex: 1,
-    alignItems: 'center',
+    height: 85,
   },
   scrollView: {
     backgroundColor: 'black',
@@ -249,31 +255,26 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     marginTop: 12,
+    width: '100%',
+  },
+  mainParent: {
+    flex: 1,
+    alignSelf: 'center',
   },
   image: {
     width: '100%',
     height: 180,
   },
   cards: {
-    width: 140,
+    width: '100%',
+    flexBasis: 125,
     alignItems: 'center',
-    padding: 8,
+    margin: 7,
   },
   rating: {
     color: 'white',
     marginTop: 8,
-  },
-  searchBar: {
-    // height: 35,
-    // borderWidth: 1,
-    // borderRadius: 10,
-    // marginBottom: 20,
-    // width: '100%',
-    // backgroundColor: 'white',
-    // paddingLeft: 10,
-    // color: 'black',
   },
   navbar: {
     width: '100%',
@@ -300,6 +301,10 @@ const styles = StyleSheet.create({
     color: 'grey',
     fontSize: 13,
     marginTop: 8,
+    fontWeight: 'bold',
+  },
+  description: {
+    color: 'white',
   },
 });
 
