@@ -1,11 +1,17 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { usePromiseTracker } from 'react-promise-tracker';
 
-const Loader = () => (
-  <View style={[styles.container, styles.horizontal]}>
-    <ActivityIndicator size='large' color='red' />
-  </View>
-);
+const Loader = () => {
+  const { promiseInProgress } = usePromiseTracker();
+  return (
+    promiseInProgress && (
+      <View style={[styles.container, styles.horizontal]}>
+        <ActivityIndicator size='large' color='red' />
+      </View>
+    )
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

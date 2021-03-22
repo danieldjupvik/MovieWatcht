@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { backgroundColor } from './Home';
 
 import axios from 'axios';
 
@@ -103,7 +104,7 @@ const globalPadding = 5;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: backgroundColor,
     alignItems: 'center',
   },
   main: {
@@ -164,7 +165,6 @@ const styles = StyleSheet.create({
     marginLeft: 22,
     opacity: 0.7,
     fontSize: 16,
-    // marginBottom: 20,s
   },
   category: {
     opacity: 0.6,

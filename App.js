@@ -8,10 +8,14 @@ import {
   StatusBar,
   Button,
 } from 'react-native';
-import Home from './pages/Home';
-import Details from './pages/Details';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { backgroundColor } from './pages/Home';
+
+import Home from './pages/Home';
+import Details from './pages/Details';
+import Settings from './pages/Settings';
+import Login from './pages/Login';
 
 const Stack = createStackNavigator();
 
@@ -32,12 +36,25 @@ export default function App() {
               title: route.params.headerTitle,
               headerBackTitle: '',
               headerStyle: {
-                backgroundColor: 'black',
+                backgroundColor: backgroundColor,
                 shadowColor: 'transparent',
               },
               headerTransparent: false,
               headerTintColor: 'white',
             })}
+          />
+          <Stack.Screen
+            name='Settings'
+            component={Settings}
+            options={{
+              headerBackTitle: '',
+              headerStyle: {
+                backgroundColor: backgroundColor,
+                shadowColor: 'transparent',
+              },
+              headerTransparent: false,
+              headerTintColor: 'white',
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>
