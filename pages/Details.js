@@ -22,7 +22,9 @@ const Details = ({ route }) => {
   useEffect(() => {
     const getMovie = async () => {
       try {
-        const response = await axios.get(`${detailsMovieUrl + id + apiKey}`);
+        const response = await axios.get(
+          `${detailsMovieUrl + id + apiKey + '&append_to_response=credits'}`
+        );
         setMovie(response.data);
       } catch (e) {
         console.log(e);

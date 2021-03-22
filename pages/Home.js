@@ -10,10 +10,10 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
-import { trackPromise } from 'react-promise-tracker';
 import {
   baseUrl,
   basePosterUrl,
@@ -39,35 +39,37 @@ const Home = ({ navigation }) => {
   const [refreshing, setRefreshing] = React.useState(false);
 
   useEffect(() => {
+    // setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(`${baseUrl}`);
         setMovies(response.data.results);
-        // setLoader(true);
       } catch (e) {
         console.log(e);
       } finally {
-        // setLoader(false);
+        setLoader(false);
       }
     };
     getMovies();
   }, []);
 
   const getSearch = async (title) => {
+    setLoader(true);
     try {
       const response = await axios.get(`${searchMovieUrl + `&query=${title}`}`);
       setMovies(response.data.results);
-      setLoader(true);
     } catch (e) {
       console.log(e);
     } finally {
-      setLoader(false);
+      setTimeout(() => {
+        setLoader(false);
+      }, 1000);
     }
   };
 
   function handleSearch(inputValue) {
     setSearch(inputValue);
-    // setLoader(true);
+    setLoader(true);
     var title = inputValue.replace(/\d+/g, '').trim();
     if (inputValue.length >= 1) {
       getSearch(title);
@@ -97,7 +99,9 @@ const Home = ({ navigation }) => {
     } catch (e) {
       console.log(e);
     } finally {
-      // setLoader(false);
+      setTimeout(() => {
+        setLoader(false);
+      }, 1000);
     }
   };
 
@@ -113,7 +117,9 @@ const Home = ({ navigation }) => {
     } catch (e) {
       console.log(e);
     } finally {
-      // setLoader(false);
+      setTimeout(() => {
+        setLoader(false);
+      }, 1000);
     }
   };
 
@@ -129,7 +135,9 @@ const Home = ({ navigation }) => {
     } catch (e) {
       console.log(e);
     } finally {
-      // setLoader(false);
+      setTimeout(() => {
+        setLoader(false);
+      }, 1000);
     }
   };
 
@@ -200,6 +208,7 @@ const Home = ({ navigation }) => {
                             uri: `${basePosterUrl + movie.poster_path}`,
                           }}
                           style={styles.image}
+                          resizeMode='contain'
                         />
                         <Text style={styles.rating}>
                           {iconStar} {movie.vote_average}/10
@@ -215,7 +224,7 @@ const Home = ({ navigation }) => {
         </ScrollView>
       </SafeAreaView>
       <BlurView tint='dark' intensity={100} style={styles.navbar}>
-        <TouchableWithoutFeedback onPress={() => trackPromise(getPopular())}>
+        <TouchableWithoutFeedback onPress={getPopular}>
           <View style={styles.navbarButton}>
             <Text>
               <FontAwesome5
@@ -237,7 +246,7 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => trackPromise(getTopRated())}>
+        <TouchableWithoutFeedback onPress={getTopRated}>
           <View style={styles.navbarButton}>
             <Text>
               <FontAwesome5
@@ -259,7 +268,7 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => trackPromise(getUpcoming())}>
+        <TouchableWithoutFeedback onPress={getUpcoming}>
           <View style={styles.navbarButton}>
             <Text>
               {' '}
@@ -303,7 +312,7 @@ const Home = ({ navigation }) => {
                   : styles.notActiveNavbarText
               }
             >
-              Upcoming
+              Settings
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -313,6 +322,8 @@ const Home = ({ navigation }) => {
 };
 
 export const backgroundColor = '#1D1D1C';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -333,6 +344,7 @@ const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: backgroundColor,
     marginHorizontal: 20,
+    height: '100%',
     width: '100%',
   },
   main: {
@@ -343,17 +355,17 @@ const styles = StyleSheet.create({
   },
   mainParent: {
     flex: 1,
-    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
     width: '100%',
-    height: 180,
+    height: deviceHeight / 5,
   },
   cards: {
-    width: '100%',
-    flexBasis: 125,
+    width: deviceWidth / 3,
+    height: deviceHeight / 4,
     alignItems: 'center',
-    margin: 7,
   },
   rating: {
     color: 'white',
