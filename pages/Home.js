@@ -39,7 +39,6 @@ const Home = ({ navigation }) => {
   const [refreshing, setRefreshing] = React.useState(false);
 
   useEffect(() => {
-    // setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(`${baseUrl}`);
@@ -95,7 +94,6 @@ const Home = ({ navigation }) => {
       setMovies(response.data.results);
       setBtnSelected(1);
       setRefreshing(false);
-      console.log('is fetched');
     } catch (e) {
       console.log(e);
     } finally {
@@ -177,17 +175,19 @@ const Home = ({ navigation }) => {
         <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
           style={styles.scrollView}
+          keyboardDismissMode={'on-drag'}
+          indicatorStyle={'white'}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              tintColor='white'
+              tintColor='red'
               onRefresh={onRefresh}
             />
           }
         >
           <View style={styles.mainParent}>
             {loader ? (
-              <Loader />
+              <Loader loadingStyle={styles.loaderStyle} />
             ) : (
               <View style={styles.main}>
                 {movies.map((movie) => {
@@ -416,6 +416,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 15,
     paddingBottom: 20,
+  },
+  loaderStyle: {
+    marginTop: deviceHeight / 4.5,
   },
 });
 

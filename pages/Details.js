@@ -12,10 +12,12 @@ import {
 import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { backgroundColor } from './Home';
+import Loader from '../components/Loader';
 
 import axios from 'axios';
 
 const Details = ({ route }) => {
+  const [loader, setLoader] = useState(true);
   const { id } = route.params;
 
   const [movie, setMovie] = useState([]);
@@ -23,11 +25,20 @@ const Details = ({ route }) => {
     const getMovie = async () => {
       try {
         const response = await axios.get(
-          `${detailsMovieUrl + id + apiKey + '&append_to_response=credits'}`
+          `${
+            detailsMovieUrl +
+            id +
+            apiKey +
+            '&append_to_response=credits,recommendations'
+          }`
         );
         setMovie(response.data);
       } catch (e) {
         console.log(e);
+      } finally {
+        setTimeout(() => {
+          setLoader(false);
+        }, 500);
       }
     };
     getMovie();
@@ -59,42 +70,74 @@ const Details = ({ route }) => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <ScrollView>
-          <View style={styles.main}>
-            <ImageBackground
-              source={{
-                uri: `${basePosterUrl + movie.backdrop_path}`,
-              }}
-              style={styles.backdrop}
-              blurRadius={4}
-            >
-              <View style={styles.child} />
-            </ImageBackground>
-            <Image
-              source={{
-                uri: `${basePosterUrl + movie.poster_path}`,
-              }}
-              style={styles.posterImg}
-            />
-            <Text style={styles.title}>
-              {movie.title} <Text>({year})</Text>
-            </Text>
-            {movie.tagline ? (
-              <Text style={styles.tagline}>{movie.tagline}</Text>
-            ) : null}
-            <Text style={styles.rating}>
-              {iconStar} {movie.vote_average}/10 ({movie.vote_count} votes)
-            </Text>
-            <Text style={styles.genre}>
-              <Text style={styles.category}>Runtime</Text> {runtime}
-            </Text>
-            <Text style={styles.genre}>
-              <Text style={styles.category}>Genres</Text>{' '}
-              {movie.genres?.map((genre) => genre.name + ' ')}
-            </Text>
-            <Text style={styles.overview}>{movie.overview}</Text>
-          </View>
-        </ScrollView>
+        {loader ? (
+          <Loader />
+        ) : (
+          <ScrollView indicatorStyle={'white'}>
+            <View style={styles.main}>
+              <ImageBackground
+                source={{
+                  uri: `${basePosterUrl + movie.backdrop_path}`,
+                }}
+                style={styles.backdrop}
+                blurRadius={4}
+              >
+                <View style={styles.child} />
+              </ImageBackground>
+              <Image
+                source={{
+                  uri: `${basePosterUrl + movie.poster_path}`,
+                }}
+                style={styles.posterImg}
+              />
+              <Text style={styles.title}>
+                {movie.title} <Text>({year})</Text>
+              </Text>
+              {movie.tagline ? (
+                <Text style={styles.tagline}>{movie.tagline}</Text>
+              ) : null}
+              <Text style={styles.rating}>
+                {iconStar} {movie.vote_average}/10 ({movie.vote_count} votes)
+              </Text>
+              <Text style={styles.genre}>
+                <Text style={styles.category}>Runtime</Text> {runtime}
+              </Text>
+              <Text style={styles.genre}>
+                <Text style={styles.category}>Genres</Text>{' '}
+                {movie.genres?.map((genre) => genre.name + ' ')}
+              </Text>
+              <Text style={styles.overview}>{movie.overview}</Text>
+            </View>
+            <View style={styles.castMain}>
+              <ScrollView
+                horizontal={true}
+                contentInset={{ top: 0, left: 22, bottom: 0, right: 0 }}
+                indicatorStyle={'white'}
+              >
+                <View style={styles.castDiv}>
+                  {movie.credits.cast.map((cast, idx) => {
+                    if (cast.profile_path !== null) {
+                      return (
+                        <View style={styles.castCard} key={idx}>
+                          <Image
+                            style={styles.profileImage}
+                            source={{
+                              uri: `${basePosterUrl + cast.profile_path}`,
+                            }}
+                          />
+                          <Text style={styles.textName}>{cast.name}</Text>
+                          <Text style={styles.textCharacter}>
+                            {cast.character}
+                          </Text>
+                        </View>
+                      );
+                    }
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          </ScrollView>
+        )}
       </SafeAreaView>
     </>
   );
@@ -102,15 +145,18 @@ const Details = ({ route }) => {
 
 const globalFontsize = 19;
 const globalPadding = 5;
+const deviceWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: backgroundColor,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   main: {
-    width: Dimensions.get('window').width,
+    width: deviceWidth,
+    justifyContent: 'center',
   },
   backdrop: {
     width: '100%',
@@ -127,6 +173,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 10,
     marginLeft: 22,
+    marginRight: 22,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -140,6 +187,8 @@ const styles = StyleSheet.create({
   genre: {
     color: 'white',
     marginLeft: 22,
+    marginRight: 22,
+
     fontSize: globalFontsize,
     marginTop: globalPadding,
     marginBottom: globalPadding,
@@ -170,6 +219,35 @@ const styles = StyleSheet.create({
   },
   category: {
     opacity: 0.6,
+  },
+  castMain: {
+    marginTop: 25 + globalPadding,
+    marginBottom: 25 + globalPadding,
+  },
+  castDiv: {
+    flex: 1,
+    flexDirection: 'row',
+    marginBottom: 30,
+  },
+  castCard: {
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  profileImage: {
+    width: deviceWidth / 4.5,
+    height: deviceWidth / 4.5,
+    marginBottom: 5,
+    borderRadius: 50,
+  },
+  textName: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  textCharacter: {
+    paddingTop: 8,
+    fontSize: 12,
+    color: 'white',
   },
 });
 export default Details;
