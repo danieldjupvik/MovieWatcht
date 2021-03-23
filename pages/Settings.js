@@ -10,7 +10,7 @@ import {
 } from 'react-native-gesture-handler';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
-const Settings = () => {
+const Settings = ({ navigation }) => {
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -19,7 +19,10 @@ const Settings = () => {
             <View style={styles.listHeadingElement}>
               <Text style={styles.listHeading}>Main Settings</Text>
             </View>
-            <TouchableWithoutFeedback>
+            <TouchableOpacity
+              style={styles.touchableElem}
+              onPress={() => navigation.navigate('About')}
+            >
               <View style={styles.listElement}>
                 <View>
                   <Text style={styles.text}>
@@ -41,8 +44,8 @@ const Settings = () => {
                   />
                 </View>
               </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <View style={styles.listElement}>
                 <View>
                   <Text style={styles.text}>
@@ -64,7 +67,7 @@ const Settings = () => {
                   />
                 </View>
               </View>
-            </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -88,6 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: 'grey',
+    width: '100%',
   },
   text: {
     color: 'white',
@@ -108,6 +112,9 @@ const styles = StyleSheet.create({
   },
   rightArrow: {
     paddingRight: 8,
+  },
+  touchableElem: {
+    width: '100%',
   },
 });
 

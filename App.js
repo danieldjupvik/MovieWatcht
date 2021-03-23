@@ -16,6 +16,7 @@ import Home from './pages/Home';
 import Details from './pages/Details';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import About from './pages/About';
 
 const Stack = createStackNavigator();
 
@@ -46,6 +47,32 @@ export default function App() {
           <Stack.Screen
             name='Settings'
             component={Settings}
+            options={{
+              headerBackTitle: '',
+              headerStyle: {
+                backgroundColor: backgroundColor,
+                shadowColor: 'transparent',
+              },
+              headerTransparent: false,
+              headerTintColor: 'white',
+            }}
+          />
+          <Stack.Screen
+            name='About'
+            component={About}
+            options={{
+              headerBackTitle: '',
+              headerStyle: {
+                backgroundColor: backgroundColor,
+                shadowColor: 'transparent',
+              },
+              headerTransparent: false,
+              headerTintColor: 'white',
+            }}
+          />
+          <Stack.Screen
+            name='Login'
+            component={Login}
             options={{
               headerBackTitle: '',
               headerStyle: {

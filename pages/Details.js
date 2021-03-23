@@ -86,7 +86,6 @@ const Details = ({ route }) => {
       style={{ color: 'red', fontSize: globalFontsize }}
     />
   );
-
   const goToWebsite = () => {
     WebBrowser.openBrowserAsync(movie.homepage);
   };
@@ -143,14 +142,16 @@ const Details = ({ route }) => {
                 <Text style={styles.category}>Genres</Text>{' '}
                 {movie.genres?.map((genre) => genre.name + ' ')}
               </Text>
-              <View>
-                <TouchableOpacity
-                  style={styles.homepageButtonDiv}
-                  onPress={goToWebsite}
-                >
-                  <Text style={styles.homepageButton}>Homepage</Text>
-                </TouchableOpacity>
-              </View>
+              {movie.homepage ? (
+                <View>
+                  <TouchableOpacity
+                    style={styles.homepageButtonDiv}
+                    onPress={goToWebsite}
+                  >
+                    <Text style={styles.homepageButton}>Homepage</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
               <Text style={styles.overview}>{movie.overview}</Text>
             </View>
             <View style={styles.castMain}>

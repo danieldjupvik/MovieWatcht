@@ -4,13 +4,13 @@ import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import { backgroundColor } from './Home';
 import axios from 'axios';
 
-const Login = () => {
+const About = () => {
   return (
     <>
       <SafeAreaView style={styles.container}>
         <View style={styles.main}>
           <Text style={{ color: 'white', fontSize: 30 }}>
-            Login page coming soon
+            About page coming soon
           </Text>
         </View>
       </SafeAreaView>
@@ -30,4 +30,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Login;
+export default About;
