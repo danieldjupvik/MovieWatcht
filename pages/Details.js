@@ -13,8 +13,10 @@ import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { backgroundColor } from './Home';
 import Loader from '../components/Loader';
+import * as WebBrowser from 'expo-web-browser';
 
 import axios from 'axios';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const Details = ({ route }) => {
   const [loader, setLoader] = useState(true);
@@ -45,7 +47,25 @@ const Details = ({ route }) => {
   }, []);
 
   var d = new Date(movie.release_date);
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   var year = d.getFullYear();
+  var month = monthNames[d.getMonth()];
+  var day = d.getDate();
+  var releaseDate = `${day}. ${month} ${year}`;
+
   let runtime = timeConvert(movie.runtime);
   function timeConvert(num) {
     var hours = num / 60;
@@ -67,6 +87,9 @@ const Details = ({ route }) => {
     />
   );
 
+  const goToWebsite = () => {
+    WebBrowser.openBrowserAsync(movie.homepage);
+  };
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -100,20 +123,39 @@ const Details = ({ route }) => {
                 {iconStar} {movie.vote_average}/10 ({movie.vote_count} votes)
               </Text>
               <Text style={styles.genre}>
+                <Text style={styles.category}>Release Date</Text> {releaseDate}
+              </Text>
+              <Text style={[styles.genre, styles.runtime]}>
                 <Text style={styles.category}>Runtime</Text> {runtime}
+              </Text>
+              <Text style={styles.genre}>
+                <Text style={styles.category}>Status</Text> {movie.status}
+              </Text>
+              <Text style={styles.genre}>
+                <Text style={styles.category}>Budget</Text> $
+                {movie.budget.toLocaleString()}
+              </Text>
+              <Text style={styles.genre}>
+                <Text style={styles.category}>Revenue</Text> $
+                {movie.revenue.toLocaleString()}
               </Text>
               <Text style={styles.genre}>
                 <Text style={styles.category}>Genres</Text>{' '}
                 {movie.genres?.map((genre) => genre.name + ' ')}
               </Text>
+              <View>
+                <TouchableOpacity
+                  style={styles.homepageButtonDiv}
+                  onPress={goToWebsite}
+                >
+                  <Text style={styles.homepageButton}>Homepage</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.overview}>{movie.overview}</Text>
             </View>
             <View style={styles.castMain}>
-              <ScrollView
-                horizontal={true}
-                contentInset={{ top: 0, left: 22, bottom: 0, right: 0 }}
-                indicatorStyle={'white'}
-              >
+              <Text style={styles.castHeading}>Cast</Text>
+              <ScrollView horizontal={true} indicatorStyle={'white'}>
                 <View style={styles.castDiv}>
                   {movie.credits.cast.map((cast, idx) => {
                     if (cast.profile_path !== null) {
@@ -188,17 +230,12 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 22,
     marginRight: 22,
-
     fontSize: globalFontsize,
     marginTop: globalPadding,
     marginBottom: globalPadding,
   },
   runtime: {
-    color: 'white',
-    marginLeft: 22,
-    fontSize: globalFontsize,
-    marginTop: globalPadding,
-    marginBottom: globalPadding,
+    marginBottom: globalPadding * 4,
   },
   child: {
     flex: 1,
@@ -223,6 +260,7 @@ const styles = StyleSheet.create({
   castMain: {
     marginTop: 25 + globalPadding,
     marginBottom: 25 + globalPadding,
+    marginLeft: 22,
   },
   castDiv: {
     flex: 1,
@@ -248,6 +286,22 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     fontSize: 12,
     color: 'white',
+  },
+  castHeading: {
+    fontSize: 18,
+    color: 'white',
+    fontWeight: 'bold',
+    paddingBottom: 20,
+  },
+  homepageButton: {
+    color: 'white',
+    fontSize: globalFontsize,
+  },
+  homepageButtonDiv: {
+    borderRadius: 10,
+    marginLeft: 22,
+    marginTop: globalPadding,
+    marginBottom: globalPadding,
   },
 });
 export default Details;
