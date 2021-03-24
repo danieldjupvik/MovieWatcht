@@ -1,32 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
-import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
+import React from 'react';
+import { Text, View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { backgroundColor } from './Home';
-import axios from 'axios';
+import Constants from 'expo-constants';
 
 const About = () => {
+  let d = new Date();
+  let year = d.getFullYear();
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={styles.main}>
-          <Text style={{ color: 'white', fontSize: 30 }}>
-            About page coming soon
-          </Text>
-        </View>
+        <ScrollView>
+          <View style={styles.main}>
+            <View style={styles.listHeadingElement}>
+              <Text style={styles.listHeading}>About this app</Text>
+            </View>
+            <View style={styles.touchableElem}>
+              <View style={styles.listElement}>
+                <View style={styles.iconElement}>
+                  <View>
+                    <Text style={styles.text}>
+                      Copyright © {year} Daniel Djupvik
+                    </Text>
+                    <Text style={styles.text}>All Rights Reserved.</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View>
+              <View style={styles.listElement}>
+                <View style={styles.iconElement}>
+                  <View>
+                    <Text style={styles.text}>
+                      Version {Constants.manifest.version} (
+                      {Constants.manifest.ios.buildNumber})
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: backgroundColor,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   main: {
-    width: Dimensions.get('window').width,
+    width: '100%',
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
+  listElement: {
+    paddingBottom: 10,
+    paddingTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    // borderBottomWidth: 0.5,
+    borderBottomColor: 'grey',
+    width: '100%',
+  },
+  iconElement: {
+    flexDirection: 'row',
+  },
+  text: {
+    color: 'white',
+    fontSize: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontWeight: '300',
+  },
+  icon: {},
+  listHeading: {
+    color: 'grey',
+    fontSize: 20,
+  },
+  listHeadingElement: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'grey',
+    marginTop: 20,
+    paddingBottom: 15,
+  },
+  rightArrow: {
+    paddingRight: 8,
+  },
+  touchableElem: {
+    width: '100%',
   },
 });
 

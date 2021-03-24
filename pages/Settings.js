@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
-import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
+import React from 'react';
+import { Text, View, StyleSheet, SafeAreaView } from 'react-native';
 import { backgroundColor } from './Home';
-import axios from 'axios';
 import {
   ScrollView,
   TouchableOpacity,
@@ -19,23 +17,24 @@ const Settings = ({ navigation }) => {
             <View style={styles.listHeadingElement}>
               <Text style={styles.listHeading}>Main Settings</Text>
             </View>
-            <TouchableOpacity
+            <TouchableWithoutFeedback
               style={styles.touchableElem}
               onPress={() => navigation.navigate('About')}
             >
               <View style={styles.listElement}>
-                <View>
-                  <Text style={styles.text}>
-                    <View style={styles.icon}>
-                      <FontAwesome5
-                        name={'info-circle'}
-                        solid
-                        style={{ color: 'grey', fontSize: 20 }}
-                      />
-                    </View>
-                    About
-                  </Text>
+                <View style={styles.iconElement}>
+                  <View style={styles.icon}>
+                    <FontAwesome5
+                      name={'info-circle'}
+                      solid
+                      style={{ color: 'grey', fontSize: 25 }}
+                    />
+                  </View>
+                  <View>
+                    <Text style={styles.text}>About</Text>
+                  </View>
                 </View>
+
                 <View style={styles.rightArrow}>
                   <FontAwesome5
                     name={'chevron-right'}
@@ -44,20 +43,22 @@ const Settings = ({ navigation }) => {
                   />
                 </View>
               </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+              onPress={() => navigation.navigate('Login')}
+            >
               <View style={styles.listElement}>
-                <View>
-                  <Text style={styles.text}>
-                    <View style={styles.icon}>
-                      <FontAwesome5
-                        name={'sign-in-alt'}
-                        solid
-                        style={{ color: 'grey', fontSize: 20 }}
-                      />
-                    </View>
-                    Login
-                  </Text>
+                <View style={styles.iconElement}>
+                  <View style={styles.icon}>
+                    <FontAwesome5
+                      name={'sign-in-alt'}
+                      solid
+                      style={{ color: 'grey', fontSize: 25 }}
+                    />
+                  </View>
+                  <View>
+                    <Text style={styles.text}>Login</Text>
+                  </View>
                 </View>
                 <View style={styles.rightArrow}>
                   <FontAwesome5
@@ -67,7 +68,7 @@ const Settings = ({ navigation }) => {
                   />
                 </View>
               </View>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -81,31 +82,35 @@ const styles = StyleSheet.create({
   },
   main: {
     width: '100%',
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingLeft: 15,
   },
   listElement: {
     paddingBottom: 15,
     paddingTop: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
     borderBottomColor: 'grey',
     width: '100%',
+  },
+  iconElement: {
+    flexDirection: 'row',
   },
   text: {
     color: 'white',
     fontSize: 20,
+    fontWeight: '300',
   },
   icon: {
-    marginRight: 10,
+    marginRight: 12,
   },
   listHeading: {
     color: 'grey',
     fontSize: 20,
   },
   listHeadingElement: {
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: 'grey',
     marginTop: 20,
     paddingBottom: 15,

@@ -155,7 +155,6 @@ const Home = ({ navigation }) => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle='light-content' />
         <SearchBar
           placeholder='Search Movies'
           onChangeText={(text) => handleSearch(text)}
