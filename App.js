@@ -19,8 +19,8 @@ import Login from './pages/Login';
 import About from './pages/About';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
-import translationsEN from './Language/en/translation.json';
-import translationsNB from './Language/nb/translation.json';
+import translationsEN from './language/en/translation.json';
+import translationsNB from './language/nb/translation.json';
 
 const Stack = createStackNavigator();
 
