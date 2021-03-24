@@ -17,15 +17,28 @@ import Details from './pages/Details';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import About from './pages/About';
+import * as Localization from 'expo-localization';
+import i18n from 'i18n-js';
+import translationsEN from './Language/en/translation.json';
+import translationsNB from './Language/nb/translation.json';
 
 const Stack = createStackNavigator();
+
+i18n.translations = {
+  nb: translationsNB,
+  en: translationsEN,
+};
+// Set the locale once at the beginning of your app.
+i18n.locale = Localization.locale;
+// When a value is missing from a language it'll fallback to another language with the key present.
+i18n.fallbacks = true;
 
 export default function App() {
   return (
     <>
       <NavigationContainer>
         <StatusBar barStyle='light-content' />
-        <Stack.Navigator>
+        <Stack.Navigator initialRouteName='Home'>
           <Stack.Screen
             name='Home'
             component={Home}
@@ -36,7 +49,7 @@ export default function App() {
             component={Details}
             options={({ route }) => ({
               title: route.params.headerTitle,
-              headerBackTitle: '',
+              headerBackTitle: i18n.t('back'),
               headerStyle: {
                 backgroundColor: backgroundColor,
                 shadowColor: 'transparent',
@@ -48,21 +61,22 @@ export default function App() {
           <Stack.Screen
             name='Settings'
             component={Settings}
-            options={{
-              headerBackTitle: '',
+            options={({ route }) => ({
+              title: route.params.headerTitle,
+              headerBackTitle: i18n.t('back'),
               headerStyle: {
                 backgroundColor: backgroundColor,
                 shadowColor: 'transparent',
               },
               headerTransparent: false,
               headerTintColor: 'white',
-            }}
+            })}
           />
           <Stack.Screen
             name='About'
             component={About}
             options={{
-              headerBackTitle: '',
+              headerBackTitle: i18n.t('back'),
               headerStyle: {
                 backgroundColor: backgroundColor,
                 shadowColor: 'transparent',
@@ -75,7 +89,7 @@ export default function App() {
             name='Login'
             component={Login}
             options={{
-              headerBackTitle: '',
+              headerBackTitle: i18n.t('back'),
               headerStyle: {
                 backgroundColor: backgroundColor,
                 shadowColor: 'transparent',

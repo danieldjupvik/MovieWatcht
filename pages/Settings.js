@@ -7,6 +7,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import i18n from 'i18n-js';
 
 const Settings = ({ navigation }) => {
   return (
@@ -15,7 +16,7 @@ const Settings = ({ navigation }) => {
         <ScrollView>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
-              <Text style={styles.listHeading}>Main Settings</Text>
+              <Text style={styles.listHeading}>{i18n.t('mainSettings')}</Text>
             </View>
             <TouchableWithoutFeedback
               style={styles.touchableElem}
@@ -31,7 +32,7 @@ const Settings = ({ navigation }) => {
                     />
                   </View>
                   <View>
-                    <Text style={styles.text}>About</Text>
+                    <Text style={styles.text}>{i18n.t('about')}</Text>
                   </View>
                 </View>
 
@@ -57,7 +58,7 @@ const Settings = ({ navigation }) => {
                     />
                   </View>
                   <View>
-                    <Text style={styles.text}>Login</Text>
+                    <Text style={styles.text}>{i18n.t('login')}</Text>
                   </View>
                 </View>
                 <View style={styles.rightArrow}>

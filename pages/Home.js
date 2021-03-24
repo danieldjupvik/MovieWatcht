@@ -23,17 +23,18 @@ import {
 } from '../settings/api';
 import Loader from '../components/Loader';
 import { BlurView } from 'expo-blur';
-
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import i18n from 'i18n-js';
+
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
 const Home = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
-  const [heading, setHeading] = useState('Popular');
+  const [heading, setHeading] = useState(i18n.t('popular'));
   const [pageDescription, setPageDescription] = useState(
-    'Popular movies right now'
+    i18n.t('popularDescription')
   );
   const [btnSelected, setBtnSelected] = useState(1);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -62,7 +63,7 @@ const Home = ({ navigation }) => {
     } finally {
       setTimeout(() => {
         setLoader(false);
-      }, 1000);
+      }, 800);
     }
   };
 
@@ -73,13 +74,13 @@ const Home = ({ navigation }) => {
     if (inputValue.length >= 1) {
       getSearch(title);
     } else {
-      if (heading === 'Popular') {
+      if (heading === i18n.t('popular')) {
         getPopular();
       }
-      if (heading === 'Top Rated') {
+      if (heading === i18n.t('topRated')) {
         getTopRated();
       }
-      if (heading == 'Upcoming') {
+      if (heading === i18n.t('upcoming')) {
         getUpcoming();
       }
     }
@@ -87,8 +88,8 @@ const Home = ({ navigation }) => {
 
   const getPopular = async () => {
     setLoader(true);
-    setHeading('Popular');
-    setPageDescription('Popular movies right now');
+    setHeading(i18n.t('popular'));
+    setPageDescription(i18n.t('popularDescription'));
     try {
       const response = await axios.get(`${baseUrl}`);
       setMovies(response.data.results);
@@ -99,14 +100,14 @@ const Home = ({ navigation }) => {
     } finally {
       setTimeout(() => {
         setLoader(false);
-      }, 1000);
+      }, 800);
     }
   };
 
   const getTopRated = async () => {
     setLoader(true);
-    setHeading('Top Rated');
-    setPageDescription('All time top rated movies');
+    setHeading(i18n.t('topRated'));
+    setPageDescription(i18n.t('topRatedDescription'));
     try {
       const response = await axios.get(`${topRatedMovieUrl}`);
       setMovies(response.data.results);
@@ -117,14 +118,14 @@ const Home = ({ navigation }) => {
     } finally {
       setTimeout(() => {
         setLoader(false);
-      }, 1000);
+      }, 800);
     }
   };
 
   const getUpcoming = async () => {
     setLoader(true);
-    setHeading('Upcoming');
-    setPageDescription('Upcoming movies in near future');
+    setHeading(i18n.t('upcoming'));
+    setPageDescription(i18n.t('upcomingDescription'));
     try {
       const response = await axios.get(`${upcomingMovieUrl}`);
       setMovies(response.data.results);
@@ -135,9 +136,27 @@ const Home = ({ navigation }) => {
     } finally {
       setTimeout(() => {
         setLoader(false);
-      }, 1000);
+      }, 800);
     }
   };
+
+  // const getNowPlaying = async () => {
+  //   setLoader(true);
+  //   setHeading('Now Playing');
+  //   setPageDescription('Movies playing right now');
+  //   try {
+  //     const response = await axios.get(`${nowPlayingUrl}`);
+  //     setMovies(response.data.results);
+  //     setBtnSelected(4);
+  //     setRefreshing(false);
+  //   } catch (e) {
+  //     console.log(e);
+  //   } finally {
+  //     setTimeout(() => {
+  //       setLoader(false);
+  //     }, 800);
+  //   }
+  // };
 
   function onRefresh() {
     setRefreshing(true);
@@ -156,7 +175,7 @@ const Home = ({ navigation }) => {
     <>
       <SafeAreaView style={styles.container}>
         <SearchBar
-          placeholder='Search Movies'
+          placeholder={i18n.t('search')}
           onChangeText={(text) => handleSearch(text)}
           round={true}
           containerStyle={{
@@ -241,7 +260,7 @@ const Home = ({ navigation }) => {
                   : styles.notActiveNavbarText
               }
             >
-              Popular
+              {i18n.t('popular')}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -263,7 +282,7 @@ const Home = ({ navigation }) => {
                   : styles.notActiveNavbarText
               }
             >
-              Top Rated
+              {i18n.t('topRated')}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -286,18 +305,16 @@ const Home = ({ navigation }) => {
                   : styles.notActiveNavbarText
               }
             >
-              Upcoming
+              {i18n.t('upcoming')}
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={() => navigation.navigate('Settings')}
-        >
+        {/* <TouchableWithoutFeedback onPress={getNowPlaying}>
           <View style={styles.navbarButton}>
             <Text>
               {' '}
               <FontAwesome5
-                name={'cogs'}
+                name={'play'}
                 solid
                 style={
                   btnSelected === 4 ? styles.isActiveIcon : styles.notActiveIcon
@@ -311,7 +328,36 @@ const Home = ({ navigation }) => {
                   : styles.notActiveNavbarText
               }
             >
-              Settings
+              Now Playing
+            </Text>
+          </View>
+        </TouchableWithoutFeedback> */}
+        <TouchableWithoutFeedback
+          onPress={() =>
+            navigation.navigate('Settings', {
+              headerTitle: i18n.t('settings'),
+            })
+          }
+        >
+          <View style={styles.navbarButton}>
+            <Text>
+              {' '}
+              <FontAwesome5
+                name={'cogs'}
+                solid
+                style={
+                  btnSelected === 5 ? styles.isActiveIcon : styles.notActiveIcon
+                }
+              />
+            </Text>
+            <Text
+              style={
+                btnSelected === 5
+                  ? styles.isActiveNavbarText
+                  : styles.notActiveNavbarText
+              }
+            >
+              {i18n.t('settings')}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -377,7 +423,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-around',
-    paddingBottom: 20,
+    paddingBottom: 10,
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -393,23 +439,23 @@ const styles = StyleSheet.create({
 
   isActiveNavbarText: {
     color: 'red',
-    fontSize: 13,
+    fontSize: 11,
     marginTop: 8,
     fontWeight: 'bold',
   },
   notActiveNavbarText: {
     color: 'grey',
-    fontSize: 13,
+    fontSize: 11,
     marginTop: 8,
     fontWeight: 'bold',
   },
   isActiveIcon: {
     color: 'red',
-    fontSize: 23,
+    fontSize: 21,
   },
   notActiveIcon: {
     color: 'grey',
-    fontSize: 23,
+    fontSize: 21,
   },
   description: {
     color: 'white',
