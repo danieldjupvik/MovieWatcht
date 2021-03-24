@@ -18,7 +18,35 @@ import * as WebBrowser from 'expo-web-browser';
 import axios from 'axios';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const RenderDetails = ({ movie, loader }) => {
+const RenderDetails = ({ navigation, id }) => {
+  const [loader, setLoader] = useState(true);
+  const [movie, setMovie] = useState([]);
+
+  useEffect(() => {
+    const getMovie = async () => {
+      try {
+        const response = await axios.get(
+          `${
+            detailsMovieUrl +
+            id +
+            apiKey +
+            '&append_to_response=credits,recommendations'
+          }`
+        );
+        setMovie(response.data);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setTimeout(() => {
+          setLoader(false);
+        }, 500);
+      }
+    };
+    getMovie();
+  }, [movie]);
+
+  console.log(movie);
+
   var d = new Date(movie.release_date);
   const monthNames = [
     'Jan',
@@ -133,7 +161,7 @@ const RenderDetails = ({ movie, loader }) => {
               <Text style={styles.castHeading}>Cast</Text>
               <ScrollView horizontal={true} indicatorStyle={'white'}>
                 <View style={styles.castDiv}>
-                  {movie.credits.cast.map((cast, idx) => {
+                  {movie.credits.cast.slice(0, 10).map((cast, idx) => {
                     if (cast.profile_path !== null) {
                       return (
                         <View style={styles.castCard} key={idx}>
@@ -154,28 +182,46 @@ const RenderDetails = ({ movie, loader }) => {
                 </View>
               </ScrollView>
             </View>
-            <View style={styles.castMain}>
-              <Text style={styles.castHeading}>Cast</Text>
+            <View style={styles.moviesMain}>
+              <Text style={styles.moviesHeading}>Recommendations</Text>
               <ScrollView horizontal={true} indicatorStyle={'white'}>
-                <View style={styles.castDiv}>
-                  {movie.credits.cast.map((cast, idx) => {
-                    if (cast.profile_path !== null) {
-                      return (
-                        <View style={styles.castCard} key={idx}>
-                          <Image
-                            style={styles.profileImage}
-                            source={{
-                              uri: `${basePosterUrl + cast.profile_path}`,
-                            }}
-                          />
-                          <Text style={styles.textName}>{cast.name}</Text>
-                          <Text style={styles.textCharacter}>
-                            {cast.character}
-                          </Text>
-                        </View>
-                      );
-                    }
-                  })}
+                <View style={styles.moviesDiv}>
+                  {movie.recommendations.results
+                    .slice(0, 10)
+                    .map((movie, idx) => {
+                      if (movie.poster_path !== null) {
+                        return (
+                          <TouchableOpacity
+                            style={styles.moviesCard}
+                            key={idx}
+                            onPress={() =>
+                              navigation.navigate('Details', {
+                                id: movie.id,
+                                headerTitle: movie.title,
+                              })
+                            }
+                          >
+                            <Image
+                              style={styles.posterImage}
+                              source={{
+                                uri: `${basePosterUrl + movie.poster_path}`,
+                              }}
+                            />
+                            <Text style={styles.textTitle}>
+                              {movie.original_title}
+                            </Text>
+                            <Text style={styles.textRating}>
+                              <FontAwesome5
+                                name={'star'}
+                                solid
+                                style={{ color: 'red', fontSize: 13 }}
+                              />{' '}
+                              {movie.vote_average}/10
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      }
+                    })}
                 </View>
               </ScrollView>
             </View>
@@ -308,6 +354,41 @@ const styles = StyleSheet.create({
     marginLeft: 22,
     marginTop: globalPadding,
     marginBottom: globalPadding,
+  },
+  moviesMain: {
+    marginBottom: 25 + globalPadding,
+    marginLeft: 22,
+  },
+  moviesDiv: {
+    flex: 1,
+    flexDirection: 'row',
+    marginBottom: 30,
+  },
+  moviesCard: {
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  posterImage: {
+    width: deviceWidth / 4.5,
+    height: deviceWidth / 3,
+    marginBottom: 13,
+    // borderRadius: 50,
+  },
+  textTitle: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  textRating: {
+    paddingTop: 8,
+    fontSize: 12,
+    color: 'white',
+  },
+  moviesHeading: {
+    fontSize: 18,
+    color: 'white',
+    fontWeight: 'bold',
+    paddingBottom: 20,
   },
 });
 
