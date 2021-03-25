@@ -1,19 +1,32 @@
 import React from 'react';
 import { Text, View, StyleSheet, SafeAreaView } from 'react-native';
-import { backgroundColor } from './Home';
 import {
   ScrollView,
-  TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import i18n from 'i18n-js';
+import { useColorScheme } from 'react-native-appearance';
+import {
+  backgroundColorDark,
+  backgroundColorLight,
+  textColorDark,
+  textColorLight,
+} from '../colors/colors';
 
 const Settings = ({ navigation }) => {
+  const colorScheme = useColorScheme();
+
+  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
+  const themeContainerStyle =
+    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
   return (
     <>
-      <SafeAreaView style={styles.container}>
-        <ScrollView>
+      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+        <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
               <Text style={styles.listHeading}>{i18n.t('mainSettings')}</Text>
@@ -32,7 +45,9 @@ const Settings = ({ navigation }) => {
                     />
                   </View>
                   <View>
-                    <Text style={styles.text}>{i18n.t('about')}</Text>
+                    <Text style={[styles.text, themeTextStyle]}>
+                      {i18n.t('about')}
+                    </Text>
                   </View>
                 </View>
 
@@ -58,7 +73,9 @@ const Settings = ({ navigation }) => {
                     />
                   </View>
                   <View>
-                    <Text style={styles.text}>{i18n.t('login')}</Text>
+                    <Text style={[styles.text, themeTextStyle]}>
+                      {i18n.t('login')}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.rightArrow}>
@@ -79,7 +96,6 @@ const Settings = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: backgroundColor,
   },
   main: {
     width: '100%',
@@ -99,7 +115,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   text: {
-    color: 'white',
     fontSize: 20,
     fontWeight: '300',
   },
@@ -121,6 +136,18 @@ const styles = StyleSheet.create({
   },
   touchableElem: {
     width: '100%',
+  },
+  lightContainer: {
+    backgroundColor: backgroundColorLight,
+  },
+  darkContainer: {
+    backgroundColor: backgroundColorDark,
+  },
+  lightThemeText: {
+    color: textColorLight,
+  },
+  darkThemeText: {
+    color: textColorDark,
   },
 });
 

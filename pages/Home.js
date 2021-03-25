@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-  StatusBar,
   TouchableWithoutFeedback,
   RefreshControl,
   Dimensions,
@@ -25,6 +24,13 @@ import Loader from '../components/Loader';
 import { BlurView } from 'expo-blur';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import i18n from 'i18n-js';
+import { useColorScheme } from 'react-native-appearance';
+import {
+  backgroundColorDark,
+  backgroundColorLight,
+  textColorDark,
+  textColorLight,
+} from '../colors/colors';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -38,6 +44,14 @@ const Home = ({ navigation }) => {
   );
   const [btnSelected, setBtnSelected] = useState(1);
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const colorScheme = useColorScheme();
+  const themeSearchbar = colorScheme === 'light' ? true : false;
+  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
+  const themeContainerStyle =
+    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
     const getMovies = async () => {
@@ -160,41 +174,44 @@ const Home = ({ navigation }) => {
 
   function onRefresh() {
     setRefreshing(true);
-    if (heading === 'Popular') {
+    if (heading === i18n.t('popular')) {
       getPopular();
     }
-    if (heading === 'Top Rated') {
+    if (heading === i18n.t('topRated')) {
       getTopRated();
     }
-    if (heading == 'Upcoming') {
+    if (heading === i18n.t('upcoming')) {
       getUpcoming();
     }
   }
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, themeContainerStyle]}>
         <SearchBar
           placeholder={i18n.t('search')}
           onChangeText={(text) => handleSearch(text)}
           round={true}
+          lightTheme={themeSearchbar}
           containerStyle={{
             backgroundColor: 'transparent',
             width: '90%',
             paddingBottom: 30,
-            borderTopColor: backgroundColor,
-            borderBottomColor: backgroundColor,
+            borderTopColor: 'transparent',
+            borderBottomColor: 'transparent',
           }}
           style={{ height: -10 }}
           value={search}
         />
-        <Text style={styles.heading}>{heading}</Text>
-        <Text style={styles.description}>{pageDescription}</Text>
+        <Text style={[styles.heading, themeTextStyle]}>{heading}</Text>
+        <Text style={[styles.description, themeTextStyle]}>
+          {pageDescription}
+        </Text>
         <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
-          style={styles.scrollView}
+          style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
-          indicatorStyle={'white'}
+          indicatorStyle={themeTabBar}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -228,7 +245,7 @@ const Home = ({ navigation }) => {
                           style={styles.image}
                           resizeMode='contain'
                         />
-                        <Text style={styles.rating}>
+                        <Text style={[styles.rating, themeTextStyle]}>
                           {iconStar} {movie.vote_average}/10
                         </Text>
                       </TouchableOpacity>
@@ -241,7 +258,7 @@ const Home = ({ navigation }) => {
           <View style={styles.view}></View>
         </ScrollView>
       </SafeAreaView>
-      <BlurView tint='dark' intensity={100} style={styles.navbar}>
+      <BlurView tint={themeTabBar} intensity={100} style={styles.navbar}>
         <TouchableWithoutFeedback onPress={getPopular}>
           <View style={styles.navbarButton}>
             <Text>
@@ -366,20 +383,16 @@ const Home = ({ navigation }) => {
   );
 };
 
-export const backgroundColor = '#1D1D1C';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: backgroundColor,
     alignItems: 'center',
-    color: 'white',
   },
   heading: {
     fontSize: 30,
-    color: 'white',
     marginBottom: 20,
     fontWeight: 'bold',
   },
@@ -387,7 +400,6 @@ const styles = StyleSheet.create({
     height: 85,
   },
   scrollView: {
-    backgroundColor: backgroundColor,
     marginHorizontal: 20,
     height: '100%',
     width: '100%',
@@ -413,13 +425,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rating: {
-    color: 'white',
     marginTop: 8,
   },
   navbar: {
     width: '100%',
     height: 85,
-    backgroundColor: 'black',
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-around',
@@ -458,12 +468,23 @@ const styles = StyleSheet.create({
     fontSize: 21,
   },
   description: {
-    color: 'white',
     fontSize: 15,
     paddingBottom: 20,
   },
   loaderStyle: {
     marginTop: deviceHeight / 4.5,
+  },
+  lightContainer: {
+    backgroundColor: backgroundColorLight,
+  },
+  darkContainer: {
+    backgroundColor: backgroundColorDark,
+  },
+  lightThemeText: {
+    color: textColorLight,
+  },
+  darkThemeText: {
+    color: textColorDark,
   },
 });
 

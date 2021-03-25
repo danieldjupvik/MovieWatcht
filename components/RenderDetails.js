@@ -11,18 +11,32 @@ import {
 } from 'react-native';
 import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { backgroundColor } from '../pages/Home';
+import { textColor } from '../pages/Home';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from 'i18n-js';
 import brandIcon from '../assets/icon.png';
 
 import axios from 'axios';
+import { useColorScheme } from 'react-native-appearance';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import {
+  backgroundColorDark,
+  backgroundColorLight,
+  textColorDark,
+  textColorLight,
+} from '../colors/colors';
 
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [movie, setMovie] = useState([]);
+
+  const colorScheme = useColorScheme();
+  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
+  const themeContainerStyle =
+    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
     const getMovie = async () => {
@@ -92,11 +106,11 @@ const RenderDetails = ({ navigation, id }) => {
     WebBrowser.openBrowserAsync(movie.homepage);
   };
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader />
       ) : (
-        <ScrollView indicatorStyle={'white'}>
+        <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <ImageBackground
               source={{
@@ -113,41 +127,43 @@ const RenderDetails = ({ navigation, id }) => {
               }}
               style={styles.posterImg}
             />
-            <Text style={styles.title}>
+            <Text style={[styles.title, themeTextStyle]}>
               {movie.title} <Text>({year})</Text>
             </Text>
             {movie.tagline ? (
-              <Text style={styles.tagline}>{movie.tagline}</Text>
+              <Text style={[styles.tagline, themeTextStyle]}>
+                {movie.tagline}
+              </Text>
             ) : null}
-            <Text style={styles.rating}>
+            <Text style={[styles.rating, themeTextStyle]}>
               {iconStar} {movie.vote_average}/10 ({movie.vote_count}{' '}
               {i18n.t('votes')})
             </Text>
-            <Text style={styles.genre}>
+            <Text style={[styles.genre, themeTextStyle]}>
               <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
               {releaseDate}
             </Text>
-            <Text style={[styles.genre, styles.runtime]}>
+            <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
               <Text style={styles.category}>{i18n.t('runtime')}</Text> {runtime}
             </Text>
-            <Text style={styles.genre}>
+            <Text style={[styles.genre, themeTextStyle]}>
               <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
               {movie.status}
             </Text>
             {movie.budget !== 0 ? (
-              <Text style={styles.genre}>
+              <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('budget')}</Text> $
                 {movie.budget.toLocaleString()}
               </Text>
             ) : null}
             {movie.revenue !== 0 ? (
-              <Text style={styles.genre}>
+              <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('revenue')}</Text> $
                 {movie.revenue.toLocaleString()}
               </Text>
             ) : null}
 
-            <Text style={styles.genre}>
+            <Text style={[styles.genre, themeTextStyle]}>
               <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
               {movie.genres?.map((genre) => genre.name + ' ')}
             </Text>
@@ -163,11 +179,16 @@ const RenderDetails = ({ navigation, id }) => {
                 </TouchableOpacity>
               </View>
             ) : null}
-            <Text style={styles.overview}>{movie.overview}</Text>
+            <Text style={[styles.overview, themeTextStyle]}>
+              {movie.overview}
+            </Text>
           </View>
           <View style={styles.castMain}>
-            <Text style={styles.castHeading}> {i18n.t('cast')}</Text>
-            <ScrollView horizontal={true} indicatorStyle={'white'}>
+            <Text style={[styles.castHeading, themeTextStyle]}>
+              {' '}
+              {i18n.t('cast')}
+            </Text>
+            <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
               <View style={styles.castDiv}>
                 {movie.credits.cast.slice(0, 10).map((cast, idx) => {
                   const profilePicture = {
@@ -179,8 +200,12 @@ const RenderDetails = ({ navigation, id }) => {
                         style={styles.profileImage}
                         source={cast.profile_path ? profilePicture : brandIcon}
                       />
-                      <Text style={styles.textName}>{cast.name}</Text>
-                      <Text style={styles.textCharacter}>{cast.character}</Text>
+                      <Text style={[styles.textName, themeTextStyle]}>
+                        {cast.name}
+                      </Text>
+                      <Text style={[styles.textCharacter, themeTextStyle]}>
+                        {cast.character}
+                      </Text>
                     </View>
                   );
                 })}
@@ -188,11 +213,10 @@ const RenderDetails = ({ navigation, id }) => {
             </ScrollView>
           </View>
           <View style={styles.moviesMain}>
-            <Text style={styles.moviesHeading}>
-              {' '}
+            <Text style={[styles.moviesHeading, themeTextStyle]}>
               {i18n.t('recommendations')}
             </Text>
-            <ScrollView horizontal={true} indicatorStyle={'white'}>
+            <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
               <View style={styles.moviesDiv}>
                 {movie.recommendations.results
                   .slice(0, 10)
@@ -215,7 +239,7 @@ const RenderDetails = ({ navigation, id }) => {
                               uri: `${basePosterUrl + movie.poster_path}`,
                             }}
                           />
-                          <Text style={styles.textRating}>
+                          <Text style={[styles.textRating, themeTextStyle]}>
                             <FontAwesome5
                               name={'star'}
                               solid
@@ -244,7 +268,6 @@ const deviceWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: backgroundColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -263,7 +286,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   title: {
-    color: 'white',
     marginTop: 30,
     marginBottom: 10,
     marginLeft: 22,
@@ -272,7 +294,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   overview: {
-    color: 'white',
     marginLeft: 22,
     marginRight: 22,
     fontSize: globalFontsize,
@@ -281,7 +302,6 @@ const styles = StyleSheet.create({
     lineHeight: 29,
   },
   genre: {
-    color: 'white',
     marginLeft: 22,
     marginRight: 22,
     fontSize: globalFontsize,
@@ -298,7 +318,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   rating: {
-    color: 'white',
     marginLeft: 22,
     fontSize: globalFontsize,
     fontWeight: normalFontWeight,
@@ -306,7 +325,6 @@ const styles = StyleSheet.create({
     marginBottom: globalPadding,
   },
   tagline: {
-    color: 'white',
     marginLeft: 22,
     opacity: 0.7,
     fontSize: 16,
@@ -335,23 +353,19 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   textName: {
-    color: 'white',
     fontWeight: 'bold',
     fontSize: 15,
   },
   textCharacter: {
     paddingTop: 8,
     fontSize: 12,
-    color: 'white',
   },
   castHeading: {
     fontSize: 18,
-    color: 'white',
     fontWeight: 'bold',
     paddingBottom: 20,
   },
   homepageButton: {
-    color: 'white',
     fontSize: 17,
     fontWeight: '600',
     backgroundColor: '#4a4b4d',
@@ -382,18 +396,27 @@ const styles = StyleSheet.create({
     width: deviceWidth / 4.5,
     height: deviceWidth / 3,
     marginBottom: 13,
-    // borderRadius: 50,
   },
   textRating: {
     paddingTop: 8,
     fontSize: 12,
-    color: 'white',
   },
   moviesHeading: {
     fontSize: 18,
-    color: 'white',
     fontWeight: 'bold',
     paddingBottom: 20,
+  },
+  lightContainer: {
+    backgroundColor: backgroundColorLight,
+  },
+  darkContainer: {
+    backgroundColor: backgroundColorDark,
+  },
+  lightThemeText: {
+    color: textColorLight,
+  },
+  darkThemeText: {
+    color: textColorDark,
   },
 });
 

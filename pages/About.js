@@ -1,14 +1,32 @@
 import React from 'react';
 import { Text, View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import { backgroundColor } from './Home';
 import Constants from 'expo-constants';
+import { useColorScheme } from 'react-native-appearance';
+import {
+  backgroundColorDark,
+  backgroundColorLight,
+  textColorDark,
+  textColorLight,
+} from '../colors/colors';
 
 const About = () => {
+  const colorScheme = useColorScheme();
+
+  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
+  const themeContainerStyle =
+    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
   let d = new Date();
   let year = d.getFullYear();
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={[styles.container, themeContainerStyle]}
+        indicatorStyle={scrollBarTheme}
+      >
         <ScrollView>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
@@ -18,10 +36,12 @@ const About = () => {
               <View style={styles.listElement}>
                 <View style={styles.iconElement}>
                   <View>
-                    <Text style={styles.text}>
+                    <Text style={[styles.text, themeTextStyle]}>
                       Copyright © {year} Daniel Djupvik
                     </Text>
-                    <Text style={styles.text}>All Rights Reserved.</Text>
+                    <Text style={[styles.text, themeTextStyle]}>
+                      All Rights Reserved.
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -30,7 +50,7 @@ const About = () => {
               <View style={styles.listElement}>
                 <View style={styles.iconElement}>
                   <View>
-                    <Text style={styles.text}>
+                    <Text style={[styles.text, themeTextStyle]}>
                       Version {Constants.manifest.version} (
                       {Constants.manifest.ios.buildNumber})
                     </Text>
@@ -48,7 +68,6 @@ const About = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: backgroundColor,
   },
   main: {
     width: '100%',
@@ -69,7 +88,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   text: {
-    color: 'white',
     fontSize: 16,
     paddingTop: 10,
     paddingBottom: 10,
@@ -91,6 +109,18 @@ const styles = StyleSheet.create({
   },
   touchableElem: {
     width: '100%',
+  },
+  lightContainer: {
+    backgroundColor: backgroundColorLight,
+  },
+  darkContainer: {
+    backgroundColor: backgroundColorDark,
+  },
+  lightThemeText: {
+    color: textColorLight,
+  },
+  darkThemeText: {
+    color: textColorDark,
   },
 });
 

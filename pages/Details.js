@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { detailsMovieUrl, apiKey } from '../settings/api';
-import axios from 'axios';
+import React from 'react';
 import RenderDetails from '../components/RenderDetails';
 
 const Details = ({ route, navigation }) => {
