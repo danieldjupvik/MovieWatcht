@@ -81,7 +81,8 @@ export default function App() {
             <Stack.Screen
               name='About'
               component={About}
-              options={{
+              options={({ route }) => ({
+                title: route.params.headerTitle,
                 headerBackTitle: i18n.t('back'),
                 headerStyle: {
                   backgroundColor: themeContainerStyle,
@@ -89,12 +90,13 @@ export default function App() {
                 },
                 headerTransparent: false,
                 headerTintColor: themeHeaderTintColor,
-              }}
+              })}
             />
             <Stack.Screen
               name='Login'
               component={Login}
-              options={{
+              options={({ route }) => ({
+                title: route.params.headerTitle,
                 headerBackTitle: i18n.t('back'),
                 headerStyle: {
                   backgroundColor: themeContainerStyle,
@@ -102,7 +104,7 @@ export default function App() {
                 },
                 headerTransparent: false,
                 headerTintColor: themeHeaderTintColor,
-              }}
+              })}
             />
           </Stack.Navigator>
         </NavigationContainer>

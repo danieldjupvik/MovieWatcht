@@ -5,11 +5,11 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
-  Image,
   SafeAreaView,
   TouchableWithoutFeedback,
   RefreshControl,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
@@ -31,6 +31,9 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import posterLoader from '../assets/poster-loader.jpg';
+import { Asset } from 'expo-asset';
+// import { Image } from 'react-native-expo-image-cache';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -47,6 +50,7 @@ const Home = ({ navigation }) => {
 
   const colorScheme = useColorScheme();
   const themeSearchbar = colorScheme === 'light' ? true : false;
+  const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -75,9 +79,7 @@ const Home = ({ navigation }) => {
     } catch (e) {
       console.log(e);
     } finally {
-      setTimeout(() => {
-        setLoader(false);
-      }, 800);
+      setLoader(false);
     }
   };
 
@@ -104,17 +106,15 @@ const Home = ({ navigation }) => {
     setLoader(true);
     setHeading(i18n.t('popular'));
     setPageDescription(i18n.t('popularDescription'));
+    setBtnSelected(1);
     try {
       const response = await axios.get(`${baseUrl}`);
       setMovies(response.data.results);
-      setBtnSelected(1);
       setRefreshing(false);
     } catch (e) {
       console.log(e);
     } finally {
-      setTimeout(() => {
-        setLoader(false);
-      }, 800);
+      setLoader(false);
     }
   };
 
@@ -122,17 +122,15 @@ const Home = ({ navigation }) => {
     setLoader(true);
     setHeading(i18n.t('topRated'));
     setPageDescription(i18n.t('topRatedDescription'));
+    setBtnSelected(2);
     try {
       const response = await axios.get(`${topRatedMovieUrl}`);
       setMovies(response.data.results);
-      setBtnSelected(2);
       setRefreshing(false);
     } catch (e) {
       console.log(e);
     } finally {
-      setTimeout(() => {
-        setLoader(false);
-      }, 800);
+      setLoader(false);
     }
   };
 
@@ -140,37 +138,17 @@ const Home = ({ navigation }) => {
     setLoader(true);
     setHeading(i18n.t('upcoming'));
     setPageDescription(i18n.t('upcomingDescription'));
+    setBtnSelected(3);
     try {
       const response = await axios.get(`${upcomingMovieUrl}`);
       setMovies(response.data.results);
-      setBtnSelected(3);
       setRefreshing(false);
     } catch (e) {
       console.log(e);
     } finally {
-      setTimeout(() => {
-        setLoader(false);
-      }, 800);
+      setLoader(false);
     }
   };
-
-  // const getNowPlaying = async () => {
-  //   setLoader(true);
-  //   setHeading('Now Playing');
-  //   setPageDescription('Movies playing right now');
-  //   try {
-  //     const response = await axios.get(`${nowPlayingUrl}`);
-  //     setMovies(response.data.results);
-  //     setBtnSelected(4);
-  //     setRefreshing(false);
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setTimeout(() => {
-  //       setLoader(false);
-  //     }, 800);
-  //   }
-  // };
 
   function onRefresh() {
     setRefreshing(true);
@@ -191,16 +169,20 @@ const Home = ({ navigation }) => {
         <SearchBar
           placeholder={i18n.t('search')}
           onChangeText={(text) => handleSearch(text)}
-          round={true}
           lightTheme={themeSearchbar}
           containerStyle={{
             backgroundColor: 'transparent',
+            paddingLeft: 0,
+            paddingRight: 0,
             width: '90%',
             paddingBottom: 30,
             borderTopColor: 'transparent',
             borderBottomColor: 'transparent',
           }}
-          style={{ height: -10 }}
+          searchIcon={{ size: 25, color: searchBarTheme }}
+          placeholderTextColor={searchBarTheme}
+          inputStyle={{ color: searchBarTheme }}
+          round
           value={search}
         />
         <Text style={[styles.heading, themeTextStyle]}>{heading}</Text>
@@ -244,6 +226,8 @@ const Home = ({ navigation }) => {
                           }}
                           style={styles.image}
                           resizeMode='contain'
+                          defaultSource={posterLoader}
+                          ImageCacheEnum={'force-cache'}
                         />
                         <Text style={[styles.rating, themeTextStyle]}>
                           {iconStar} {movie.vote_average}/10
@@ -259,7 +243,10 @@ const Home = ({ navigation }) => {
         </ScrollView>
       </SafeAreaView>
       <BlurView tint={themeTabBar} intensity={100} style={styles.navbar}>
-        <TouchableWithoutFeedback onPress={getPopular}>
+        <TouchableWithoutFeedback
+          onPress={getPopular}
+          disabled={btnSelected === 1 ? true : false}
+        >
           <View style={styles.navbarButton}>
             <Text>
               <FontAwesome5
@@ -281,7 +268,10 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={getTopRated}>
+        <TouchableWithoutFeedback
+          onPress={getTopRated}
+          disabled={btnSelected === 2 ? true : false}
+        >
           <View style={styles.navbarButton}>
             <Text>
               <FontAwesome5
@@ -303,7 +293,10 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={getUpcoming}>
+        <TouchableWithoutFeedback
+          onPress={getUpcoming}
+          disabled={btnSelected === 3 ? true : false}
+        >
           <View style={styles.navbarButton}>
             <Text>
               {' '}
@@ -326,29 +319,6 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         </TouchableWithoutFeedback>
-        {/* <TouchableWithoutFeedback onPress={getNowPlaying}>
-          <View style={styles.navbarButton}>
-            <Text>
-              {' '}
-              <FontAwesome5
-                name={'play'}
-                solid
-                style={
-                  btnSelected === 4 ? styles.isActiveIcon : styles.notActiveIcon
-                }
-              />
-            </Text>
-            <Text
-              style={
-                btnSelected === 4
-                  ? styles.isActiveNavbarText
-                  : styles.notActiveNavbarText
-              }
-            >
-              Now Playing
-            </Text>
-          </View>
-        </TouchableWithoutFeedback> */}
         <TouchableWithoutFeedback
           onPress={() =>
             navigation.navigate('Settings', {

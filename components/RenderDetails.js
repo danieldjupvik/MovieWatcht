@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { detailsMovieUrl, apiKey, basePosterUrl } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { textColor } from '../pages/Home';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from 'i18n-js';
@@ -26,6 +25,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import posterLoader from '../assets/poster-loader.jpg';
 
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
@@ -37,6 +37,10 @@ const RenderDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+  const themeBtnBackground =
+    colorScheme === 'light'
+      ? styles.lightThemeBtnBackground
+      : styles.darkThemeBtnBackground;
 
   useEffect(() => {
     const getMovie = async () => {
@@ -53,9 +57,7 @@ const RenderDetails = ({ navigation, id }) => {
       } catch (e) {
         console.log(e);
       } finally {
-        setTimeout(() => {
-          setLoader(false);
-        }, 500);
+        setLoader(false);
       }
     };
     getMovie();
@@ -118,6 +120,8 @@ const RenderDetails = ({ navigation, id }) => {
               }}
               style={styles.backdrop}
               blurRadius={4}
+              defaultSource={posterLoader}
+              ImageCacheEnum={'force-cache'}
             >
               <View style={styles.child} />
             </ImageBackground>
@@ -125,6 +129,8 @@ const RenderDetails = ({ navigation, id }) => {
               source={{
                 uri: `${basePosterUrl + movie.poster_path}`,
               }}
+              defaultSource={posterLoader}
+              ImageCacheEnum={'force-cache'}
               style={styles.posterImg}
             />
             <Text style={[styles.title, themeTextStyle]}>
@@ -173,7 +179,13 @@ const RenderDetails = ({ navigation, id }) => {
                   style={styles.homepageButtonDiv}
                   onPress={goToWebsite}
                 >
-                  <Text style={styles.homepageButton}>
+                  <Text
+                    style={[
+                      styles.homepageButton,
+                      themeTextStyle,
+                      themeBtnBackground,
+                    ]}
+                  >
                     {i18n.t('homepage')}
                   </Text>
                 </TouchableOpacity>
@@ -198,7 +210,11 @@ const RenderDetails = ({ navigation, id }) => {
                     <View style={styles.castCard} key={idx}>
                       <Image
                         style={styles.profileImage}
-                        source={cast.profile_path ? profilePicture : brandIcon}
+                        source={
+                          cast.profile_path ? profilePicture : posterLoader
+                        }
+                        // defaultSource={posterLoader}
+                        ImageCacheEnum={'force-cache'}
                       />
                       <Text style={[styles.textName, themeTextStyle]}>
                         {cast.name}
@@ -227,7 +243,7 @@ const RenderDetails = ({ navigation, id }) => {
                           style={styles.moviesCard}
                           key={idx}
                           onPress={() =>
-                            navigation.replace('Details', {
+                            navigation.push('Details', {
                               id: movie.id,
                               headerTitle: movie.title,
                             })
@@ -238,6 +254,8 @@ const RenderDetails = ({ navigation, id }) => {
                             source={{
                               uri: `${basePosterUrl + movie.poster_path}`,
                             }}
+                            // defaultSource={posterLoader}
+                            ImageCacheEnum={'force-cache'}
                           />
                           <Text style={[styles.textRating, themeTextStyle]}>
                             <FontAwesome5
@@ -262,7 +280,7 @@ const RenderDetails = ({ navigation, id }) => {
 
 const globalFontsize = 19;
 const globalPadding = 5;
-const normalFontWeight = '300';
+const normalFontWeight = '400';
 const deviceWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
@@ -330,7 +348,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   category: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   castMain: {
     marginTop: 25 + globalPadding,
@@ -368,7 +386,6 @@ const styles = StyleSheet.create({
   homepageButton: {
     fontSize: 17,
     fontWeight: '600',
-    backgroundColor: '#4a4b4d',
     padding: 8,
   },
   homepageButtonMain: {
@@ -417,6 +434,12 @@ const styles = StyleSheet.create({
   },
   darkThemeText: {
     color: textColorDark,
+  },
+  lightThemeBtnBackground: {
+    backgroundColor: 'lightgrey',
+  },
+  darkThemeBtnBackground: {
+    backgroundColor: '#4a4b4d',
   },
 });
 

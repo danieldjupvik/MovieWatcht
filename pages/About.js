@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import Constants from 'expo-constants';
 import { useColorScheme } from 'react-native-appearance';
+import i18n from 'i18n-js';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -30,7 +31,7 @@ const About = () => {
         <ScrollView>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
-              <Text style={styles.listHeading}>About this app</Text>
+              <Text style={styles.listHeading}>{i18n.t('aboutThisApp')}</Text>
             </View>
             <View style={styles.touchableElem}>
               <View style={styles.listElement}>
@@ -40,7 +41,7 @@ const About = () => {
                       Copyright © {year} Daniel Djupvik
                     </Text>
                     <Text style={[styles.text, themeTextStyle]}>
-                      All Rights Reserved.
+                      {i18n.t('allRightsReserved')}
                     </Text>
                   </View>
                 </View>
@@ -51,7 +52,7 @@ const About = () => {
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      Version {Constants.manifest.version} (
+                      {i18n.t('version')} {Constants.manifest.version} (
                       {Constants.manifest.ios.buildNumber})
                     </Text>
                   </View>

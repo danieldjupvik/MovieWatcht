@@ -22,5 +22,8 @@
   "recommendations": "Recommendations",
   "back": "Back",
   "hour": " hr ",
-  "hours": " hrs "
+  "hours": " hrs ",
+  "aboutThisApp": "About this app",
+  "allRightsReserved": "All Rights Reserved.",
+  "version": "Version"
 }

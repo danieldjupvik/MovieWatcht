@@ -33,7 +33,11 @@ const Settings = ({ navigation }) => {
             </View>
             <TouchableWithoutFeedback
               style={styles.touchableElem}
-              onPress={() => navigation.navigate('About')}
+              onPress={() =>
+                navigation.navigate('About', {
+                  headerTitle: i18n.t('about'),
+                })
+              }
             >
               <View style={styles.listElement}>
                 <View style={styles.iconElement}>
@@ -61,7 +65,11 @@ const Settings = ({ navigation }) => {
               </View>
             </TouchableWithoutFeedback>
             <TouchableWithoutFeedback
-              onPress={() => navigation.navigate('Login')}
+              onPress={() =>
+                navigation.navigate('Login', {
+                  headerTitle: i18n.t('login'),
+                })
+              }
             >
               <View style={styles.listElement}>
                 <View style={styles.iconElement}>
