@@ -25,7 +25,7 @@ const Login = () => {
       <SafeAreaView style={[styles.container, themeContainerStyle]}>
         <View style={styles.main}>
           <Text style={[{ color: 'white', fontSize: 25 }, themeTextStyle]}>
-            Login page coming soon!
+            Coming soon!
           </Text>
         </View>
       </SafeAreaView>
