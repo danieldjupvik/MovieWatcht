@@ -184,59 +184,6 @@ const upcoming = ({ navigation }) => {
           <View style={styles.view}></View>
         </ScrollView>
       </SafeAreaView>
-      <BlurView tint={themeTabBar} intensity={100} style={styles.navbar}>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            navigation.replace('Home');
-          }}
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5 name={'fire'} solid style={styles.notActiveIcon} />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('popular')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            navigation.replace('topRated');
-          }}
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5 name={'medal'} solid style={styles.notActiveIcon} />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('topRated')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <View>
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5
-                name={'newspaper'}
-                solid
-                style={styles.isActiveIcon}
-              />
-            </Text>
-            <Text style={styles.isActiveNavbarText}>{i18n.t('upcoming')}</Text>
-          </View>
-        </View>
-        <TouchableWithoutFeedback
-          onPress={() =>
-            navigation.navigate('Settings', {
-              headerTitle: i18n.t('settings'),
-            })
-          }
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              {' '}
-              <FontAwesome5 name={'cogs'} solid style={styles.notActiveIcon} />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('settings')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-      </BlurView>
     </>
   );
 };

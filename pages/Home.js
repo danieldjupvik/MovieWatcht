@@ -194,59 +194,6 @@ const Home = ({ navigation }) => {
           <View style={styles.view}></View>
         </ScrollView>
       </SafeAreaView>
-      <BlurView tint={themeTabBar} intensity={100} style={styles.navbar}>
-        <View>
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5 name={'fire'} solid style={styles.isActiveIcon} />
-            </Text>
-            <Text style={styles.isActiveNavbarText}>{i18n.t('popular')}</Text>
-          </View>
-        </View>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            navigation.replace('topRated');
-          }}
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5 name={'medal'} solid style={styles.notActiveIcon} />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('topRated')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            navigation.replace('upcoming');
-          }}
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              <FontAwesome5
-                name={'newspaper'}
-                solid
-                style={styles.notActiveIcon}
-              />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('upcoming')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={() =>
-            navigation.navigate('Settings', {
-              headerTitle: i18n.t('settings'),
-            })
-          }
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              {' '}
-              <FontAwesome5 name={'cogs'} solid style={styles.notActiveIcon} />
-            </Text>
-            <Text style={styles.notActiveNavbarText}>{i18n.t('settings')}</Text>
-          </View>
-        </TouchableWithoutFeedback>
-      </BlurView>
     </>
   );
 };
@@ -265,10 +212,10 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   view: {
-    height: 85,
+    height: 75,
   },
   scrollView: {
-    marginHorizontal: 20,
+    // marginHorizontal: 20,
     height: '100%',
     width: '100%',
   },
@@ -295,47 +242,6 @@ export const styles = StyleSheet.create({
   },
   rating: {
     marginTop: 8,
-  },
-  navbar: {
-    width: '100%',
-    height: 85,
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 15 : 0,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navbarButton: {
-    justifyContent: 'center',
-    marginLeft: 10,
-    marginRight: 10,
-    textAlign: 'center',
-    alignItems: 'center',
-  },
-
-  isActiveNavbarText: {
-    color: 'red',
-    fontSize: 11,
-    marginTop: 8,
-    fontWeight: 'bold',
-  },
-  notActiveNavbarText: {
-    color: 'grey',
-    fontSize: 11,
-    marginTop: 8,
-    fontWeight: 'bold',
-  },
-  isActiveIcon: {
-    color: 'red',
-    fontSize: 21,
-  },
-  notActiveIcon: {
-    color: 'grey',
-    fontSize: 21,
   },
   description: {
     fontSize: 15,
