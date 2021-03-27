@@ -270,7 +270,7 @@ export default function App() {
       );
     } else {
       return (
-        <View style={[styles.navbar, themeContainerStyle]}>
+        <View style={[styles.androidNavBar, themeContainerStyle]}>
           <BottomTabBar {...props} />
         </View>
       );
