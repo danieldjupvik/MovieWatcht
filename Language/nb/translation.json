@@ -25,5 +25,12 @@
   "hours": " t ",
   "aboutThisApp": "Om denne appen",
   "allRightsReserved": "Alle rettigheter er forbeholdt.",
-  "version": "Versjon"
+  "version": "Versjon",
+  "birthday": "Fødselsdag",
+  "deathday": "Dødsdag",
+  "gender": "Kjønn",
+  "female": "Kvinne",
+  "male": "Mann",
+  "birthPlace": "Fødselssted",
+  "knownFor": "Kjent for"
 }

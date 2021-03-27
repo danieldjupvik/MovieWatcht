@@ -10,11 +10,11 @@ import {
   ImageBackground,
 } from 'react-native';
 import {
-  detailsMovieUrl,
+  baseBackdropUrl,
   apiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseProfileUrl,
+  personUrl,
+  creditPerson,
 } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Loader from '../components/Loader';
@@ -32,26 +32,18 @@ import {
   textColorLight,
 } from '../colors/colors';
 import posterLoader from '../assets/poster-loader.jpg';
+import { monthNames } from '../components/RenderDetails';
 
-export const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-const RenderDetails = ({ navigation, id }) => {
+const PersonDetails = ({ route, navigation }) => {
+  const { id } = route.params;
+  const { creditId } = route.params;
+
   const [loader, setLoader] = useState(true);
-  const [movie, setMovie] = useState([]);
+  const [person, setPerson] = useState([]);
+  const [personCredit, setPersonCredit] = useState([]);
 
   const colorScheme = useColorScheme();
+
   const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -63,56 +55,48 @@ const RenderDetails = ({ navigation, id }) => {
       : styles.darkThemeBtnBackground;
 
   useEffect(() => {
-    const getMovie = async () => {
+    const getPerson = async () => {
       try {
-        const response = await axios.get(
-          `${
-            detailsMovieUrl +
-            id +
-            apiKey +
-            '&append_to_response=credits,recommendations'
-          }`
-        );
-        setMovie(response.data);
+        const response = await axios.get(`${personUrl + id + apiKey}`);
+        setPerson(response.data);
       } catch (e) {
         console.log(e);
       } finally {
         setLoader(false);
       }
     };
-    getMovie();
-  }, [id]);
+    getPerson();
+  }, []);
 
-  var d = new Date(movie.release_date);
+  useEffect(() => {
+    const getCreditPerson = async () => {
+      try {
+        const response = await axios.get(`${creditPerson + creditId + apiKey}`);
+        setPersonCredit(response.data);
+        console.log(response.data.media);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoader(false);
+      }
+    };
+    getCreditPerson();
+  }, []);
 
-  var year = d.getFullYear();
-  var month = monthNames[d.getMonth()];
-  var day = d.getDate();
-  var releaseDate = `${day}. ${month} ${year}`;
+  var dBirthday = new Date(person.birthday);
+  var year = dBirthday.getFullYear();
+  var month = monthNames[dBirthday.getMonth()];
+  var day = dBirthday.getDate();
+  var birthday = `${day}. ${month} ${year}`;
 
-  let runtime = timeConvert(movie.runtime);
-  function timeConvert(num) {
-    var hours = num / 60;
-    var rhours = Math.floor(hours);
-    var minutes = (hours - rhours) * 60;
-    var rminutes = Math.round(minutes);
-    let hourNaming = i18n.t('hour');
-    if (rhours > 1) {
-      hourNaming = i18n.t('hours');
-    }
-    return rhours + hourNaming + rminutes + ' min';
-  }
-
-  const iconStar = (
-    <FontAwesome5
-      name={'star'}
-      solid
-      style={{ color: 'red', fontSize: globalFontsize }}
-    />
-  );
+  var dDeathday = new Date(person.birthday);
+  var year = dDeathday.getFullYear();
+  var month = monthNames[dDeathday.getMonth()];
+  var day = dDeathday.getDate();
+  var deathday = `${day}. ${month} ${year}`;
 
   const goToWebsite = () => {
-    WebBrowser.openBrowserAsync(movie.homepage);
+    WebBrowser.openBrowserAsync(person.homepage);
   };
 
   return (
@@ -124,10 +108,10 @@ const RenderDetails = ({ navigation, id }) => {
           <View style={styles.main}>
             <ImageBackground
               source={{
-                uri: `${baseBackdropUrl + movie.backdrop_path}`,
+                uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
               }}
               style={styles.backdrop}
-              blurRadius={2}
+              blurRadius={4}
               defaultSource={posterLoader}
               ImageCacheEnum={'force-cache'}
             >
@@ -135,53 +119,39 @@ const RenderDetails = ({ navigation, id }) => {
             </ImageBackground>
             <Image
               source={{
-                uri: `${basePosterUrl + movie.poster_path}`,
+                uri: `${basePosterUrl + person.profile_path}`,
               }}
               defaultSource={posterLoader}
               ImageCacheEnum={'force-cache'}
               style={styles.posterImg}
             />
-            <Text style={[styles.title, themeTextStyle]}>
-              {movie.title} <Text>({year})</Text>
+            <Text style={[styles.title, styles.runtime, themeTextStyle]}>
+              {person.name}
             </Text>
-            {movie.tagline ? (
-              <Text style={[styles.tagline, themeTextStyle]}>
-                {movie.tagline}
-              </Text>
-            ) : null}
-            <Text style={[styles.rating, themeTextStyle]}>
-              {iconStar} {movie.vote_average}/10 ({movie.vote_count}{' '}
-              {i18n.t('votes')})
-            </Text>
+
             <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
-              {releaseDate}
+              <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
+              {birthday}
             </Text>
-            <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('runtime')}</Text> {runtime}
-            </Text>
-            <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-              {movie.status}
-            </Text>
-            {movie.budget !== 0 ? (
+
+            {person.deathday ? (
               <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('budget')}</Text> $
-                {movie.budget.toLocaleString()}
-              </Text>
-            ) : null}
-            {movie.revenue !== 0 ? (
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('revenue')}</Text> $
-                {movie.revenue.toLocaleString()}
+                <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
+                {deathday}
               </Text>
             ) : null}
 
             <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
-              {movie.genres?.map((genre) => genre.name + ' ')}
+              <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
+              {person.gender === 1 ? i18n.t('female') : i18n.t('male')}
             </Text>
-            {movie.homepage ? (
+
+            <Text style={[styles.genre, themeTextStyle]}>
+              <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
+              {person.place_of_birth}
+            </Text>
+
+            {person.homepage ? (
               <View style={styles.homepageButtonMain}>
                 <TouchableOpacity
                   style={styles.homepageButtonDiv}
@@ -199,92 +169,49 @@ const RenderDetails = ({ navigation, id }) => {
                 </TouchableOpacity>
               </View>
             ) : null}
-            <Text style={[styles.overview, themeTextStyle]}>
-              {movie.overview}
+            <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
+              {person.biography}
             </Text>
           </View>
-          <View style={styles.castMain}>
-            <Text style={[styles.castHeading, themeTextStyle]}>
-              {i18n.t('cast')}
-            </Text>
-            <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
-              <View style={styles.castDiv}>
-                {movie.credits.cast.slice(0, 10).map((cast, idx) => {
-                  const profilePicture = {
-                    uri: `${baseProfileUrl + cast.profile_path}`,
-                  };
-                  return (
-                    <TouchableOpacity
-                      key={idx}
-                      onPress={() =>
-                        navigation.push('PersonDetails', {
-                          id: cast.id,
-                          creditId: cast.credit_id,
-                          headerTitle: cast.name,
-                        })
-                      }
-                    >
-                      <View style={styles.castCard}>
-                        <Image
-                          style={styles.profileImage}
-                          source={
-                            cast.profile_path ? profilePicture : posterLoader
-                          }
-                          ImageCacheEnum={'force-cache'}
-                        />
-                        <Text style={[styles.textName, themeTextStyle]}>
-                          {cast.name}
-                        </Text>
-                        <Text style={[styles.textCharacter, themeTextStyle]}>
-                          {cast.character}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          </View>
+
           <View style={styles.moviesMain}>
             <Text style={[styles.moviesHeading, themeTextStyle]}>
-              {i18n.t('recommendations')}
+              {i18n.t('knownFor')}
             </Text>
             <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
               <View style={styles.moviesDiv}>
-                {movie.recommendations.results
-                  .slice(0, 10)
-                  .map((movie, idx) => {
-                    if (movie.poster_path !== null) {
-                      return (
-                        <TouchableOpacity
-                          style={styles.moviesCard}
-                          key={idx}
-                          onPress={() =>
-                            navigation.push('Details', {
-                              id: movie.id,
-                              headerTitle: movie.title,
-                            })
-                          }
-                        >
-                          <Image
-                            style={styles.posterImage}
-                            source={{
-                              uri: `${basePosterUrl + movie.poster_path}`,
-                            }}
-                            ImageCacheEnum={'force-cache'}
-                          />
-                          <Text style={[styles.textRating, themeTextStyle]}>
-                            <FontAwesome5
-                              name={'star'}
-                              solid
-                              style={{ color: 'red', fontSize: 13 }}
-                            />{' '}
-                            {movie.vote_average}/10
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    }
-                  })}
+                {personCredit.person?.known_for.map((movie, idx) => {
+                  if (movie.poster_path !== null) {
+                    return (
+                      <TouchableOpacity
+                        style={styles.moviesCard}
+                        key={idx}
+                        onPress={() =>
+                          navigation.push('Details', {
+                            id: movie.id,
+                            headerTitle: movie.title,
+                          })
+                        }
+                      >
+                        <Image
+                          style={styles.posterImage}
+                          source={{
+                            uri: `${basePosterUrl + movie.poster_path}`,
+                          }}
+                          ImageCacheEnum={'force-cache'}
+                        />
+                        <Text style={[styles.textRating, themeTextStyle]}>
+                          <FontAwesome5
+                            name={'star'}
+                            solid
+                            style={{ color: 'red', fontSize: 13 }}
+                          />{' '}
+                          {movie.vote_average}/10
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }
+                })}
               </View>
             </ScrollView>
           </View>
@@ -294,7 +221,7 @@ const RenderDetails = ({ navigation, id }) => {
   );
 };
 
-const globalFontsize = 19;
+const globalFontsize = 16;
 const globalPadding = 5;
 const normalFontWeight = '400';
 const deviceWidth = Dimensions.get('window').width;
@@ -459,4 +386,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RenderDetails;
+export default PersonDetails;

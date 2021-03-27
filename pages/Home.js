@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,8 @@ import {
   RefreshControl,
   Dimensions,
   Image,
+  Platform,
+  Animated,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
@@ -32,8 +34,6 @@ import {
   textColorLight,
 } from '../colors/colors';
 import posterLoader from '../assets/poster-loader.jpg';
-import { Asset } from 'expo-asset';
-// import { Image } from 'react-native-expo-image-cache';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -41,12 +41,8 @@ const Home = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
-  const [heading, setHeading] = useState(i18n.t('popular'));
-  const [pageDescription, setPageDescription] = useState(
-    i18n.t('popularDescription')
-  );
-  const [btnSelected, setBtnSelected] = useState(1);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshIndicator, setRefreshIndicator] = useState(true);
 
   const colorScheme = useColorScheme();
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -58,18 +54,26 @@ const Home = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
+    setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(`${baseUrl}`);
         setMovies(response.data.results);
+        setRefreshing(false);
+        setLoader(false);
+        console.log('fresh update');
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
       }
     };
     getMovies();
-  }, []);
+  }, [refreshIndicator]);
+
+  function onRefresh() {
+    setRefreshing(true);
+    setRefreshIndicator(!refreshIndicator);
+  }
 
   const getSearch = async (title) => {
     setLoader(true);
@@ -90,78 +94,18 @@ const Home = ({ navigation }) => {
     if (inputValue.length >= 1) {
       getSearch(title);
     } else {
-      if (heading === i18n.t('popular')) {
-        getPopular();
-      }
-      if (heading === i18n.t('topRated')) {
-        getTopRated();
-      }
-      if (heading === i18n.t('upcoming')) {
-        getUpcoming();
-      }
+      setRefreshIndicator(!refreshIndicator);
     }
   }
 
-  const getPopular = async () => {
-    setLoader(true);
-    setHeading(i18n.t('popular'));
-    setPageDescription(i18n.t('popularDescription'));
-    setBtnSelected(1);
-    try {
-      const response = await axios.get(`${baseUrl}`);
-      setMovies(response.data.results);
-      setRefreshing(false);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoader(false);
-    }
-  };
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const getTopRated = async () => {
-    setLoader(true);
-    setHeading(i18n.t('topRated'));
-    setPageDescription(i18n.t('topRatedDescription'));
-    setBtnSelected(2);
-    try {
-      const response = await axios.get(`${topRatedMovieUrl}`);
-      setMovies(response.data.results);
-      setRefreshing(false);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoader(false);
-    }
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
-
-  const getUpcoming = async () => {
-    setLoader(true);
-    setHeading(i18n.t('upcoming'));
-    setPageDescription(i18n.t('upcomingDescription'));
-    setBtnSelected(3);
-    try {
-      const response = await axios.get(`${upcomingMovieUrl}`);
-      setMovies(response.data.results);
-      setRefreshing(false);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoader(false);
-    }
-  };
-
-  function onRefresh() {
-    setRefreshing(true);
-    if (heading === i18n.t('popular')) {
-      getPopular();
-    }
-    if (heading === i18n.t('topRated')) {
-      getTopRated();
-    }
-    if (heading === i18n.t('upcoming')) {
-      getUpcoming();
-    }
-  }
 
   return (
     <>
@@ -185,9 +129,11 @@ const Home = ({ navigation }) => {
           round
           value={search}
         />
-        <Text style={[styles.heading, themeTextStyle]}>{heading}</Text>
+        <Text style={[styles.heading, themeTextStyle]}>
+          {i18n.t('popular')}
+        </Text>
         <Text style={[styles.description, themeTextStyle]}>
-          {pageDescription}
+          {i18n.t('popularDescription')}
         </Text>
         <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
@@ -220,14 +166,20 @@ const Home = ({ navigation }) => {
                           })
                         }
                       >
-                        <Image
+                        <Animated.Image
                           source={{
                             uri: `${basePosterUrl + movie.poster_path}`,
                           }}
-                          style={styles.image}
+                          style={[
+                            styles.image,
+                            {
+                              opacity: fadeAnim,
+                            },
+                          ]}
                           resizeMode='contain'
                           defaultSource={posterLoader}
                           ImageCacheEnum={'force-cache'}
+                          onLoad={fadeIn}
                         />
                         <Text style={[styles.rating, themeTextStyle]}>
                           {iconStar} {movie.vote_average}/10
@@ -243,80 +195,40 @@ const Home = ({ navigation }) => {
         </ScrollView>
       </SafeAreaView>
       <BlurView tint={themeTabBar} intensity={100} style={styles.navbar}>
+        <View>
+          <View style={styles.navbarButton}>
+            <Text>
+              <FontAwesome5 name={'fire'} solid style={styles.isActiveIcon} />
+            </Text>
+            <Text style={styles.isActiveNavbarText}>{i18n.t('popular')}</Text>
+          </View>
+        </View>
         <TouchableWithoutFeedback
-          onPress={getPopular}
-          disabled={btnSelected === 1 ? true : false}
+          onPress={() => {
+            navigation.replace('topRated');
+          }}
         >
           <View style={styles.navbarButton}>
             <Text>
-              <FontAwesome5
-                name={'fire'}
-                solid
-                style={
-                  btnSelected === 1 ? styles.isActiveIcon : styles.notActiveIcon
-                }
-              />
+              <FontAwesome5 name={'medal'} solid style={styles.notActiveIcon} />
             </Text>
-            <Text
-              style={
-                btnSelected === 1
-                  ? styles.isActiveNavbarText
-                  : styles.notActiveNavbarText
-              }
-            >
-              {i18n.t('popular')}
-            </Text>
+            <Text style={styles.notActiveNavbarText}>{i18n.t('topRated')}</Text>
           </View>
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback
-          onPress={getTopRated}
-          disabled={btnSelected === 2 ? true : false}
+          onPress={() => {
+            navigation.replace('upcoming');
+          }}
         >
           <View style={styles.navbarButton}>
             <Text>
-              <FontAwesome5
-                name={'medal'}
-                solid
-                style={
-                  btnSelected === 2 ? styles.isActiveIcon : styles.notActiveIcon
-                }
-              />
-            </Text>
-            <Text
-              style={
-                btnSelected === 2
-                  ? styles.isActiveNavbarText
-                  : styles.notActiveNavbarText
-              }
-            >
-              {i18n.t('topRated')}
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={getUpcoming}
-          disabled={btnSelected === 3 ? true : false}
-        >
-          <View style={styles.navbarButton}>
-            <Text>
-              {' '}
               <FontAwesome5
                 name={'newspaper'}
                 solid
-                style={
-                  btnSelected === 3 ? styles.isActiveIcon : styles.notActiveIcon
-                }
+                style={styles.notActiveIcon}
               />
             </Text>
-            <Text
-              style={
-                btnSelected === 3
-                  ? styles.isActiveNavbarText
-                  : styles.notActiveNavbarText
-              }
-            >
-              {i18n.t('upcoming')}
-            </Text>
+            <Text style={styles.notActiveNavbarText}>{i18n.t('upcoming')}</Text>
           </View>
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback
@@ -329,23 +241,9 @@ const Home = ({ navigation }) => {
           <View style={styles.navbarButton}>
             <Text>
               {' '}
-              <FontAwesome5
-                name={'cogs'}
-                solid
-                style={
-                  btnSelected === 5 ? styles.isActiveIcon : styles.notActiveIcon
-                }
-              />
+              <FontAwesome5 name={'cogs'} solid style={styles.notActiveIcon} />
             </Text>
-            <Text
-              style={
-                btnSelected === 5
-                  ? styles.isActiveNavbarText
-                  : styles.notActiveNavbarText
-              }
-            >
-              {i18n.t('settings')}
-            </Text>
+            <Text style={styles.notActiveNavbarText}>{i18n.t('settings')}</Text>
           </View>
         </TouchableWithoutFeedback>
       </BlurView>
@@ -356,7 +254,7 @@ const Home = ({ navigation }) => {
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -387,12 +285,13 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: deviceHeight / 5,
+    height: deviceWidth / 2.23,
   },
   cards: {
     width: deviceWidth / 3,
-    height: deviceHeight / 4,
+    height: deviceWidth / 2,
     alignItems: 'center',
+    marginBottom: 20,
   },
   rating: {
     marginTop: 8,
@@ -403,7 +302,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-around',
-    paddingBottom: 10,
+    alignItems: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 15 : 0,
     position: 'absolute',
     bottom: 0,
     left: 0,

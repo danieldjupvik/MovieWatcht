@@ -17,12 +17,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
-      "buildNumber": "1.0.8",
+      "buildNumber": "1.0.9",
       "userInterfaceStyle": "automatic"
     },
     "android": {
       "package": "com.danieldjupvik.MovieWatcht",
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1D1C"

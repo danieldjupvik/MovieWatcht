@@ -8,6 +8,9 @@ import Details from './pages/Details';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import About from './pages/About';
+import TopRated from './pages/TopRated';
+import upcoming from './pages/Upcoming';
+import PersonDetails from './pages/PersonDetails';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
 import translationsEN from './language/en/translation.json';
@@ -48,11 +51,44 @@ export default function App() {
             <Stack.Screen
               name='Home'
               component={Home}
-              options={{ headerShown: false }}
+              options={{
+                headerShown: false,
+                animationEnabled: false,
+              }}
+            />
+            <Stack.Screen
+              name='topRated'
+              component={TopRated}
+              options={{
+                headerShown: false,
+                animationEnabled: false,
+              }}
+            />
+            <Stack.Screen
+              name='upcoming'
+              component={upcoming}
+              options={{
+                headerShown: false,
+                animationEnabled: false,
+              }}
             />
             <Stack.Screen
               name='Details'
               component={Details}
+              options={({ route }) => ({
+                title: route.params.headerTitle,
+                headerBackTitle: i18n.t('back'),
+                headerStyle: {
+                  backgroundColor: themeContainerStyle,
+                  shadowColor: 'transparent',
+                },
+                headerTransparent: false,
+                headerTintColor: themeHeaderTintColor,
+              })}
+            />
+            <Stack.Screen
+              name='PersonDetails'
+              component={PersonDetails}
               options={({ route }) => ({
                 title: route.params.headerTitle,
                 headerBackTitle: i18n.t('back'),

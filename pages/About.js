@@ -1,5 +1,12 @@
 import React from 'react';
-import { Text, View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import Constants from 'expo-constants';
 import { useColorScheme } from 'react-native-appearance';
 import i18n from 'i18n-js';
@@ -53,7 +60,10 @@ const About = () => {
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
                       {i18n.t('version')} {Constants.manifest.version} (
-                      {Constants.manifest.ios.buildNumber})
+                      {Platform.OS === 'ios'
+                        ? Constants.manifest.ios.buildNumber
+                        : Constants.manifest.android.versionCode}
+                      )
                     </Text>
                   </View>
                 </View>

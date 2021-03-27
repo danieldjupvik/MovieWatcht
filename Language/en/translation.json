@@ -25,5 +25,12 @@
   "hours": " hrs ",
   "aboutThisApp": "About this app",
   "allRightsReserved": "All Rights Reserved.",
-  "version": "Version"
+  "version": "Version",
+  "birthday": "Birthday",
+  "deathday": "Deathday",
+  "gender": "Gender",
+  "female": "Female",
+  "male": "Male",
+  "birthPlace": "Birth place",
+  "knownFor": "Known for"
 }
