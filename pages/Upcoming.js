@@ -31,8 +31,10 @@ const upcoming = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
+  const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
+  const [pageNumber, setPageNumber] = useState(1);
 
   const colorScheme = useColorScheme();
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -59,6 +61,22 @@ const upcoming = ({ navigation }) => {
     };
     getMovies();
   }, [refreshIndicator]);
+
+  const onBottomLoad = async () => {
+    setBottomLoader(true);
+    setPageNumber(pageNumber + 1);
+    try {
+      const response = await axios.get(
+        `${upcomingMovieUrl + `&page=${pageNumber}`}`
+      );
+
+      setMovies((movies) => [...movies, ...response.data.results]);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setBottomLoader(false);
+    }
+  };
 
   function onRefresh() {
     setRefreshing(true);
@@ -97,6 +115,18 @@ const upcoming = ({ navigation }) => {
     }).start();
   };
 
+  const isCloseToBottom = ({
+    layoutMeasurement,
+    contentOffset,
+    contentSize,
+  }) => {
+    const paddingToBottom = 150;
+    return (
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    );
+  };
+
   return (
     <>
       <SafeAreaView style={[styles.container, themeContainerStyle]}>
@@ -130,6 +160,12 @@ const upcoming = ({ navigation }) => {
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
           indicatorStyle={themeTabBar}
+          onScroll={({ nativeEvent }) => {
+            if (isCloseToBottom(nativeEvent)) {
+              onBottomLoad();
+            }
+          }}
+          scrollEventThrottle={400}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -143,11 +179,11 @@ const upcoming = ({ navigation }) => {
               <Loader loadingStyle={styles.loaderStyle} />
             ) : (
               <View style={styles.main}>
-                {movies.map((movie) => {
+                {movies.map((movie, idx) => {
                   if (movie.poster_path !== null) {
                     return (
                       <TouchableOpacity
-                        key={movie.id}
+                        key={idx}
                         style={styles.cards}
                         onPress={() =>
                           navigation.navigate('Details', {
@@ -181,6 +217,9 @@ const upcoming = ({ navigation }) => {
               </View>
             )}
           </View>
+          {bottomLoader ? (
+            <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
+          ) : null}
           <View style={styles.view}></View>
         </ScrollView>
       </SafeAreaView>
