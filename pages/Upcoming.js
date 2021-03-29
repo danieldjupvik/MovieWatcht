@@ -34,7 +34,7 @@ const upcoming = ({ navigation }) => {
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
-  const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useState(2);
 
   const colorScheme = useColorScheme();
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -49,10 +49,9 @@ const upcoming = ({ navigation }) => {
     setLoader(true);
     const getMovies = async () => {
       try {
-        const response = await axios.get(`${upcomingMovieUrl}`);
+        const response = await axios.get(`${upcomingMovieUrl + '&region=US'}`);
         setMovies(response.data.results);
         setRefreshing(false);
-        console.log('fresh update');
         setLoader(false);
       } catch (e) {
         console.log(e);
@@ -67,9 +66,10 @@ const upcoming = ({ navigation }) => {
     setPageNumber(pageNumber + 1);
     try {
       const response = await axios.get(
-        `${upcomingMovieUrl + `&page=${pageNumber}`}`
+        `${upcomingMovieUrl + `&region=US&page=${pageNumber}`}`
       );
 
+      console.log(movies);
       setMovies((movies) => [...movies, ...response.data.results]);
     } catch (e) {
       console.log(e);
@@ -179,11 +179,11 @@ const upcoming = ({ navigation }) => {
               <Loader loadingStyle={styles.loaderStyle} />
             ) : (
               <View style={styles.main}>
-                {movies.map((movie, idx) => {
+                {movies.map((movie) => {
                   if (movie.poster_path !== null) {
                     return (
                       <TouchableOpacity
-                        key={idx}
+                        key={movie.id}
                         style={styles.cards}
                         onPress={() =>
                           navigation.navigate('Details', {

@@ -2,12 +2,12 @@
   "expo": {
     "name": "MovieWatcht",
     "slug": "MovieWatcht",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#1D1D1C"
     },
     "updates": {
@@ -17,12 +17,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
-      "buildNumber": "1.0.9",
+      "buildNumber": "1.1.0",
       "userInterfaceStyle": "automatic"
     },
     "android": {
       "package": "com.danieldjupvik.MovieWatcht",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1D1C"

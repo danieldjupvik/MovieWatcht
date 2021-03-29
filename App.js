@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, StatusBar, Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -6,15 +6,6 @@ import {
   BottomTabBar,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
-
-import Home from './pages/Home';
-import Details from './pages/Details';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import About from './pages/About';
-import TopRated from './pages/TopRated';
-import upcoming from './pages/Upcoming';
-import PersonDetails from './pages/PersonDetails';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
 import translationsEN from './language/en/translation.json';
@@ -29,7 +20,17 @@ import {
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { BlurView } from 'expo-blur';
 
-const Stack = createStackNavigator();
+import Home from './pages/Home';
+import Details from './pages/Details';
+import Settings from './pages/Settings';
+import Login from './pages/Login';
+import About from './pages/About';
+import TopRated from './pages/TopRated';
+import upcoming from './pages/Upcoming';
+import PersonDetails from './pages/PersonDetails';
+import Account from './pages/Account';
+import watchList from './pages/WatchList';
+
 const Tab = createBottomTabNavigator();
 
 i18n.translations = {
@@ -188,13 +189,83 @@ function upcomingStackScreen() {
   );
 }
 
+const watchListStack = createStackNavigator();
+
+function watchListStackScreen() {
+  const colorScheme = useColorScheme();
+  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
+  const themeContainerStyle =
+    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+  const themeBoxStyle =
+    colorScheme === 'light'
+      ? styles.lightThemeBox.backgroundColor
+      : styles.darkThemeBox.backgroundColor;
+
+  return (
+    <watchListStack.Navigator>
+      <watchListStack.Screen
+        name='watchList'
+        component={watchList}
+        options={{
+          headerShown: false,
+          animationEnabled: false,
+        }}
+      />
+      <watchListStack.Screen
+        name='Details'
+        component={Details}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <watchListStack.Screen
+        name='PersonDetails'
+        component={PersonDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <watchListStack.Screen
+        name='Login'
+        component={Login}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+    </watchListStack.Navigator>
+  );
+}
+
 const SettingsStack = createStackNavigator();
 
 function SettingsStackScreen() {
   const colorScheme = useColorScheme();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeContainerStyle =
-    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+  const themeBoxStyle =
+    colorScheme === 'light'
+      ? styles.lightThemeBox.backgroundColor
+      : styles.darkThemeBox.backgroundColor;
 
   return (
     <SettingsStack.Navigator>
@@ -205,7 +276,7 @@ function SettingsStackScreen() {
           title: i18n.t('settings'),
           headerBackTitle: i18n.t('back'),
           headerStyle: {
-            backgroundColor: themeContainerStyle,
+            backgroundColor: themeBoxStyle,
             shadowColor: 'transparent',
           },
           headerTransparent: false,
@@ -219,7 +290,7 @@ function SettingsStackScreen() {
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
           headerStyle: {
-            backgroundColor: themeContainerStyle,
+            backgroundColor: themeBoxStyle,
             shadowColor: 'transparent',
           },
           headerTransparent: false,
@@ -233,7 +304,21 @@ function SettingsStackScreen() {
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
           headerStyle: {
-            backgroundColor: themeContainerStyle,
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SettingsStack.Screen
+        name='Account'
+        component={Account}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
             shadowColor: 'transparent',
           },
           headerTransparent: false,
@@ -270,16 +355,17 @@ export default function App() {
       );
     } else {
       return (
-        <View style={[styles.androidNavBar, themeContainerStyle]}>
+        <View style={styles.androidNavBar}>
           <BottomTabBar {...props} />
         </View>
       );
     }
   };
+
   return (
     <>
       <AppearanceProvider>
-        <StatusBar barStyle={themeStatusBarStyle} />
+        <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
         <NavigationContainer>
           <Tab.Navigator
             initialRouteName='Home'
@@ -296,6 +382,8 @@ export default function App() {
                   iconName = 'newspaper';
                 } else if (route.name === 'settings') {
                   iconName = 'sliders-h';
+                } else if (route.name === 'watchList') {
+                  iconName = 'bookmark';
                 }
 
                 return (
@@ -310,6 +398,7 @@ export default function App() {
             tabBarOptions={{
               activeTintColor: 'red',
               inactiveTintColor: 'gray',
+              showLabel: Platform.OS !== 'android',
               style: {
                 borderTopColor: 'transparent',
                 backgroundColor: 'transparent',
@@ -336,6 +425,13 @@ export default function App() {
                 tabBarLabel: i18n.t('upcoming'),
               }}
               component={upcomingStackScreen}
+            />
+            <Tab.Screen
+              name='watchList'
+              options={{
+                tabBarLabel: i18n.t('watchList'),
+              }}
+              component={watchListStackScreen}
             />
             <Tab.Screen
               name='settings'
@@ -374,7 +470,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-
-    // opacity: 0.9,
+  },
+  darkThemeBox: {
+    backgroundColor: '#313337',
+  },
+  lightThemeBox: {
+    backgroundColor: '#bfc5ce',
   },
 });

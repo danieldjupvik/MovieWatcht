@@ -10,3 +10,5 @@ export const upcomingMovieUrl = `https://api.themoviedb.org/3/movie/upcoming${ap
 export const nowPlayingUrl = `https://api.themoviedb.org/3/movie/now_playing${apiKey}`;
 export const personUrl = `https://api.themoviedb.org/3/person/`;
 export const creditPerson = `https://api.themoviedb.org/3/credit/`;
+export const getTokenUrl = `https://api.themoviedb.org/3/authentication/token/new${apiKey}`;
+export const accountUrl = `https://api.themoviedb.org/3/account${apiKey}`;

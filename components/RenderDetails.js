@@ -32,6 +32,7 @@ import {
   textColorLight,
 } from '../colors/colors';
 import posterLoader from '../assets/poster-loader.jpg';
+import noImage from '../assets/no-image.jpg';
 
 export const monthNames = [
   'Jan',
@@ -141,7 +142,7 @@ const RenderDetails = ({ navigation, id }) => {
               ImageCacheEnum={'force-cache'}
               style={styles.posterImg}
             />
-            <Text style={[styles.title, themeTextStyle]}>
+            <Text style={[styles.title, themeTextStyle]} selectable>
               {movie.title} <Text>({year})</Text>
             </Text>
             {movie.tagline ? (
@@ -209,7 +210,7 @@ const RenderDetails = ({ navigation, id }) => {
             </Text>
             <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
               <View style={styles.castDiv}>
-                {movie.credits.cast.slice(0, 10).map((cast, idx) => {
+                {movie.credits.cast.slice(0, 20).map((cast, idx) => {
                   const profilePicture = {
                     uri: `${baseProfileUrl + cast.profile_path}`,
                   };
@@ -227,15 +228,16 @@ const RenderDetails = ({ navigation, id }) => {
                       <View style={styles.castCard}>
                         <Image
                           style={styles.profileImage}
-                          source={
-                            cast.profile_path ? profilePicture : posterLoader
-                          }
+                          source={cast.profile_path ? profilePicture : noImage}
                           ImageCacheEnum={'force-cache'}
                         />
                         <Text style={[styles.textName, themeTextStyle]}>
                           {cast.name}
                         </Text>
-                        <Text style={[styles.textCharacter, themeTextStyle]}>
+                        <Text
+                          numberOfLines={2}
+                          style={[styles.textCharacter, themeTextStyle]}
+                        >
                           {cast.character}
                         </Text>
                       </View>
@@ -294,7 +296,7 @@ const RenderDetails = ({ navigation, id }) => {
   );
 };
 
-const globalFontsize = 19;
+const globalFontsize = 16;
 const globalPadding = 5;
 const normalFontWeight = '400';
 const deviceWidth = Dimensions.get('window').width;
@@ -379,20 +381,24 @@ const styles = StyleSheet.create({
   castCard: {
     alignItems: 'center',
     marginRight: 20,
+    width: deviceWidth / 4.5,
+    textAlign: 'center',
   },
   profileImage: {
     width: deviceWidth / 4.5,
     height: deviceWidth / 4.5,
-    marginBottom: 5,
+    marginBottom: 8,
     borderRadius: 50,
   },
   textName: {
-    fontWeight: 'bold',
-    fontSize: 15,
+    fontWeight: '600',
+    fontSize: 13,
+    textAlign: 'center',
   },
   textCharacter: {
-    paddingTop: 8,
-    fontSize: 12,
+    paddingTop: 5,
+    fontSize: 13,
+    textAlign: 'center',
   },
   castHeading: {
     fontSize: 18,

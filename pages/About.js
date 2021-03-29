@@ -6,16 +6,20 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import Constants from 'expo-constants';
 import { useColorScheme } from 'react-native-appearance';
 import i18n from 'i18n-js';
+import * as WebBrowser from 'expo-web-browser';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import tmdbLogo from '../assets/tmdb-logo.png';
+import { Button } from 'react-native';
 
 const About = () => {
   const colorScheme = useColorScheme();
@@ -26,6 +30,14 @@ const About = () => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
+  const goToTheMovieDb = () => {
+    WebBrowser.openBrowserAsync('https://www.themoviedb.org/privacy-policy');
+  };
+
+  const goToAppPrivacy = () => {
+    WebBrowser.openBrowserAsync('https://danieldjupvik.dev/privacy.html');
+  };
 
   let d = new Date();
   let year = d.getFullYear();
@@ -54,20 +66,51 @@ const About = () => {
                 </View>
               </View>
             </View>
-            <View>
-              <View style={styles.listElement}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('version')} {Constants.manifest.version} (
-                      {Platform.OS === 'ios'
-                        ? Constants.manifest.ios.buildNumber
-                        : Constants.manifest.android.versionCode}
-                      )
-                    </Text>
-                  </View>
+            <View style={styles.listElement}>
+              <View style={styles.iconElement}>
+                <View>
+                  <Text style={[styles.text, themeTextStyle]}>
+                    {i18n.t('version')} {Constants.manifest.version} (
+                    {Platform.OS === 'ios'
+                      ? Constants.manifest.ios.buildNumber
+                      : Constants.manifest.android.versionCode}
+                    )
+                  </Text>
                 </View>
               </View>
+            </View>
+            <View>
+              <View>
+                <View>
+                  <Text style={[styles.subHeading, themeTextStyle]}>
+                    {i18n.t('tmdbPrivacy')}
+                  </Text>
+                </View>
+                <View style={styles.privacyBtn}>
+                  <Button onPress={goToTheMovieDb} title='TheMovieDb' />
+                </View>
+                <View style={styles.privacyBtn}>
+                  <Button
+                    onPress={goToAppPrivacy}
+                    title={Constants.manifest.name}
+                  />
+                </View>
+              </View>
+            </View>
+            <View>
+              <Text style={[styles.subHeading, themeTextStyle]}>
+                {i18n.t('poweredBy')}
+              </Text>
+              <Image
+                source={tmdbLogo}
+                style={{
+                  resizeMode: 'contain',
+                  width: 100,
+                  height: 100,
+                  marginLeft: 2,
+                  marginTop: 5,
+                }}
+              />
             </View>
           </View>
         </ScrollView>
@@ -91,20 +134,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // borderBottomWidth: 0.5,
-    borderBottomColor: 'grey',
     width: '100%',
   },
   iconElement: {
     flexDirection: 'row',
   },
+  privacyBtn: {
+    alignItems: 'flex-start',
+    marginLeft: -8,
+    marginTop: 5,
+    marginBottom: 5,
+  },
   text: {
     fontSize: 16,
     paddingTop: 10,
     paddingBottom: 10,
-    fontWeight: '300',
+    fontWeight: '400',
   },
-  icon: {},
+  subHeading: {
+    fontSize: 17,
+    fontWeight: '500',
+  },
   listHeading: {
     color: 'grey',
     fontSize: 20,

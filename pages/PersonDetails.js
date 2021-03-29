@@ -111,7 +111,7 @@ const PersonDetails = ({ route, navigation }) => {
                 uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
               }}
               style={styles.backdrop}
-              blurRadius={4}
+              blurRadius={2}
               defaultSource={posterLoader}
               ImageCacheEnum={'force-cache'}
             >

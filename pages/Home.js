@@ -12,6 +12,7 @@ import {
   Image,
   Platform,
   Animated,
+  Share,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
@@ -34,17 +35,21 @@ import {
   textColorLight,
 } from '../colors/colors';
 import posterLoader from '../assets/poster-loader.jpg';
+import noImage from '../assets/no-image.jpg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
 const Home = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
+  const [requestToken, setRequestToken] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
-  const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useState(2);
 
   const colorScheme = useColorScheme();
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -59,7 +64,7 @@ const Home = ({ navigation }) => {
     setLoader(true);
     const getMovies = async () => {
       try {
-        const response = await axios.get(`${baseUrl + `&page=1`}`);
+        const response = await axios.get(`${baseUrl + `&page=1&region=NO`}`);
         setMovies(response.data.results);
         setRefreshing(false);
         setLoader(false);
@@ -76,7 +81,9 @@ const Home = ({ navigation }) => {
     setBottomLoader(true);
     setPageNumber(pageNumber + 1);
     try {
-      const response = await axios.get(`${baseUrl + `&page=${pageNumber}`}`);
+      const response = await axios.get(
+        `${baseUrl + `&page=${pageNumber}&region=NO`}`
+      );
 
       setMovies((movies) => [...movies, ...response.data.results]);
     } catch (e) {
@@ -135,6 +142,36 @@ const Home = ({ navigation }) => {
     );
   };
 
+  const onShare = async (title, id) => {
+    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
+      if (!Haptics.impactAsync) {
+        throw new UnavailabilityError('Haptic', 'impactAsync');
+      }
+      await Haptics.impactAsync(style);
+    }
+    impactAsync();
+
+    const url = 'https://www.themoviedb.org/movie/' + id;
+
+    try {
+      const result = await Share.share({
+        title: title,
+        url: url,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <>
       <SafeAreaView style={[styles.container, themeContainerStyle]}>
@@ -156,6 +193,8 @@ const Home = ({ navigation }) => {
           inputStyle={{ color: searchBarTheme }}
           round
           value={search}
+          returnKeyType={'search'}
+          enablesReturnKeyAutomatically={true}
         />
         <Text style={[styles.heading, themeTextStyle]}>
           {i18n.t('popular')}
@@ -187,40 +226,42 @@ const Home = ({ navigation }) => {
               <Loader loadingStyle={styles.loaderStyle} />
             ) : (
               <View style={styles.main}>
-                {movies?.map((movie, idx) => {
-                  if (movie.poster_path !== null) {
-                    return (
-                      <TouchableOpacity
-                        key={idx}
-                        style={styles.cards}
-                        onPress={() =>
-                          navigation.navigate('Details', {
-                            id: movie.id,
-                            headerTitle: movie.title,
-                          })
-                        }
-                      >
-                        <Animated.Image
-                          source={{
-                            uri: `${basePosterUrl + movie.poster_path}`,
-                          }}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='contain'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
-                        />
-                        <Text style={[styles.rating, themeTextStyle]}>
-                          {iconStar} {movie.vote_average}/10
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }
+                {movies?.map((movie) => {
+                  const posterImage = {
+                    uri: `${basePosterUrl + movie.poster_path}`,
+                  };
+                  return (
+                    <TouchableOpacity
+                      key={movie.id}
+                      style={styles.cards}
+                      onLongPress={() =>
+                        onShare(movie.title, movie.id, movie.overview)
+                      }
+                      onPress={() =>
+                        navigation.navigate('Details', {
+                          id: movie.id,
+                          headerTitle: movie.title,
+                        })
+                      }
+                    >
+                      <Animated.Image
+                        source={movie.poster_path ? posterImage : noImage}
+                        style={[
+                          styles.image,
+                          {
+                            opacity: fadeAnim,
+                          },
+                        ]}
+                        resizeMode='contain'
+                        defaultSource={posterLoader}
+                        ImageCacheEnum={'force-cache'}
+                        onLoad={fadeIn}
+                      />
+                      <Text style={[styles.rating, themeTextStyle]}>
+                        {iconStar} {movie.vote_average}/10
+                      </Text>
+                    </TouchableOpacity>
+                  );
                 })}
               </View>
             )}

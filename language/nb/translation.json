@@ -32,5 +32,19 @@
   "female": "Kvinne",
   "male": "Mann",
   "birthPlace": "Fødselssted",
-  "knownFor": "Kjent for"
+  "knownFor": "Kjent for",
+  "poweredBy": "Data levert av",
+  "username": "Brukernavn",
+  "password": "Passord",
+  "register": "Registrer",
+  "signIn": "Logg Inn",
+  "forgotPassword": "Glemt passordet ditt?",
+  "wrongPassword": "Feil brukernavn eller passord",
+  "logout": "Logg ut",
+  "account": "Konto",
+  "name": "Navn",
+  "watchList": "Min liste",
+  "watchListDescription": "Min liste av filmer for å se senere",
+  "watchListRequirement": "Du må logge inn for å bruke min liste funksjonen",
+  "tmdbPrivacy": "Personvernregler"
 }

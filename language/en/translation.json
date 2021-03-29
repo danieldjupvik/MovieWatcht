@@ -32,5 +32,19 @@
   "female": "Female",
   "male": "Male",
   "birthPlace": "Birth place",
-  "knownFor": "Known for"
+  "knownFor": "Known for",
+  "poweredBy": "Data powered by",
+  "username": "Username",
+  "password": "Password",
+  "register": "Register",
+  "signIn": "Sign In",
+  "forgotPassword": "Forgot Your Password?",
+  "wrongPassword": "Wrong username or password",
+  "logout": "Logout",
+  "account": "Account",
+  "name": "Name",
+  "watchList": "Watch List",
+  "watchListDescription": "My list of movies to watch later",
+  "watchListRequirement": "You need to be logged in to use watch list function",
+  "tmdbPrivacy": "Privacy Policy"
 }
