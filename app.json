@@ -17,12 +17,13 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
-      "buildNumber": "1.1.0",
-      "userInterfaceStyle": "automatic"
+      "buildNumber": "1.1.2",
+      "userInterfaceStyle": "automatic",
+      "associatedDomains": ["webcredentials:https://www.themoviedb.org/"]
     },
     "android": {
       "package": "com.danieldjupvik.MovieWatcht",
-      "versionCode": 10,
+      "versionCode": 12,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D1D1C"

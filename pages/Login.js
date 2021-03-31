@@ -9,7 +9,6 @@ import {
   getSessionUrl,
   accountUrl,
 } from '../settings/api';
-import { backgroundColor } from './Home';
 import axios from 'axios';
 import { useColorScheme } from 'react-native-appearance';
 import i18n from 'i18n-js';
@@ -18,6 +17,8 @@ import {
   backgroundColorLight,
   textColorDark,
   textColorLight,
+  primaryButton,
+  secondaryButton,
 } from '../colors/colors';
 import { TextInput } from 'react-native';
 import { Image } from 'react-native';
@@ -26,6 +27,7 @@ import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import ButtonStyles from '../styles/buttons';
 
 const goToRegister = () => {
   WebBrowser.openBrowserAsync('https://www.themoviedb.org/signup');
@@ -43,8 +45,28 @@ const Login = ({ navigation }) => {
   const [showError, setShowError] = useState(false);
   const [usernameInput, setUsernameInput] = useState();
   const [passwordInput, setPasswordInput] = useState();
+  const [appearance, setAppearance] = useState();
 
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -218,17 +240,25 @@ const Login = ({ navigation }) => {
             ) : null}
             <View style={styles.buttonWrap}>
               <TouchableOpacity
-                style={[styles.buttonStyling, styles.buttonStylingLeft]}
+                style={[
+                  ButtonStyles.mediumButtonStyling,
+                  styles.buttonStylingLeft,
+                ]}
                 onPress={goToRegister}
               >
-                <Text style={[styles.buttonText]}>{i18n.t('register')}</Text>
+                <Text style={[ButtonStyles.buttonText]}>
+                  {i18n.t('register')}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.buttonStyling, styles.buttonStylingRight]}
+                style={[
+                  ButtonStyles.mediumButtonStyling,
+                  styles.buttonStylingRight,
+                ]}
                 onPress={getToken}
               >
-                <Text style={[styles.buttonText]}>{i18n.t('login')}</Text>
+                <Text style={[ButtonStyles.buttonText]}>{i18n.t('login')}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
@@ -275,10 +305,10 @@ const styles = StyleSheet.create({
   },
   loginInput: {
     flex: 1,
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 0,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingRight: 16,
+    paddingLeft: 7,
   },
   loginWrap: {
     marginTop: 40,
@@ -299,23 +329,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 20,
   },
-  buttonStyling: {
-    padding: 15,
-    paddingLeft: 44,
-    paddingRight: 44,
-    borderRadius: 10,
-  },
   buttonStylingLeft: {
     marginRight: 10,
-    backgroundColor: '#90cea1',
+    backgroundColor: secondaryButton,
   },
   buttonStylingRight: {
-    backgroundColor: '#01b4e4',
-  },
-  buttonText: {
-    color: 'black',
-    fontWeight: '400',
-    fontSize: 16,
+    backgroundColor: primaryButton,
   },
   forgotPassword: {
     marginTop: 20,

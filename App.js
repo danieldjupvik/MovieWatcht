@@ -30,6 +30,8 @@ import upcoming from './pages/Upcoming';
 import PersonDetails from './pages/PersonDetails';
 import Account from './pages/Account';
 import watchList from './pages/WatchList';
+import Appearance from './pages/Appearance';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
@@ -42,7 +44,27 @@ i18n.fallbacks = true;
 
 const HomeStack = createStackNavigator();
 function HomeStackScreen() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -92,7 +114,27 @@ function HomeStackScreen() {
 const topRatedStack = createStackNavigator();
 
 function topRatedStackScreen() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -142,7 +184,27 @@ function topRatedStackScreen() {
 const upcomingStack = createStackNavigator();
 
 function upcomingStackScreen() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -192,7 +254,27 @@ function upcomingStackScreen() {
 const watchListStack = createStackNavigator();
 
 function watchListStackScreen() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -260,7 +342,27 @@ function watchListStackScreen() {
 const SettingsStack = createStackNavigator();
 
 function SettingsStackScreen() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeBoxStyle =
     colorScheme === 'light'
@@ -325,12 +427,46 @@ function SettingsStackScreen() {
           headerTintColor: themeHeaderTintColor,
         })}
       />
+      <SettingsStack.Screen
+        name='Appearance'
+        component={Appearance}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
     </SettingsStack.Navigator>
   );
 }
 
 export default function App() {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
   const themeStatusBarStyle =
     colorScheme === 'light' ? 'dark-content' : 'light-content';

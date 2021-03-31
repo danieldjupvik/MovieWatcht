@@ -6,25 +6,16 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
-  TouchableWithoutFeedback,
   RefreshControl,
   Dimensions,
   Image,
-  Platform,
   Animated,
+  Share,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
-import {
-  baseUrl,
-  basePosterUrl,
-  searchMovieUrl,
-  topRatedMovieUrl,
-  upcomingMovieUrl,
-  apiKey,
-} from '../settings/api';
+import { basePosterUrl, searchMovieUrl, apiKey } from '../settings/api';
 import Loader from '../components/Loader';
-import { BlurView } from 'expo-blur';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
@@ -38,7 +29,9 @@ import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import logoTransparent from '../assets/icon-transparent.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import testVariable from './Login';
+import * as Haptics from 'expo-haptics';
+import { styles } from './Home';
+import ButtonStyles from '../styles/buttons';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -53,8 +46,30 @@ const WatchList = ({ navigation }) => {
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [showWatchList, setShowWatchList] = useState(false);
   const [pageNumber, setPageNumber] = useState(2);
+  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
+  const [appearance, setAppearance] = useState();
+  const [whileLoading, setWhileLoading] = useState(true);
 
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
@@ -82,8 +97,6 @@ const WatchList = ({ navigation }) => {
     const accountId = fromLocalStorage[0][1];
     const sessionId = fromLocalStorage[1][1];
 
-    reRenderWhenLoggedIn(fromLocalStorage[1][1]);
-
     {
       sessionId ? getMovies(accountId, sessionId) : null;
     }
@@ -106,50 +119,65 @@ const WatchList = ({ navigation }) => {
       sessionId ? setShowWatchList(true) : setShowWatchList(false);
     }
 
-    reRenderWhenLoggedIn(sessionId);
+    setAccountId(accountId);
+    setSessionId(sessionId);
   };
 
-  const reRenderWhenLoggedIn = () => {
-    const subscribed = navigation.addListener('focus', () => {
+  useEffect(() => {
+    {
+      sessionId ? getMovies(accountId, sessionId) : null;
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
       getMultipleAgain();
-      return subscribed;
     });
-  };
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getMovies = async (accountIdParam, sessionIdParam) => {
     setLoader(true);
     try {
       const response = await axios.get(
-        `https://api.themoviedb.org/3/account/${accountIdParam}/watchlist/movies${apiKey}&session_id=${sessionIdParam}&sort_by=created_at.asc&page=1`
+        `https://api.themoviedb.org/3/account/${accountIdParam}/watchlist/movies${apiKey}&session_id=${sessionIdParam}&sort_by=created_at.desc&page=1`
       );
       setMovies(response.data.results);
+      setTotalPageNumberFromApi(response.data.total_pages);
       setRefreshing(false);
       setLoader(false);
-      console.log('fresh update');
+      console.log('Fetched Watchlist movies');
     } catch (e) {
       console.log(e);
     } finally {
+      setWhileLoading(true);
     }
   };
 
   const onBottomLoad = async () => {
-    setBottomLoader(true);
-    setPageNumber(pageNumber + 1);
-    try {
-      const response = await axios.get(
-        `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.asc&page=${pageNumber}`
-      );
-      setMovies((movies) => [...movies, ...response.data.results]);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setBottomLoader(false);
+    if (pageNumber <= totalPageNumberFromApi) {
+      setBottomLoader(true);
+      setPageNumber(pageNumber + 1);
+      try {
+        const response = await axios.get(
+          `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=${pageNumber}`
+        );
+        setMovies((movies) => [...movies, ...response.data.results]);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        console.log('loaded new page');
+        setBottomLoader(false);
+      }
     }
   };
 
   function onRefresh() {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
+    setWhileLoading(true);
+    setPageNumber(2);
   }
 
   const getSearch = async (title) => {
@@ -189,19 +217,42 @@ const WatchList = ({ navigation }) => {
     contentOffset,
     contentSize,
   }) => {
-    const paddingToBottom = 150;
+    const paddingToBottom = 0;
     return (
       layoutMeasurement.height + contentOffset.y >=
       contentSize.height - paddingToBottom
     );
   };
 
-  // useEffect(() => {
-  //   const subscribed = navigation.addListener('focus', () => {
-  //     getMultiple();
-  //     return subscribed;
-  //   });
-  // }, [sessionId]);
+  const onShare = async (title, id) => {
+    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
+      if (!Haptics.impactAsync) {
+        throw new UnavailabilityError('Haptic', 'impactAsync');
+      }
+      await Haptics.impactAsync(style);
+    }
+    impactAsync();
+
+    const url = 'https://www.themoviedb.org/movie/' + id;
+
+    try {
+      const result = await Share.share({
+        title: title,
+        url: url,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <>
@@ -240,7 +291,10 @@ const WatchList = ({ navigation }) => {
               indicatorStyle={themeTabBar}
               onScroll={({ nativeEvent }) => {
                 if (isCloseToBottom(nativeEvent)) {
-                  onBottomLoad();
+                  console.log('load bottom');
+                  if (movies.length >= 1) {
+                    onBottomLoad();
+                  }
                 }
               }}
               scrollEventThrottle={400}
@@ -256,42 +310,65 @@ const WatchList = ({ navigation }) => {
                 {loader ? (
                   <Loader loadingStyle={styles.loaderStyle} />
                 ) : (
-                  <View style={styles.main}>
-                    {movies?.map((movie) => {
-                      const posterImage = {
-                        uri: `${basePosterUrl + movie.poster_path}`,
-                      };
-                      return (
-                        <TouchableOpacity
-                          key={movie.id}
-                          style={styles.cards}
-                          onPress={() =>
-                            navigation.navigate('Details', {
-                              id: movie.id,
-                              headerTitle: movie.title,
-                            })
-                          }
-                        >
-                          <Animated.Image
-                            source={movie.poster_path ? posterImage : noImage}
-                            style={[
-                              styles.image,
-                              {
-                                opacity: fadeAnim,
-                              },
-                            ]}
-                            resizeMode='contain'
-                            defaultSource={posterLoader}
-                            ImageCacheEnum={'force-cache'}
-                            onLoad={fadeIn}
-                          />
-                          <Text style={[styles.rating, themeTextStyle]}>
-                            {iconStar} {movie.vote_average}/10
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                  <>
+                    {movies.length >= 1 ? (
+                      <View style={styles.main}>
+                        {movies?.map((movie) => {
+                          const posterImage = {
+                            uri: `${basePosterUrl + movie.poster_path}`,
+                          };
+                          return (
+                            <TouchableOpacity
+                              key={movie.id}
+                              style={styles.cards}
+                              onLongPress={() =>
+                                onShare(movie.title, movie.id, movie.overview)
+                              }
+                              onPress={() =>
+                                navigation.navigate('Details', {
+                                  id: movie.id,
+                                  headerTitle: movie.title,
+                                })
+                              }
+                            >
+                              <Animated.Image
+                                source={
+                                  movie.poster_path ? posterImage : noImage
+                                }
+                                style={[
+                                  styles.image,
+                                  {
+                                    opacity: fadeAnim,
+                                  },
+                                ]}
+                                resizeMode='contain'
+                                defaultSource={posterLoader}
+                                ImageCacheEnum={'force-cache'}
+                                onLoad={fadeIn}
+                              />
+                              <Text style={[styles.rating, themeTextStyle]}>
+                                {iconStar} {movie.vote_average}/10
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    ) : (
+                      <>
+                        {whileLoading ? (
+                          <View style={styles.noMoviesDiv}>
+                            <Text style={[styles.noMoviesText, themeTextStyle]}>
+                              {i18n.t('noMoviesInWatchlist')}
+                            </Text>
+                            <FontAwesome5
+                              name={'heart-broken'}
+                              style={{ color: 'red', fontSize: 22 }}
+                            />
+                          </View>
+                        ) : null}
+                      </>
+                    )}
+                  </>
                 )}
               </View>
               {bottomLoader ? (
@@ -307,16 +384,14 @@ const WatchList = ({ navigation }) => {
               {i18n.t('watchListRequirement')}
             </Text>
             <TouchableOpacity
-              style={styles.loginButton}
+              style={[ButtonStyles.mediumButtonStyling, styles.loginButton]}
               onPress={() =>
                 navigation.navigate('Login', {
                   headerTitle: i18n.t('login'),
                 })
               }
             >
-              <Text style={[styles.loginButtonText, themeTextStyle]}>
-                {i18n.t('login')}
-              </Text>
+              <Text style={ButtonStyles.buttonText}>{i18n.t('login')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -324,107 +399,5 @@ const WatchList = ({ navigation }) => {
     </>
   );
 };
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
-
-export const styles = StyleSheet.create({
-  loginSection: {
-    width: deviceWidth - 50,
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 20,
-  },
-  loginImage: {
-    width: 140,
-    height: 140,
-  },
-  loginSectionText: {
-    fontWeight: '500',
-    fontSize: 17,
-    marginTop: 20,
-  },
-  loginButton: {
-    backgroundColor: '#56b6d6',
-    padding: 15,
-    paddingLeft: 44,
-    paddingRight: 44,
-    borderRadius: 10,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  loginButtonText: {
-    color: 'black',
-    fontWeight: '400',
-    fontSize: 17,
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heading: {
-    fontSize: 30,
-    marginBottom: 20,
-    fontWeight: 'bold',
-  },
-  view: {
-    height: 75,
-  },
-  scrollView: {
-    // marginHorizontal: 20,
-    height: '100%',
-    width: '100%',
-  },
-  main: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: '100%',
-  },
-  mainParent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    width: '100%',
-    height: deviceWidth / 2.23,
-  },
-  cards: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 2,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  rating: {
-    marginTop: 8,
-  },
-  description: {
-    fontSize: 15,
-    paddingBottom: 20,
-  },
-  loaderStyle: {
-    marginTop: deviceHeight / 4.5,
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
-  },
-});
 
 export default WatchList;

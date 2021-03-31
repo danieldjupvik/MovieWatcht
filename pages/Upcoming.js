@@ -5,10 +5,9 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
-  TouchableWithoutFeedback,
   RefreshControl,
-  Image,
   Animated,
+  Share,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
@@ -18,12 +17,14 @@ import {
   upcomingMovieUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
-import { BlurView } from 'expo-blur';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
 import { styles } from './Home';
 import posterLoader from '../assets/poster-loader.jpg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
+import noImage from '../assets/no-image.jpg';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -35,8 +36,29 @@ const upcoming = ({ navigation }) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
+  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
+  const [appearance, setAppearance] = useState();
 
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
@@ -49,8 +71,11 @@ const upcoming = ({ navigation }) => {
     setLoader(true);
     const getMovies = async () => {
       try {
-        const response = await axios.get(`${upcomingMovieUrl + '&region=US'}`);
+        const response = await axios.get(
+          `${upcomingMovieUrl + '&region=US&page=1'}`
+        );
         setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
         setRefreshing(false);
         setLoader(false);
       } catch (e) {
@@ -62,25 +87,27 @@ const upcoming = ({ navigation }) => {
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
-    setBottomLoader(true);
-    setPageNumber(pageNumber + 1);
-    try {
-      const response = await axios.get(
-        `${upcomingMovieUrl + `&region=US&page=${pageNumber}`}`
-      );
+    if (pageNumber <= totalPageNumberFromApi) {
+      setBottomLoader(true);
+      setPageNumber(pageNumber + 1);
+      try {
+        const response = await axios.get(
+          `${upcomingMovieUrl + `&region=US&page=${pageNumber}`}`
+        );
 
-      console.log(movies);
-      setMovies((movies) => [...movies, ...response.data.results]);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setBottomLoader(false);
+        console.log(movies);
+        setMovies((movies) => [...movies, ...response.data.results]);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setBottomLoader(false);
+      }
     }
   };
-
   function onRefresh() {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
+    setPageNumber(2);
   }
 
   const getSearch = async (title) => {
@@ -127,6 +154,36 @@ const upcoming = ({ navigation }) => {
     );
   };
 
+  const onShare = async (title, id) => {
+    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
+      if (!Haptics.impactAsync) {
+        throw new UnavailabilityError('Haptic', 'impactAsync');
+      }
+      await Haptics.impactAsync(style);
+    }
+    impactAsync();
+
+    const url = 'https://www.themoviedb.org/movie/' + id;
+
+    try {
+      const result = await Share.share({
+        title: title,
+        url: url,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <>
       <SafeAreaView style={[styles.container, themeContainerStyle]}>
@@ -162,7 +219,10 @@ const upcoming = ({ navigation }) => {
           indicatorStyle={themeTabBar}
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
-              onBottomLoad();
+              console.log('load bottom');
+              if (movies.length >= 1) {
+                onBottomLoad();
+              }
             }
           }}
           scrollEventThrottle={400}
@@ -179,40 +239,42 @@ const upcoming = ({ navigation }) => {
               <Loader loadingStyle={styles.loaderStyle} />
             ) : (
               <View style={styles.main}>
-                {movies.map((movie) => {
-                  if (movie.poster_path !== null) {
-                    return (
-                      <TouchableOpacity
-                        key={movie.id}
-                        style={styles.cards}
-                        onPress={() =>
-                          navigation.navigate('Details', {
-                            id: movie.id,
-                            headerTitle: movie.title,
-                          })
-                        }
-                      >
-                        <Animated.Image
-                          source={{
-                            uri: `${basePosterUrl + movie.poster_path}`,
-                          }}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          onLoad={fadeIn}
-                          resizeMode='contain'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                        />
-                        <Text style={[styles.rating, themeTextStyle]}>
-                          {iconStar} {movie.vote_average}/10
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }
+                {movies?.map((movie) => {
+                  const posterImage = {
+                    uri: `${basePosterUrl + movie.poster_path}`,
+                  };
+                  return (
+                    <TouchableOpacity
+                      key={movie.id}
+                      style={styles.cards}
+                      onLongPress={() =>
+                        onShare(movie.title, movie.id, movie.overview)
+                      }
+                      onPress={() =>
+                        navigation.navigate('Details', {
+                          id: movie.id,
+                          headerTitle: movie.title,
+                        })
+                      }
+                    >
+                      <Animated.Image
+                        source={movie.poster_path ? posterImage : noImage}
+                        style={[
+                          styles.image,
+                          {
+                            opacity: fadeAnim,
+                          },
+                        ]}
+                        resizeMode='contain'
+                        defaultSource={posterLoader}
+                        ImageCacheEnum={'force-cache'}
+                        onLoad={fadeIn}
+                      />
+                      <Text style={[styles.rating, themeTextStyle]}>
+                        {iconStar} {movie.vote_average}/10
+                      </Text>
+                    </TouchableOpacity>
+                  );
                 })}
               </View>
             )}

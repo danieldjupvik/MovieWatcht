@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -20,12 +20,32 @@ import {
 } from '../colors/colors';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const About = () => {
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
 
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
-
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -75,6 +95,9 @@ const About = () => {
                       ? Constants.manifest.ios.buildNumber
                       : Constants.manifest.android.versionCode}
                     )
+                  </Text>
+                  <Text style={[styles.text, themeTextStyle]}>
+                    Release Channel {Constants.manifest.releaseChannel}
                   </Text>
                 </View>
               </View>

@@ -38,20 +38,41 @@ import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
+import { primaryButton, secondaryButton } from '../colors/colors';
+import * as Localization from 'expo-localization';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
 const Home = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
-  const [requestToken, setRequestToken] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
+  const [appearance, setAppearance] = useState();
 
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
@@ -61,10 +82,13 @@ const Home = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
+    const region = Localization.region;
     setLoader(true);
     const getMovies = async () => {
       try {
-        const response = await axios.get(`${baseUrl + `&page=1&region=NO`}`);
+        const response = await axios.get(
+          `${baseUrl + `&page=1&region=${region}`}`
+        );
         setMovies(response.data.results);
         setRefreshing(false);
         setLoader(false);
@@ -78,13 +102,14 @@ const Home = ({ navigation }) => {
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
+    const region = Localization.region;
+
     setBottomLoader(true);
     setPageNumber(pageNumber + 1);
     try {
       const response = await axios.get(
-        `${baseUrl + `&page=${pageNumber}&region=NO`}`
+        `${baseUrl + `&page=${pageNumber}&region=${region}`}`
       );
-
       setMovies((movies) => [...movies, ...response.data.results]);
     } catch (e) {
       console.log(e);
@@ -126,6 +151,24 @@ const Home = ({ navigation }) => {
   const fadeIn = () => {
     Animated.timing(fadeAnim, {
       toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animatePress = new Animated.Value(1);
+
+  const animateIn = () => {
+    Animated.timing(animatePress, {
+      toValue: 0.93,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateOut = () => {
+    Animated.timing(animatePress, {
+      toValue: 1,
+      duration: 300,
       useNativeDriver: true,
     }).start();
   };
@@ -209,6 +252,7 @@ const Home = ({ navigation }) => {
           indicatorStyle={themeTabBar}
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
+              console.log('load bottom');
               onBottomLoad();
             }
           }}
@@ -231,36 +275,46 @@ const Home = ({ navigation }) => {
                     uri: `${basePosterUrl + movie.poster_path}`,
                   };
                   return (
-                    <TouchableOpacity
-                      key={movie.id}
-                      style={styles.cards}
-                      onLongPress={() =>
-                        onShare(movie.title, movie.id, movie.overview)
-                      }
-                      onPress={() =>
-                        navigation.navigate('Details', {
-                          id: movie.id,
-                          headerTitle: movie.title,
-                        })
-                      }
+                    <Animated.View
+                      style={[
+                        {
+                          transform: [{ scale: animatePress }],
+                        },
+                      ]}
                     >
-                      <Animated.Image
-                        source={movie.poster_path ? posterImage : noImage}
-                        style={[
-                          styles.image,
-                          {
-                            opacity: fadeAnim,
-                          },
-                        ]}
-                        resizeMode='contain'
-                        defaultSource={posterLoader}
-                        ImageCacheEnum={'force-cache'}
-                        onLoad={fadeIn}
-                      />
-                      <Text style={[styles.rating, themeTextStyle]}>
-                        {iconStar} {movie.vote_average}/10
-                      </Text>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        key={movie.id}
+                        style={styles.cards}
+                        onLongPress={() =>
+                          onShare(movie.title, movie.id, movie.overview)
+                        }
+                        onPressIn={() => animateIn()}
+                        onPressOut={() => animateOut()}
+                        // onPress={() =>
+                        //   navigation.navigate('Details', {
+                        //     id: movie.id,
+                        //     headerTitle: movie.title,
+                        //   })
+                        // }
+                      >
+                        <Animated.Image
+                          source={movie.poster_path ? posterImage : noImage}
+                          style={[
+                            styles.image,
+                            {
+                              opacity: fadeAnim,
+                            },
+                          ]}
+                          resizeMode='contain'
+                          defaultSource={posterLoader}
+                          ImageCacheEnum={'force-cache'}
+                          onLoad={fadeIn}
+                        />
+                        <Text style={[styles.rating, themeTextStyle]}>
+                          {iconStar} {movie.vote_average}/10
+                        </Text>
+                      </TouchableOpacity>
+                    </Animated.View>
                   );
                 })}
               </View>
@@ -283,6 +337,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   heading: {
     fontSize: 30,
@@ -326,7 +381,38 @@ export const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   loaderStyle: {
+    paddingTop: deviceHeight / 4.5,
+    paddingBottom: deviceHeight,
+  },
+  // Watch list styles
+  noMoviesDiv: {
     marginTop: deviceHeight / 4.5,
+    flexDirection: 'row',
+  },
+  noMoviesText: {
+    fontSize: 19,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+  loginSection: {
+    width: deviceWidth - 50,
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 20,
+  },
+  loginImage: {
+    width: 140,
+    height: 140,
+  },
+  loginSectionText: {
+    fontWeight: '500',
+    fontSize: 17,
+    marginTop: 20,
+  },
+  loginButton: {
+    backgroundColor: primaryButton,
+    marginTop: 20,
+    marginBottom: 10,
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,
@@ -339,6 +425,12 @@ export const styles = StyleSheet.create({
   },
   darkThemeText: {
     color: textColorDark,
+  },
+  darkThemeBox: {
+    backgroundColor: '#313337',
+  },
+  lightThemeBox: {
+    backgroundColor: '#bfc5ce',
   },
 });
 

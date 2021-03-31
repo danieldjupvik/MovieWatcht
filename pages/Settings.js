@@ -18,7 +18,28 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Settings = ({ navigation }) => {
   const [sessionId, setSessionId] = useState();
-  const colorScheme = useColorScheme();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
+
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -26,6 +47,10 @@ const Settings = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
+  const themeButtonStyle =
+    colorScheme === 'light' ? styles.darkThemeBox : styles.lightThemeBox;
+  const themeButtonTextStyle =
+    colorScheme === 'light' ? styles.darkThemeText : styles.lightThemeText;
 
   useEffect(() => {
     const getData = async () => {
@@ -81,7 +106,9 @@ const Settings = ({ navigation }) => {
         <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
-              <Text style={styles.listHeading}>{i18n.t('mainSettings')}</Text>
+              <Text style={[styles.listHeading, themeTextStyle]}>
+                {i18n.t('mainSettings')}
+              </Text>
             </View>
             <TouchableOpacity
               style={styles.touchableElem}
@@ -97,18 +124,58 @@ const Settings = ({ navigation }) => {
                     <Text style={[styles.text, themeTextStyle]}>
                       {i18n.t('about')}
                     </Text>
+                    <Text style={[styles.textDescription, themeTextStyle]}>
+                      {i18n.t('aboutDescription')}
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.rightArrow}>
                   <FontAwesome5
-                    name={'chevron-right'}
+                    name={'question-circle'}
                     solid
-                    style={{ color: 'grey', fontSize: 20 }}
+                    style={[themeTextStyle, { fontSize: iconSize }]}
                   />
                 </View>
               </View>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.touchableElem}
+              onPress={() =>
+                navigation.navigate('Appearance', {
+                  headerTitle: i18n.t('appearance'),
+                })
+              }
+            >
+              <View style={[styles.listElement, themeBoxStyle]}>
+                <View style={styles.iconElement}>
+                  <View>
+                    <Text style={[styles.text, themeTextStyle]}>
+                      {i18n.t('appearance')}
+                    </Text>
+                    <Text style={[styles.textDescription, themeTextStyle]}>
+                      {i18n.t('appearanceDescription')}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.rightArrow}>
+                  <FontAwesome5
+                    name={'paint-brush'}
+                    solid
+                    style={[themeTextStyle, { fontSize: iconSize }]}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.listHeadingElement}>
+              <Text style={[styles.listHeading, themeTextStyle]}>
+                {i18n.t('accountSettings')}
+              </Text>
+            </View>
+
             {sessionId ? (
               <TouchableOpacity
                 style={styles.touchableElem}
@@ -124,14 +191,17 @@ const Settings = ({ navigation }) => {
                       <Text style={[styles.text, themeTextStyle]}>
                         {i18n.t('account')}
                       </Text>
+                      <Text style={[styles.textDescription, themeTextStyle]}>
+                        {i18n.t('accountDescription')}
+                      </Text>
                     </View>
                   </View>
 
                   <View style={styles.rightArrow}>
                     <FontAwesome5
-                      name={'chevron-right'}
+                      name={'user-circle'}
                       solid
-                      style={{ color: 'grey', fontSize: 20 }}
+                      style={[themeTextStyle, { fontSize: iconSize }]}
                     />
                   </View>
                 </View>
@@ -143,17 +213,15 @@ const Settings = ({ navigation }) => {
                 <View style={[styles.listElement, styles.logoutButton]}>
                   <View style={styles.iconElement}>
                     <View>
-                      <Text style={[styles.text, themeTextStyle]}>
-                        {i18n.t('logout')}
-                      </Text>
+                      <Text style={[styles.text]}>{i18n.t('logout')}</Text>
                     </View>
                   </View>
 
                   <View style={styles.rightArrow}>
                     <FontAwesome5
-                      name={'chevron-right'}
+                      name={'sign-in-alt'}
                       solid
-                      style={{ color: 'grey', fontSize: 20 }}
+                      style={[{ color: 'black' }, { fontSize: iconSize }]}
                     />
                   </View>
                 </View>
@@ -166,20 +234,18 @@ const Settings = ({ navigation }) => {
                   })
                 }
               >
-                <View style={[styles.listElement, themeBoxStyle]}>
+                <View style={[styles.listElement, styles.logoutButton]}>
                   <View style={styles.iconElement}>
                     <View>
-                      <Text style={[styles.text, themeTextStyle]}>
-                        {i18n.t('login')}
-                      </Text>
+                      <Text style={[styles.text]}>{i18n.t('login')}</Text>
                     </View>
                   </View>
 
                   <View style={styles.rightArrow}>
                     <FontAwesome5
-                      name={'chevron-right'}
+                      name={'sign-in-alt'}
                       solid
-                      style={{ color: 'grey', fontSize: 20 }}
+                      style={[{ color: 'black' }, { fontSize: iconSize }]}
                     />
                   </View>
                 </View>
@@ -191,6 +257,9 @@ const Settings = ({ navigation }) => {
     </>
   );
 };
+
+const iconSize = 21;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -215,7 +284,12 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 19,
-    fontWeight: '300',
+    fontWeight: '500',
+  },
+  textDescription: {
+    opacity: 0.7,
+    marginTop: 5,
+    fontSize: 16,
   },
   logoutButton: {
     backgroundColor: '#01b4e4',
@@ -225,15 +299,16 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   listHeading: {
-    color: 'grey',
+    opacity: 0.7,
     fontSize: 20,
+    fontWeight: '600',
   },
   listHeadingElement: {
     marginTop: 20,
     paddingBottom: 15,
   },
   rightArrow: {
-    paddingRight: 0,
+    paddingRight: 15,
   },
   touchableElem: {
     width: '100%',
