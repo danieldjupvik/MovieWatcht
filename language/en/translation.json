@@ -1,10 +1,10 @@
 {
   "popular": "Popular",
-  "popularDescription": "Popular movies right now",
+  "popularDescription": "Popular movies right now in",
   "topRated": "Top Rated",
-  "topRatedDescription": "All time top rated movies",
+  "topRatedDescription": "All time top rated movies in",
   "upcoming": "Upcoming",
-  "upcomingDescription": "Upcoming movies in near future",
+  "upcomingDescription": "Upcoming movies in near future in",
   "settings": "Settings",
   "search": "Search Movies",
   "mainSettings": "Main settings",
@@ -56,7 +56,7 @@
   "appearanceDescription": "Customize the Look",
   "accountDescription": "Your TMDb Account",
   "accountSettings": "Account Settings",
-  "autoDescription": "Device Color (default)",
+  "autoDescription": "Device Mode (default)",
   "darkDescription": "Dark Mode",
   "lightDescription": "Light Mode",
   "noName": "No name registered",
@@ -75,10 +75,10 @@
   "region": "Region",
   "adult": "Adult",
   "regionDescription": "Region of content",
-  "deviceRegion": "System region",
-  "deviceRegionDescription": "Use system region",
+  "deviceRegion": "System",
+  "deviceRegionDescription": "Use system",
   "norway": "Norway",
-  "norwayDescription": "Use Norway region",
-  "unitedState": "United State",
-  "unitedStateDescription": "Use United States region"
+  "norwayDescription": "Use Norway",
+  "unitedState": "United States",
+  "unitedStateDescription": "Use United States"
 }

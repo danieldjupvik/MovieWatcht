@@ -35,9 +35,12 @@ const TopRated = ({ navigation }) => {
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
   const [appearance, setAppearance] = useState();
+  const [regionsText, setRegionsText] = useState();
+  const [regionFinal, setRegionFinal] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -57,6 +60,31 @@ const TopRated = ({ navigation }) => {
     getAppearance();
   }, []);
 
+  const getRegion = async () => {
+    try {
+      const region = await AsyncStorage.getItem('region');
+      const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+      console.log('region from localstorage ' + region);
+      const regionToll = region === 'auto' ? defaultRegion : region;
+      if (region !== null) {
+        setRegionFinal(regionToll);
+      } else {
+        setRegionFinal(defaultRegion);
+        console.log('there is no region set');
+      }
+    } catch (e) {
+      alert('error reading region value');
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getRegion();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -67,16 +95,19 @@ const TopRated = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
+  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+
   useEffect(() => {
-    const region = Localization.region;
-    const finalRegion = region ? region : 'NO';
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    setRegionsText(theShit);
     setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${finalRegion}`}`
+          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
         setRefreshing(false);
         console.log('fresh update');
         setLoader(false);
@@ -86,27 +117,18 @@ const TopRated = ({ navigation }) => {
       }
     };
     getMovies();
-  }, []);
+  }, [regionFinal]);
 
-  // const removeValue = async () => {
-  //   try {
-  //     await AsyncStorage.removeItem('region');
-  //   } catch (e) {
-  //     // remove error
-  //   }
-
-  //   console.log('Done.');
-  // };
-  // removeValue();
   useEffect(() => {
-    const region = Localization.region;
-    const finalRegion = region ? region : 'NO';
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
     const onRefresh = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${finalRegion}&page=1`}`
+          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
         console.log('fresh update');
       } catch (e) {
         console.log(e);
@@ -118,19 +140,22 @@ const TopRated = ({ navigation }) => {
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
-    const region = Localization.region;
-    const finalRegion = region ? region : 'NO';
-    setBottomLoader(true);
-    setPageNumber(pageNumber + 1);
-    try {
-      const response = await axios.get(
-        `${topRatedMovieUrl + `&page=${pageNumber}&region=${finalRegion}`}`
-      );
-      setMovies((movies) => [...movies, ...response.data.results]);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setBottomLoader(false);
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
+
+    if (pageNumber <= totalPageNumberFromApi) {
+      setBottomLoader(true);
+      setPageNumber(pageNumber + 1);
+      try {
+        const response = await axios.get(
+          `${topRatedMovieUrl + `&region=${theShit}&page=${pageNumber}`}`
+        );
+        setMovies((movies) => [...movies, ...response.data.results]);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setBottomLoader(false);
+      }
     }
   };
 
@@ -240,7 +265,7 @@ const TopRated = ({ navigation }) => {
           {i18n.t('topRated')}
         </Text>
         <Text style={[styles.description, themeTextStyle]}>
-          {i18n.t('topRatedDescription')}
+          {i18n.t('topRatedDescription')} {regionsText}
         </Text>
         <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
@@ -249,7 +274,10 @@ const TopRated = ({ navigation }) => {
           indicatorStyle={themeTabBar}
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
-              onBottomLoad();
+              console.log('load bottom');
+              if (movies.length >= 1) {
+                onBottomLoad();
+              }
             }
           }}
           scrollEventThrottle={400}

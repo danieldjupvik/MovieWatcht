@@ -25,6 +25,7 @@ import posterLoader from '../assets/poster-loader.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import noImage from '../assets/no-image.jpg';
+import * as Localization from 'expo-localization';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -33,11 +34,13 @@ const upcoming = ({ navigation }) => {
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [appearance, setAppearance] = useState();
+  const [regionsText, setRegionsText] = useState();
+  const [regionFinal, setRegionFinal] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -57,6 +60,31 @@ const upcoming = ({ navigation }) => {
     getAppearance();
   }, []);
 
+  const getRegion = async () => {
+    try {
+      const region = await AsyncStorage.getItem('region');
+      const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+      console.log('region from localstorage ' + region);
+      const regionToll = region === 'auto' ? defaultRegion : region;
+      if (region !== null) {
+        setRegionFinal(regionToll);
+      } else {
+        setRegionFinal(defaultRegion);
+        console.log('there is no region set');
+      }
+    } catch (e) {
+      alert('error reading region value');
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getRegion();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -67,30 +95,36 @@ const upcoming = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
+  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+
   useEffect(() => {
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    setRegionsText(theShit);
     setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${upcomingMovieUrl + '&region=US&page=1'}`
+          `${upcomingMovieUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
-        setRefreshing(false);
         setLoader(false);
       } catch (e) {
         console.log(e);
       } finally {
+        setRefreshing(false);
       }
     };
     getMovies();
-  }, []);
+  }, [regionFinal]);
 
   useEffect(() => {
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
     const onRefresh = async () => {
       try {
         const response = await axios.get(
-          `${upcomingMovieUrl + '&region=US&page=1'}`
+          `${upcomingMovieUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
@@ -104,12 +138,15 @@ const upcoming = ({ navigation }) => {
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
+
     if (pageNumber <= totalPageNumberFromApi) {
       setBottomLoader(true);
       setPageNumber(pageNumber + 1);
       try {
         const response = await axios.get(
-          `${upcomingMovieUrl + `&region=US&page=${pageNumber}`}`
+          `${upcomingMovieUrl + `&region=${theShit}&page=${pageNumber}`}`
         );
 
         console.log(movies);
@@ -228,7 +265,7 @@ const upcoming = ({ navigation }) => {
           {i18n.t('upcoming')}
         </Text>
         <Text style={[styles.description, themeTextStyle]}>
-          {i18n.t('upcomingDescription')}
+          {i18n.t('upcomingDescription')} {regionsText}
         </Text>
         <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView

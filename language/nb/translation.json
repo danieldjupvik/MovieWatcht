@@ -1,10 +1,10 @@
 {
   "popular": "Populære",
-  "popularDescription": "Populære filmer akkurat nå",
+  "popularDescription": "Populære filmer akkurat nå i",
   "topRated": "Topprangerte",
-  "topRatedDescription": "Alle tiders topprangerte filmer",
+  "topRatedDescription": "Alle tiders topprangerte filmer i",
   "upcoming": "Kommende",
-  "upcomingDescription": "Kommende filmer i nærmeste fremtid",
+  "upcomingDescription": "Kommende filmer i nærmeste fremtid i",
   "settings": "Innstillinger",
   "search": "Søk filmer",
   "mainSettings": "Hovedinnstillinger",
@@ -56,7 +56,7 @@
   "appearanceDescription": "Konfigurer Utseende",
   "accountDescription": "Din TMDb Konto",
   "accountSettings": "Konto Innstillinger",
-  "autoDescription": "Enhetens Farge (standard)",
+  "autoDescription": "Enhetens Modus (standard)",
   "darkDescription": "Mørkt Modus",
   "lightDescription": "Lyst Modus",
   "noName": "Ingen navn registrert",
@@ -75,10 +75,10 @@
   "region": "Område",
   "adult": "Voksen",
   "regionDescription": "Område for innhold",
-  "deviceRegion": "System område",
-  "deviceRegionDescription": "Use system område",
+  "deviceRegion": "System",
+  "deviceRegionDescription": "Bruk system",
   "norway": "Norge",
-  "norwayDescription": "Bruk Norge område",
-  "unitedState": "United State",
-  "unitedStateDescriotion": "Bruk United States område"
+  "norwayDescription": "Bruk Norge",
+  "unitedState": "United States",
+  "unitedStateDescription": "Bruk United States"
 }

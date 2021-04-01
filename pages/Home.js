@@ -50,9 +50,10 @@ const Home = ({ navigation }) => {
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshIndicator, setRefreshIndicator] = useState(true);
+  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
   const [appearance, setAppearance] = useState();
-  const [regions, setRegions] = useState();
+  const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
 
   useEffect(() => {
@@ -111,9 +112,8 @@ const Home = ({ navigation }) => {
   const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
 
   useEffect(() => {
-    console.log(regionFinal);
     const theShit = regionFinal ? regionFinal : defaultRegion;
-    console.log(theShit);
+    setRegionsText(theShit);
     setLoader(true);
     const getMovies = async () => {
       try {
@@ -121,6 +121,7 @@ const Home = ({ navigation }) => {
           `${baseUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
         setLoader(false);
         console.log('fresh update');
       } catch (e) {
@@ -133,7 +134,6 @@ const Home = ({ navigation }) => {
   }, [regionFinal]);
 
   useEffect(() => {
-    // const defaultRegion = Localization.region;
     const theShit = regionFinal ? regionFinal : defaultRegion;
     console.log(theShit);
     const onRefresh = async () => {
@@ -142,6 +142,7 @@ const Home = ({ navigation }) => {
           `${baseUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
         console.log('fresh update');
       } catch (e) {
         console.log(e);
@@ -155,17 +156,20 @@ const Home = ({ navigation }) => {
   const onBottomLoad = async () => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
     console.log(theShit);
-    setBottomLoader(true);
-    setPageNumber(pageNumber + 1);
-    try {
-      const response = await axios.get(
-        `${baseUrl + `&region=${theShit}&page=${pageNumber}`}`
-      );
-      setMovies((movies) => [...movies, ...response.data.results]);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setBottomLoader(false);
+
+    if (pageNumber <= totalPageNumberFromApi) {
+      setBottomLoader(true);
+      setPageNumber(pageNumber + 1);
+      try {
+        const response = await axios.get(
+          `${baseUrl + `&region=${theShit}&page=${pageNumber}`}`
+        );
+        setMovies((movies) => [...movies, ...response.data.results]);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setBottomLoader(false);
+      }
     }
   };
 
@@ -295,9 +299,8 @@ const Home = ({ navigation }) => {
           {i18n.t('popular')}
         </Text>
         <Text style={[styles.description, themeTextStyle]}>
-          {i18n.t('popularDescription')}
+          {i18n.t('popularDescription')} {regionsText}
         </Text>
-        <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
@@ -305,7 +308,9 @@ const Home = ({ navigation }) => {
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
               console.log('load bottom');
-              onBottomLoad();
+              if (movies.length >= 1) {
+                onBottomLoad();
+              }
             }
           }}
           scrollEventThrottle={400}

@@ -43,9 +43,7 @@ i18n.translations = {
   en: translationsEN,
 };
 
-// Localization.locale;
-
-i18n.locale = 'en';
+i18n.locale = Localization.locale;
 i18n.fallbacks = true;
 
 const HomeStack = createStackNavigator();
@@ -500,12 +498,19 @@ export default function App() {
   }, []);
 
   const defaultColor = useColorScheme();
+
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
   const themeStatusBarStyle =
     colorScheme === 'light' ? 'dark-content' : 'light-content';
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+  const themeTabBarStyle =
+    colorScheme === 'light' ? styles.tabBarStyleLight : styles.tabBarStyleDark;
+  const themeTabBarStyleAndroid =
+    colorScheme === 'light'
+      ? styles.tabBarStyleLightAndroid
+      : styles.tabBarStyleDarkAndroid;
 
   const TabBar = (props) => {
     if (Platform.OS === 'ios') {
@@ -568,11 +573,12 @@ export default function App() {
             tabBarOptions={{
               activeTintColor: 'red',
               inactiveTintColor: 'gray',
-              showLabel: Platform.OS !== 'android',
-              style: {
-                borderTopColor: 'transparent',
-                backgroundColor: 'transparent',
-              },
+              // showLabel: Platform.OS !== 'android',
+
+              style:
+                Platform.OS === 'ios'
+                  ? themeTabBarStyle
+                  : themeTabBarStyleAndroid,
             }}
           >
             <Tab.Screen
@@ -646,5 +652,23 @@ const styles = StyleSheet.create({
   },
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
+  },
+  tabBarStyleLight: {
+    borderTopColor: 'transparent',
+    backgroundColor: 'transparent',
+  },
+  tabBarStyleDark: {
+    borderTopColor: 'transparent',
+    backgroundColor: 'transparent',
+  },
+  tabBarStyleLightAndroid: {
+    borderTopColor: 'transparent',
+    backgroundColor: backgroundColorLight,
+  },
+  tabBarStyleDarkAndroid: {
+    borderTopColor: 'transparent',
+    backgroundColor: backgroundColorDark,
+    height: 55,
+    paddingBottom: 5,
   },
 });
