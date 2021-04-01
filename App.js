@@ -31,6 +31,9 @@ import PersonDetails from './pages/PersonDetails';
 import Account from './pages/Account';
 import watchList from './pages/WatchList';
 import Appearance from './pages/Appearance';
+import ContentSettings from './pages/ContentSettings';
+import Region from './pages/Region';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
@@ -39,7 +42,10 @@ i18n.translations = {
   nb: translationsNB,
   en: translationsEN,
 };
-i18n.locale = Localization.locale;
+
+// Localization.locale;
+
+i18n.locale = 'en';
 i18n.fallbacks = true;
 
 const HomeStack = createStackNavigator();
@@ -430,6 +436,34 @@ function SettingsStackScreen() {
       <SettingsStack.Screen
         name='Appearance'
         component={Appearance}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SettingsStack.Screen
+        name='ContentSettings'
+        component={ContentSettings}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SettingsStack.Screen
+        name='Region'
+        component={Region}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),

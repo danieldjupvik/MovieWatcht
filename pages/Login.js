@@ -37,7 +37,7 @@ const goToForgotPassword = () => {
   WebBrowser.openBrowserAsync('https://www.themoviedb.org/reset-password');
 };
 
-export let testVariable = true;
+export let testVariable;
 
 const Login = ({ navigation }) => {
   const [password, setPassword] = useState();

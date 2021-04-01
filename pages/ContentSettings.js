@@ -16,7 +16,7 @@ import {
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Settings = ({ navigation }) => {
+const ContentSettings = ({ navigation }) => {
   const [sessionId, setSessionId] = useState();
   const [appearance, setAppearance] = useState();
 
@@ -107,14 +107,14 @@ const Settings = ({ navigation }) => {
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
               <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('mainSettings')}
+                {i18n.t('languageAndRegion')}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.touchableElem}
               onPress={() =>
-                navigation.navigate('About', {
-                  headerTitle: i18n.t('about'),
+                navigation.navigate('Region', {
+                  headerTitle: i18n.t('region'),
                 })
               }
             >
@@ -122,17 +122,17 @@ const Settings = ({ navigation }) => {
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('about')}
+                      {i18n.t('region')}
                     </Text>
                     <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('aboutDescription')}
+                      {i18n.t('regionDescription')}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.rightArrow}>
                   <FontAwesome5
-                    name={'question-circle'}
+                    name={'globe-europe'}
                     solid
                     style={[themeTextStyle, { fontSize: iconSize }]}
                   />
@@ -140,36 +140,11 @@ const Settings = ({ navigation }) => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.touchableElem}
-              onPress={() =>
-                navigation.navigate('Appearance', {
-                  headerTitle: i18n.t('appearance'),
-                })
-              }
-            >
-              <View style={[styles.listElement, themeBoxStyle]}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('appearance')}
-                    </Text>
-                    <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('appearanceDescription')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.rightArrow}>
-                  <FontAwesome5
-                    name={'paint-brush'}
-                    solid
-                    style={[themeTextStyle, { fontSize: iconSize }]}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
+            <View style={styles.listHeadingElement}>
+              <Text style={[styles.listHeading, themeTextStyle]}>
+                {i18n.t('content')}
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.touchableElem}
               onPress={() =>
@@ -182,105 +157,23 @@ const Settings = ({ navigation }) => {
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('contentSettings')}
+                      {i18n.t('adult')}
                     </Text>
                     <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('contentDescription')}
+                      {i18n.t('adultContentDescription')}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.rightArrow}>
                   <FontAwesome5
-                    name={'globe'}
+                    name={'ban'}
                     solid
                     style={[themeTextStyle, { fontSize: iconSize }]}
                   />
                 </View>
               </View>
             </TouchableOpacity>
-
-            <View style={styles.listHeadingElement}>
-              <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('accountSettings')}
-              </Text>
-            </View>
-
-            {sessionId ? (
-              <TouchableOpacity
-                style={styles.touchableElem}
-                onPress={() =>
-                  navigation.navigate('Account', {
-                    headerTitle: i18n.t('account'),
-                  })
-                }
-              >
-                <View style={[styles.listElement, themeBoxStyle]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text, themeTextStyle]}>
-                        {i18n.t('account')}
-                      </Text>
-                      <Text style={[styles.textDescription, themeTextStyle]}>
-                        {i18n.t('accountDescription')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'user-circle'}
-                      solid
-                      style={[themeTextStyle, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ) : null}
-
-            {sessionId ? (
-              <TouchableOpacity onPress={logout}>
-                <View style={[styles.listElement, styles.logoutButton]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text]}>{i18n.t('logout')}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'sign-in-alt'}
-                      solid
-                      style={[{ color: 'black' }, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('Login', {
-                    headerTitle: i18n.t('login'),
-                  })
-                }
-              >
-                <View style={[styles.listElement, styles.logoutButton]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text]}>{i18n.t('login')}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'sign-in-alt'}
-                      solid
-                      style={[{ color: 'black' }, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -363,4 +256,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Settings;
+export default ContentSettings;

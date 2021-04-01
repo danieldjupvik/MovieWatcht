@@ -52,6 +52,8 @@ const Home = ({ navigation }) => {
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
   const [appearance, setAppearance] = useState();
+  const [regions, setRegions] = useState();
+  const [regionFinal, setRegionFinal] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -71,6 +73,31 @@ const Home = ({ navigation }) => {
     getAppearance();
   }, []);
 
+  const getRegion = async () => {
+    try {
+      const region = await AsyncStorage.getItem('region');
+      const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+      console.log('region from localstorage ' + region);
+      const regionToll = region === 'auto' ? defaultRegion : region;
+      if (region !== null) {
+        setRegionFinal(regionToll);
+      } else {
+        setRegionFinal(defaultRegion);
+        console.log('there is no region set');
+      }
+    } catch (e) {
+      alert('error reading region value');
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getRegion();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -81,34 +108,58 @@ const Home = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
+  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+
   useEffect(() => {
-    const region = Localization.region;
+    console.log(regionFinal);
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
     setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${baseUrl + `&page=1&region=${region}`}`
+          `${baseUrl + `&region=${theShit}&page=1`}`
         );
         setMovies(response.data.results);
-        setRefreshing(false);
         setLoader(false);
         console.log('fresh update');
       } catch (e) {
         console.log(e);
       } finally {
+        setRefreshing(false);
       }
     };
     getMovies();
+  }, [regionFinal]);
+
+  useEffect(() => {
+    // const defaultRegion = Localization.region;
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
+    const onRefresh = async () => {
+      try {
+        const response = await axios.get(
+          `${baseUrl + `&region=${theShit}&page=1`}`
+        );
+        setMovies(response.data.results);
+        console.log('fresh update');
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+    onRefresh();
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
-    const region = Localization.region;
-
+    const theShit = regionFinal ? regionFinal : defaultRegion;
+    console.log(theShit);
     setBottomLoader(true);
     setPageNumber(pageNumber + 1);
     try {
       const response = await axios.get(
-        `${baseUrl + `&page=${pageNumber}&region=${region}`}`
+        `${baseUrl + `&region=${theShit}&page=${pageNumber}`}`
       );
       setMovies((movies) => [...movies, ...response.data.results]);
     } catch (e) {
@@ -121,6 +172,7 @@ const Home = ({ navigation }) => {
   function onRefresh() {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
+    setPageNumber(2);
   }
 
   const getSearch = async (title) => {
@@ -275,46 +327,38 @@ const Home = ({ navigation }) => {
                     uri: `${basePosterUrl + movie.poster_path}`,
                   };
                   return (
-                    <Animated.View
-                      style={[
-                        {
-                          transform: [{ scale: animatePress }],
-                        },
-                      ]}
+                    <TouchableOpacity
+                      key={movie.id}
+                      style={styles.cards}
+                      onLongPress={() =>
+                        onShare(movie.title, movie.id, movie.overview)
+                      }
+                      onPressIn={() => animateIn()}
+                      onPressOut={() => animateOut()}
+                      onPress={() =>
+                        navigation.navigate('Details', {
+                          id: movie.id,
+                          headerTitle: movie.title,
+                        })
+                      }
                     >
-                      <TouchableOpacity
-                        key={movie.id}
-                        style={styles.cards}
-                        onLongPress={() =>
-                          onShare(movie.title, movie.id, movie.overview)
-                        }
-                        onPressIn={() => animateIn()}
-                        onPressOut={() => animateOut()}
-                        // onPress={() =>
-                        //   navigation.navigate('Details', {
-                        //     id: movie.id,
-                        //     headerTitle: movie.title,
-                        //   })
-                        // }
-                      >
-                        <Animated.Image
-                          source={movie.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='contain'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
-                        />
-                        <Text style={[styles.rating, themeTextStyle]}>
-                          {iconStar} {movie.vote_average}/10
-                        </Text>
-                      </TouchableOpacity>
-                    </Animated.View>
+                      <Animated.Image
+                        source={movie.poster_path ? posterImage : noImage}
+                        style={[
+                          styles.image,
+                          {
+                            opacity: fadeAnim,
+                          },
+                        ]}
+                        resizeMode='contain'
+                        defaultSource={posterLoader}
+                        ImageCacheEnum={'force-cache'}
+                        onLoad={fadeIn}
+                      />
+                      <Text style={[styles.rating, themeTextStyle]}>
+                        {iconStar} {movie.vote_average}/10
+                      </Text>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

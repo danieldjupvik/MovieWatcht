@@ -2,11 +2,14 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, View, Dimensions } from 'react-native';
 
 const deviceHeight = Dimensions.get('window').height;
-const Loader = ({ loadingStyle }) => {
+const Loader = ({ loadingStyle, color, size }) => {
   return (
     <View style={loadingStyle ? loadingStyle : null}>
       <View style={[styles.container, styles.horizontal]}>
-        <ActivityIndicator size='large' color='red' />
+        <ActivityIndicator
+          size={size ? size : 'large'}
+          color={color ? color : 'red'}
+        />
       </View>
     </View>
   );
@@ -19,7 +22,7 @@ const styles = StyleSheet.create({
   horizontal: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 10,
+    // padding: 10,
   },
 });
 

@@ -64,20 +64,16 @@ const Account = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
   useEffect(() => {
+    let isCancelled = false;
     const getData = async () => {
       try {
         const sessionId = await AsyncStorage.getItem('sessionId');
         const response = await axios.get(
           `${accountUrl + `&session_id=${sessionId}`}`
         );
-        if (sessionId !== null) {
-          // getAccount(value);
-          setAccountInfo(response.data);
-          console.log(response.data);
-          console.log(sessionId);
-        } else {
-          console.log('there is no login credit');
-        }
+        setAccountInfo(response.data);
+        console.log(response.data);
+        console.log(sessionId);
       } catch (e) {
         alert('error reading login credentials');
       } finally {
@@ -85,6 +81,9 @@ const Account = ({ navigation }) => {
       }
     };
     getData();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const logout = async () => {

@@ -69,11 +69,12 @@ const TopRated = ({ navigation }) => {
 
   useEffect(() => {
     const region = Localization.region;
+    const finalRegion = region ? region : 'NO';
     setLoader(true);
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${region}`}`
+          `${topRatedMovieUrl + `&region=${finalRegion}`}`
         );
         setMovies(response.data.results);
         setRefreshing(false);
@@ -85,15 +86,45 @@ const TopRated = ({ navigation }) => {
       }
     };
     getMovies();
+  }, []);
+
+  // const removeValue = async () => {
+  //   try {
+  //     await AsyncStorage.removeItem('region');
+  //   } catch (e) {
+  //     // remove error
+  //   }
+
+  //   console.log('Done.');
+  // };
+  // removeValue();
+  useEffect(() => {
+    const region = Localization.region;
+    const finalRegion = region ? region : 'NO';
+    const onRefresh = async () => {
+      try {
+        const response = await axios.get(
+          `${topRatedMovieUrl + `&region=${finalRegion}&page=1`}`
+        );
+        setMovies(response.data.results);
+        console.log('fresh update');
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+    onRefresh();
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
     const region = Localization.region;
+    const finalRegion = region ? region : 'NO';
     setBottomLoader(true);
     setPageNumber(pageNumber + 1);
     try {
       const response = await axios.get(
-        `${topRatedMovieUrl + `&page=${pageNumber}&region=${region}`}`
+        `${topRatedMovieUrl + `&page=${pageNumber}&region=${finalRegion}`}`
       );
       setMovies((movies) => [...movies, ...response.data.results]);
     } catch (e) {
@@ -106,6 +137,7 @@ const TopRated = ({ navigation }) => {
   function onRefresh() {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
+    setPageNumber(2);
   }
 
   const getSearch = async (title) => {

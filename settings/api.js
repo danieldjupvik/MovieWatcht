@@ -1,5 +1,5 @@
 export const basePosterUrl = 'https://image.tmdb.org/t/p/w154';
-export const baseBackdropUrl = 'https://image.tmdb.org/t/p/w300';
+export const baseBackdropUrl = 'https://image.tmdb.org/t/p/w780';
 export const baseProfileUrl = 'https://image.tmdb.org/t/p/w185';
 export const detailsMovieUrl = 'https://api.themoviedb.org/3/movie/';
 export const apiKey = '?api_key=0e336e0a85a0361c6c6ce28bdce52748';

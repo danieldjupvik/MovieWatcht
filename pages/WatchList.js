@@ -80,11 +80,12 @@ const WatchList = ({ navigation }) => {
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
+  // Initialize Page
   useEffect(() => {
-    getMultiple();
+    getAccountAndSession();
   }, [refreshIndicator]);
 
-  const getMultiple = async () => {
+  const getAccountAndSession = async () => {
     let fromLocalStorage;
     try {
       fromLocalStorage = await AsyncStorage.multiGet([
@@ -98,13 +99,13 @@ const WatchList = ({ navigation }) => {
     const sessionId = fromLocalStorage[1][1];
 
     {
-      sessionId ? getMovies(accountId, sessionId) : null;
+      sessionId ? getWatchListMovies(accountId, sessionId) : null;
     }
     setAccountId(accountId);
     setSessionId(sessionId);
   };
 
-  const getMultipleAgain = async () => {
+  const checkIfLoggedIn = async () => {
     let fromLocalStorage;
     try {
       fromLocalStorage = await AsyncStorage.multiGet([
@@ -125,19 +126,19 @@ const WatchList = ({ navigation }) => {
 
   useEffect(() => {
     {
-      sessionId ? getMovies(accountId, sessionId) : null;
+      sessionId ? getWatchListMovies(accountId, sessionId) : null;
     }
   }, [sessionId]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      getMultipleAgain();
+      checkIfLoggedIn();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const getMovies = async (accountIdParam, sessionIdParam) => {
+  const getWatchListMovies = async (accountIdParam, sessionIdParam) => {
     setLoader(true);
     try {
       const response = await axios.get(
@@ -173,9 +174,26 @@ const WatchList = ({ navigation }) => {
     }
   };
 
+  // on refresh
+  const refreshFetch = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=1`
+      );
+      setMovies(response.data.results);
+      setTotalPageNumberFromApi(response.data.total_pages);
+      setRefreshing(false);
+      console.log('Fetched Watchlist movies');
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setWhileLoading(true);
+    }
+  };
+
   function onRefresh() {
     setRefreshing(true);
-    setRefreshIndicator(!refreshIndicator);
+    refreshFetch();
     setWhileLoading(true);
     setPageNumber(2);
   }

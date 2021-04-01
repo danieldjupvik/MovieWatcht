@@ -84,6 +84,23 @@ const upcoming = ({ navigation }) => {
       }
     };
     getMovies();
+  }, []);
+
+  useEffect(() => {
+    const onRefresh = async () => {
+      try {
+        const response = await axios.get(
+          `${upcomingMovieUrl + '&region=US&page=1'}`
+        );
+        setMovies(response.data.results);
+        setTotalPageNumberFromApi(response.data.total_pages);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+    onRefresh();
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
@@ -104,6 +121,7 @@ const upcoming = ({ navigation }) => {
       }
     }
   };
+
   function onRefresh() {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);

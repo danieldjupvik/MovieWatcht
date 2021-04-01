@@ -19,10 +19,28 @@ import { Restart } from 'fiction-expo-restart';
 import ButtonStyles from '../styles/buttons';
 import { primaryButton, secondaryButton } from '../colors/colors';
 
-const Appearance = ({ navigation }) => {
-  const [appearance, setAppearance] = useState();
+const Region = ({ navigation }) => {
   const [buttonPressed, setButtonPressed] = useState(1);
-  const [savedAppearance, setSavedAppearance] = useState();
+  const [savedRegion, setSavedRegion] = useState();
+  const [appearance, setAppearance] = useState();
+
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          console.log(value);
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
 
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
@@ -35,28 +53,26 @@ const Appearance = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
   useEffect(() => {
-    getAppearance();
+    getRegion();
   }, []);
 
-  const getAppearance = async () => {
+  const getRegion = async () => {
     try {
-      const value = await AsyncStorage.getItem('appearance');
+      const value = await AsyncStorage.getItem('region');
       if (value !== null) {
-        setAppearance(value);
         if (!value) {
           setButtonPressed(2);
         }
         if (value === 'auto') {
           setButtonPressed(2);
         }
-        if (value === 'dark') {
+        if (value === 'NO') {
           setButtonPressed(3);
         }
-        if (value === 'light') {
+        if (value === 'US') {
           setButtonPressed(4);
         }
       } else {
-        setAppearance('auto');
         setButtonPressed(2);
       }
     } catch (e) {
@@ -64,22 +80,22 @@ const Appearance = ({ navigation }) => {
     }
   };
 
-  const saveAndClose = () => {
-    storeAppearance(savedAppearance);
-    Restart();
+  const saveAndGoBack = (regionValue) => {
+    storeRegion(regionValue);
+    navigation.goBack();
   };
 
-  const storeAppearance = async (appearanceValue) => {
+  const storeRegion = async (regionValue) => {
     try {
-      await AsyncStorage.setItem('appearance', appearanceValue);
+      await AsyncStorage.setItem('region', regionValue);
     } catch (e) {
-      alert('Error saving login session, contact developer');
+      alert('Error saving region value, contact developer');
     }
   };
 
   useEffect(() => {
     const subscribed = navigation.addListener('focus', () => {
-      getAppearance();
+      getRegion();
       return subscribed;
     });
   }, [buttonPressed]);
@@ -90,21 +106,21 @@ const Appearance = ({ navigation }) => {
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
               <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('appearance')}
+                {i18n.t('region')}
               </Text>
             </View>
             <TouchableWithoutFeedback
               style={styles.touchableElem}
-              onPress={() => (setSavedAppearance('auto'), setButtonPressed(2))}
+              onPress={() => (setButtonPressed(2), saveAndGoBack('auto'))}
             >
               <View style={[styles.listElement, themeBoxStyle]}>
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('auto')}
+                      {i18n.t('deviceRegion')}
                     </Text>
                     <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('autoDescription')}
+                      {i18n.t('deviceRegionDescription')}
                     </Text>
                   </View>
                 </View>
@@ -120,16 +136,16 @@ const Appearance = ({ navigation }) => {
             </TouchableWithoutFeedback>
             <TouchableWithoutFeedback
               style={styles.touchableElem}
-              onPress={() => (setSavedAppearance('dark'), setButtonPressed(3))}
+              onPress={() => (setButtonPressed(3), saveAndGoBack('NO'))}
             >
               <View style={[styles.listElement, themeBoxStyle]}>
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('dark')}
+                      {i18n.t('norway')}
                     </Text>
                     <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('darkDescription')}
+                      {i18n.t('norwayDescription')}
                     </Text>
                   </View>
                 </View>
@@ -145,16 +161,16 @@ const Appearance = ({ navigation }) => {
             </TouchableWithoutFeedback>
             <TouchableWithoutFeedback
               style={styles.touchableElem}
-              onPress={() => (setSavedAppearance('light'), setButtonPressed(4))}
+              onPress={() => (setButtonPressed(4), saveAndGoBack('US'))}
             >
               <View style={[styles.listElement, themeBoxStyle]}>
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('light')}
+                      {i18n.t('unitedState')}
                     </Text>
                     <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('lightDescription')}
+                      {i18n.t('unitedStateDescription')}
                     </Text>
                   </View>
                 </View>
@@ -168,16 +184,6 @@ const Appearance = ({ navigation }) => {
                 </View>
               </View>
             </TouchableWithoutFeedback>
-          </View>
-          <View style={styles.buttonWrap}>
-            <TouchableOpacity
-              style={[ButtonStyles.mediumButtonStyling, styles.saveBtn]}
-              onPress={() => saveAndClose()}
-            >
-              <Text style={[ButtonStyles.buttonText]}>
-                {i18n.t('saveAndReload')}
-              </Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -264,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Appearance;
+export default Region;

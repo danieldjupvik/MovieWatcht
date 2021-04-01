@@ -17,7 +17,7 @@ import {
   backgroundColorLight,
   textColorDark,
   textColorLight,
-} from '../colors/colors';
+} from './../colors/colors';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
