@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, StatusBar, Platform, View } from 'react-native';
+import { StyleSheet, StatusBar, Platform, View, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   BottomTabBar,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
+import axios from 'axios';
+import { apiKey } from './settings/api';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
 import translationsEN from './language/en/translation.json';
@@ -33,8 +35,10 @@ import watchList from './pages/WatchList';
 import Appearance from './pages/Appearance';
 import ContentSettings from './pages/ContentSettings';
 import Region from './pages/Region';
+import Adult from './pages/Adult';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RegionProvider } from './components/RegionContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -286,6 +290,7 @@ function watchListStackScreen() {
     colorScheme === 'light'
       ? styles.lightThemeBox.backgroundColor
       : styles.darkThemeBox.backgroundColor;
+  const iconColor = colorScheme === 'light' ? 'black' : 'white';
 
   return (
     <watchListStack.Navigator>
@@ -328,6 +333,7 @@ function watchListStackScreen() {
       <watchListStack.Screen
         name='Login'
         component={Login}
+        initialParams={{ color: iconColor }}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
@@ -372,9 +378,9 @@ function SettingsStackScreen() {
     colorScheme === 'light'
       ? styles.lightThemeBox.backgroundColor
       : styles.darkThemeBox.backgroundColor;
-
+  const iconColor = colorScheme === 'light' ? 'black' : 'white';
   return (
-    <SettingsStack.Navigator>
+    <SettingsStack.Navigator screenProps={'black'}>
       <SettingsStack.Screen
         name='Settings'
         component={Settings}
@@ -406,6 +412,7 @@ function SettingsStackScreen() {
       <SettingsStack.Screen
         name='Login'
         component={Login}
+        initialParams={{ color: iconColor }}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
@@ -462,6 +469,20 @@ function SettingsStackScreen() {
       <SettingsStack.Screen
         name='Region'
         component={Region}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeBoxStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SettingsStack.Screen
+        name='Adult'
+        component={Adult}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
@@ -539,86 +560,92 @@ export default function App() {
 
   return (
     <>
-      <AppearanceProvider>
-        <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
-        <NavigationContainer>
-          <Tab.Navigator
-            initialRouteName='Home'
-            tabBar={TabBar}
-            screenOptions={({ route }) => ({
-              tabBarIcon: ({ focused, color, size }) => {
-                let iconName;
+      <RegionProvider>
+        <AppearanceProvider>
+          <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
+          <NavigationContainer>
+            <Tab.Navigator
+              initialRouteName='Home'
+              tabBar={TabBar}
+              screenOptions={({ route }) => ({
+                tabBarVisible: true,
+                tabBarIcon: ({ focused, color, size }) => {
+                  let iconName;
 
-                if (route.name === 'Home') {
-                  iconName = 'fire';
-                } else if (route.name === 'topRated') {
-                  iconName = 'medal';
-                } else if (route.name === 'upcoming') {
-                  iconName = 'newspaper';
-                } else if (route.name === 'settings') {
-                  iconName = 'sliders-h';
-                } else if (route.name === 'watchList') {
-                  iconName = 'bookmark';
-                }
+                  if (route.name === 'Home') {
+                    iconName = 'fire';
+                  } else if (route.name === 'topRated') {
+                    iconName = 'medal';
+                  } else if (route.name === 'upcoming') {
+                    iconName = 'newspaper';
+                  } else if (route.name === 'settings') {
+                    iconName = 'sliders-h';
+                  } else if (route.name === 'watchList') {
+                    iconName = 'bookmark';
+                  }
 
-                return (
-                  <FontAwesome5
-                    name={iconName}
-                    solid
-                    style={{ color: color, fontSize: size }}
-                  />
-                );
-              },
-            })}
-            tabBarOptions={{
-              activeTintColor: 'red',
-              inactiveTintColor: 'gray',
-              // showLabel: Platform.OS !== 'android',
+                  return (
+                    <FontAwesome5
+                      name={iconName}
+                      solid
+                      style={{ color: color, fontSize: size }}
+                    />
+                  );
+                },
+              })}
+              tabBarOptions={{
+                headerMode: 'none',
+                tabBarPosition: 'bottom',
+                activeTintColor: 'red',
+                inactiveTintColor: 'gray',
 
-              style:
-                Platform.OS === 'ios'
-                  ? themeTabBarStyle
-                  : themeTabBarStyleAndroid,
-            }}
-          >
-            <Tab.Screen
-              name='Home'
-              options={{
-                tabBarLabel: i18n.t('popular'),
+                // showLabel: Platform.OS !== 'android',
+
+                style:
+                  Platform.OS === 'ios'
+                    ? themeTabBarStyle
+                    : themeTabBarStyleAndroid,
               }}
-              component={HomeStackScreen}
-            />
-            <Tab.Screen
-              name='topRated'
-              options={{
-                tabBarLabel: i18n.t('topRated'),
-              }}
-              component={topRatedStackScreen}
-            />
-            <Tab.Screen
-              name='upcoming'
-              options={{
-                tabBarLabel: i18n.t('upcoming'),
-              }}
-              component={upcomingStackScreen}
-            />
-            <Tab.Screen
-              name='watchList'
-              options={{
-                tabBarLabel: i18n.t('watchList'),
-              }}
-              component={watchListStackScreen}
-            />
-            <Tab.Screen
-              name='settings'
-              options={{
-                tabBarLabel: i18n.t('settings'),
-              }}
-              component={SettingsStackScreen}
-            />
-          </Tab.Navigator>
-        </NavigationContainer>
-      </AppearanceProvider>
+            >
+              <Tab.Screen
+                name='Home'
+                options={{
+                  tabBarLabel: i18n.t('popular'),
+                }}
+                component={HomeStackScreen}
+              />
+              <Tab.Screen
+                name='topRated'
+                options={{
+                  tabBarLabel: i18n.t('topRated'),
+                }}
+                component={topRatedStackScreen}
+              />
+              <Tab.Screen
+                name='upcoming'
+                options={{
+                  tabBarLabel: i18n.t('upcoming'),
+                }}
+                component={upcomingStackScreen}
+              />
+              <Tab.Screen
+                name='watchList'
+                options={{
+                  tabBarLabel: i18n.t('watchList'),
+                }}
+                component={watchListStackScreen}
+              />
+              <Tab.Screen
+                name='settings'
+                options={{
+                  tabBarLabel: i18n.t('settings'),
+                }}
+                component={SettingsStackScreen}
+              />
+            </Tab.Navigator>
+          </NavigationContainer>
+        </AppearanceProvider>
+      </RegionProvider>
     </>
   );
 }

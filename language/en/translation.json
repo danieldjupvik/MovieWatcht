@@ -10,7 +10,8 @@
   "mainSettings": "Main settings",
   "about": "About",
   "login": "Login",
-  "releaseDate": "Release Date",
+  "releaseDate": "Premiere",
+  "digitalReleaseDate": "Streaming",
   "runtime": "Runtime",
   "status": "Status",
   "revenue": "Revenue",
@@ -75,10 +76,14 @@
   "region": "Region",
   "adult": "Adult",
   "regionDescription": "Region of content",
+  "adultButtonDescription": "Include adult in search",
   "deviceRegion": "System",
   "deviceRegionDescription": "Use system",
   "norway": "Norway",
   "norwayDescription": "Use Norway",
   "unitedState": "United States",
-  "unitedStateDescription": "Use United States"
+  "unitedStateDescription": "Use United States",
+  "license": "License",
+  "loginModalHeading": "The Movie Database Account",
+  "loginModalText": "Register or login your with The Movie Database account to access your watch list. This product uses the TMDb API but is not endorsed or certified by TMDb."
 }

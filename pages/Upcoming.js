@@ -14,6 +14,7 @@ import axios from 'axios';
 import {
   basePosterUrl,
   searchMovieUrl,
+  topRatedMovieUrl,
   upcomingMovieUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
@@ -29,15 +30,15 @@ import * as Localization from 'expo-localization';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
-const upcoming = ({ navigation }) => {
+const Upcoming = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
-  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [appearance, setAppearance] = useState();
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
@@ -78,6 +79,10 @@ const upcoming = ({ navigation }) => {
   };
 
   useEffect(() => {
+    getRegion();
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       getRegion();
     });
@@ -95,7 +100,11 @@ const upcoming = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+  const defaultRegion = Localization.region
+    ? Platform.OS === 'ios'
+      ? Localization.region
+      : 'US'
+    : 'US';
 
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
@@ -104,15 +113,16 @@ const upcoming = ({ navigation }) => {
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${upcomingMovieUrl + `&region=${theShit}&page=1`}`
+          `${upcomingMovieUrl + `&region=${regionFinal}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        setRefreshing(false);
+        console.log('fresh update');
         setLoader(false);
       } catch (e) {
         console.log(e);
       } finally {
-        setRefreshing(false);
       }
     };
     getMovies();
@@ -128,6 +138,7 @@ const upcoming = ({ navigation }) => {
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        console.log('fresh update');
       } catch (e) {
         console.log(e);
       } finally {
@@ -148,8 +159,6 @@ const upcoming = ({ navigation }) => {
         const response = await axios.get(
           `${upcomingMovieUrl + `&region=${theShit}&page=${pageNumber}`}`
         );
-
-        console.log(movies);
         setMovies((movies) => [...movies, ...response.data.results]);
       } catch (e) {
         console.log(e);
@@ -180,11 +189,12 @@ const upcoming = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replace(/\d+/g, '').trim();
-    if (inputValue.length >= 1) {
+    var title = inputValue.replaceAll(' ', '%').trim();
+    if (title.length >= 1) {
       getSearch(title);
     } else {
       setRefreshIndicator(!refreshIndicator);
+      setLoader(false);
     }
   }
 
@@ -312,19 +322,21 @@ const upcoming = ({ navigation }) => {
                         })
                       }
                     >
-                      <Animated.Image
-                        source={movie.poster_path ? posterImage : noImage}
-                        style={[
-                          styles.image,
-                          {
-                            opacity: fadeAnim,
-                          },
-                        ]}
-                        resizeMode='contain'
-                        defaultSource={posterLoader}
-                        ImageCacheEnum={'force-cache'}
-                        onLoad={fadeIn}
-                      />
+                      <View style={styles.imageDiv}>
+                        <Animated.Image
+                          source={movie.poster_path ? posterImage : noImage}
+                          style={[
+                            styles.image,
+                            {
+                              opacity: fadeAnim,
+                            },
+                          ]}
+                          resizeMode='cover'
+                          defaultSource={posterLoader}
+                          ImageCacheEnum={'force-cache'}
+                          onLoad={fadeIn}
+                        />
+                      </View>
                       <Text style={[styles.rating, themeTextStyle]}>
                         {iconStar} {movie.vote_average}/10
                       </Text>
@@ -344,4 +356,4 @@ const upcoming = ({ navigation }) => {
   );
 };
 
-export default upcoming;
+export default Upcoming;

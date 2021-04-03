@@ -14,6 +14,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ContentSettings = ({ navigation }) => {
@@ -148,8 +149,8 @@ const ContentSettings = ({ navigation }) => {
             <TouchableOpacity
               style={styles.touchableElem}
               onPress={() =>
-                navigation.navigate('ContentSettings', {
-                  headerTitle: i18n.t('contentSettings'),
+                navigation.navigate('Adult', {
+                  headerTitle: i18n.t('adult'),
                 })
               }
             >
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: borderRadius,
     width: '100%',
   },
   iconElement: {

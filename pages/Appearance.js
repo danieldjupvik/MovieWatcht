@@ -17,6 +17,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Restart } from 'fiction-expo-restart';
 import ButtonStyles from '../styles/buttons';
+import { borderRadius } from '../styles/globalStyles';
 import { primaryButton, secondaryButton } from '../colors/colors';
 
 const Appearance = ({ navigation }) => {
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: borderRadius,
     width: '100%',
   },
   iconElement: {

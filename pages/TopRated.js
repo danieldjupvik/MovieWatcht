@@ -78,6 +78,10 @@ const TopRated = ({ navigation }) => {
   };
 
   useEffect(() => {
+    getRegion();
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       getRegion();
     });
@@ -95,7 +99,11 @@ const TopRated = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+  const defaultRegion = Localization.region
+    ? Platform.OS === 'ios'
+      ? Localization.region
+      : 'US'
+    : 'US';
 
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
@@ -180,11 +188,12 @@ const TopRated = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replace(/\d+/g, '').trim();
-    if (inputValue.length >= 1) {
+    var title = inputValue.replaceAll(' ', '%').trim();
+    if (title.length >= 1) {
       getSearch(title);
     } else {
       setRefreshIndicator(!refreshIndicator);
+      setLoader(false);
     }
   }
 
@@ -312,19 +321,21 @@ const TopRated = ({ navigation }) => {
                         })
                       }
                     >
-                      <Animated.Image
-                        source={movie.poster_path ? posterImage : noImage}
-                        style={[
-                          styles.image,
-                          {
-                            opacity: fadeAnim,
-                          },
-                        ]}
-                        resizeMode='contain'
-                        defaultSource={posterLoader}
-                        ImageCacheEnum={'force-cache'}
-                        onLoad={fadeIn}
-                      />
+                      <View style={styles.imageDiv}>
+                        <Animated.Image
+                          source={movie.poster_path ? posterImage : noImage}
+                          style={[
+                            styles.image,
+                            {
+                              opacity: fadeAnim,
+                            },
+                          ]}
+                          resizeMode='cover'
+                          defaultSource={posterLoader}
+                          ImageCacheEnum={'force-cache'}
+                          onLoad={fadeIn}
+                        />
+                      </View>
                       <Text style={[styles.rating, themeTextStyle]}>
                         {iconStar} {movie.vote_average}/10
                       </Text>

@@ -21,6 +21,7 @@ import {
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { color } from 'react-native-reanimated';
 
 const About = () => {
   const [appearance, setAppearance] = useState();
@@ -59,6 +60,14 @@ const About = () => {
     WebBrowser.openBrowserAsync('https://danieldjupvik.dev/privacy.html');
   };
 
+  const goFontAwesomeLicense = () => {
+    WebBrowser.openBrowserAsync('https://fontawesome.com/license');
+  };
+
+  const goToTheMovieDbLicense = () => {
+    WebBrowser.openBrowserAsync('https://www.themoviedb.org/documentation/api');
+  };
+
   let d = new Date();
   let year = d.getFullYear();
   return (
@@ -67,76 +76,114 @@ const About = () => {
         style={[styles.container, themeContainerStyle]}
         indicatorStyle={scrollBarTheme}
       >
-        <ScrollView>
-          <View style={styles.main}>
-            <View style={styles.listHeadingElement}>
-              <Text style={styles.listHeading}>{i18n.t('aboutThisApp')}</Text>
-            </View>
-            <View style={styles.touchableElem}>
+        <View style={styles.scrollViewWrapper}>
+          <ScrollView>
+            <View style={styles.main}>
+              <View style={styles.listHeadingElement}>
+                <Text style={styles.listHeading}>{i18n.t('aboutThisApp')}</Text>
+              </View>
+              <View style={styles.touchableElem}>
+                <View style={styles.listElement}>
+                  <View style={styles.iconElement}>
+                    <View>
+                      <Text style={[styles.text, themeTextStyle]}>
+                        Copyright © {year} Daniel Djupvik
+                      </Text>
+                      <Text style={[styles.text, themeTextStyle]}>
+                        {i18n.t('allRightsReserved')}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
               <View style={styles.listElement}>
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      Copyright © {year} Daniel Djupvik
+                      {i18n.t('version')} {Constants.manifest.version} (
+                      {Platform.OS === 'ios'
+                        ? Constants.manifest.ios.buildNumber
+                        : Constants.manifest.android.versionCode}
+                      )
                     </Text>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('allRightsReserved')}
+                      Release Channel {Constants.manifest.releaseChannel}
                     </Text>
                   </View>
                 </View>
               </View>
-            </View>
-            <View style={styles.listElement}>
-              <View style={styles.iconElement}>
-                <View>
-                  <Text style={[styles.text, themeTextStyle]}>
-                    {i18n.t('version')} {Constants.manifest.version} (
-                    {Platform.OS === 'ios'
-                      ? Constants.manifest.ios.buildNumber
-                      : Constants.manifest.android.versionCode}
-                    )
-                  </Text>
-                  <Text style={[styles.text, themeTextStyle]}>
-                    Release Channel {Constants.manifest.releaseChannel}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <View>
               <View>
                 <View>
-                  <Text style={[styles.subHeading, themeTextStyle]}>
-                    {i18n.t('tmdbPrivacy')}
-                  </Text>
-                </View>
-                <View style={styles.privacyBtn}>
-                  <Button onPress={goToTheMovieDb} title='TheMovieDb' />
-                </View>
-                <View style={styles.privacyBtn}>
-                  <Button
-                    onPress={goToAppPrivacy}
-                    title={Constants.manifest.name}
-                  />
+                  <View>
+                    <Text style={[styles.subHeading, themeTextStyle]}>
+                      {i18n.t('tmdbPrivacy')}
+                    </Text>
+                  </View>
+                  <View style={styles.privacyBtn}>
+                    <Button
+                      onPress={goToTheMovieDb}
+                      title='The Movie Database'
+                    />
+                  </View>
+                  <View style={styles.privacyBtn}>
+                    <Button
+                      onPress={goToAppPrivacy}
+                      title={Constants.manifest.name}
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
-            <View>
-              <Text style={[styles.subHeading, themeTextStyle]}>
-                {i18n.t('poweredBy')}
+              <View>
+                <Text
+                  style={[styles.subHeading, { marginTop: 15 }, themeTextStyle]}
+                >
+                  {i18n.t('poweredBy')}
+                </Text>
+                <Image
+                  source={tmdbLogo}
+                  style={{
+                    resizeMode: 'contain',
+                    width: 100,
+                    height: 100,
+                    marginLeft: 2,
+                    marginTop: 5,
+                  }}
+                />
+
+                <Text style={[styles.text, themeTextStyle]}>
+                  Note: This product uses the TMDb API but is not endorsed or
+                  certified by TMDb.
+                </Text>
+                <Text style={[styles.text, themeTextStyle]}>
+                  Images are provided with the help of The Movie Database.
+                </Text>
+              </View>
+              <Text
+                style={[styles.subHeading, { marginTop: 25 }, themeTextStyle]}
+              >
+                Info
               </Text>
-              <Image
-                source={tmdbLogo}
-                style={{
-                  resizeMode: 'contain',
-                  width: 100,
-                  height: 100,
-                  marginLeft: 2,
-                  marginTop: 5,
-                }}
-              />
+              <Text style={[styles.text, themeTextStyle]}>
+                Icon provided by{' '}
+                <Text
+                  onPress={goFontAwesomeLicense}
+                  style={[{ color: 'blue' }]}
+                >
+                  FontAwesome
+                </Text>
+              </Text>
+              <Text style={[styles.text, themeTextStyle]}>
+                The Movie Database API{' '}
+                <Text
+                  onPress={goToTheMovieDbLicense}
+                  style={[{ color: 'blue' }]}
+                >
+                  Overview
+                </Text>
+              </Text>
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
       </SafeAreaView>
     </>
   );
@@ -150,6 +197,10 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingLeft: 15,
     paddingRight: 15,
+    paddingBottom: 50,
+  },
+  scrollViewWrapper: {
+    marginBottom: 45,
   },
   listElement: {
     paddingBottom: 10,

@@ -31,6 +31,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import { borderRadius, boxShadow } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
 import { monthNames } from '../components/RenderDetails';
 
@@ -104,118 +105,123 @@ const PersonDetails = ({ route, navigation }) => {
       {loader ? (
         <Loader />
       ) : (
-        <ScrollView indicatorStyle={scrollBarTheme}>
-          <View style={styles.main}>
-            <ImageBackground
-              source={{
-                uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
-              }}
-              style={styles.backdrop}
-              blurRadius={2}
-              defaultSource={posterLoader}
-              ImageCacheEnum={'force-cache'}
-            >
-              <View style={styles.child} />
-            </ImageBackground>
-            <Image
-              source={{
-                uri: `${basePosterUrl + person.profile_path}`,
-              }}
-              defaultSource={posterLoader}
-              ImageCacheEnum={'force-cache'}
-              style={styles.posterImg}
-            />
-            <Text style={[styles.title, styles.runtime, themeTextStyle]}>
-              {person.name}
-            </Text>
-
-            <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
-              {birthday}
-            </Text>
-
-            {person.deathday ? (
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
-                {deathday}
+        <View style={styles.scrollViewWrapper}>
+          <ScrollView indicatorStyle={scrollBarTheme}>
+            <View style={styles.main}>
+              <ImageBackground
+                source={{
+                  uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
+                }}
+                style={styles.backdrop}
+                defaultSource={posterLoader}
+                ImageCacheEnum={'force-cache'}
+              >
+                <View style={styles.child} />
+              </ImageBackground>
+              <View style={boxShadow}>
+                <Image
+                  source={{
+                    uri: `${basePosterUrl + person.profile_path}`,
+                  }}
+                  defaultSource={posterLoader}
+                  ImageCacheEnum={'force-cache'}
+                  style={styles.posterImg}
+                />
+              </View>
+              <Text style={[styles.title, styles.runtime, themeTextStyle]}>
+                {person.name}
               </Text>
-            ) : null}
 
-            <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
-              {person.gender === 1 ? i18n.t('female') : i18n.t('male')}
-            </Text>
+              <Text style={[styles.genre, themeTextStyle]}>
+                <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
+                {birthday}
+              </Text>
 
-            <Text style={[styles.genre, themeTextStyle]}>
-              <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
-              {person.place_of_birth}
-            </Text>
+              {person.deathday ? (
+                <Text style={[styles.genre, themeTextStyle]}>
+                  <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
+                  {deathday}
+                </Text>
+              ) : null}
 
-            {person.homepage ? (
-              <View style={styles.homepageButtonMain}>
-                <TouchableOpacity
-                  style={styles.homepageButtonDiv}
-                  onPress={goToWebsite}
-                >
-                  <Text
-                    style={[
-                      styles.homepageButton,
-                      themeTextStyle,
-                      themeBtnBackground,
-                    ]}
+              <Text style={[styles.genre, themeTextStyle]}>
+                <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
+                {person.gender === 1 ? i18n.t('female') : i18n.t('male')}
+              </Text>
+
+              <Text style={[styles.genre, themeTextStyle]}>
+                <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
+                {person.place_of_birth}
+              </Text>
+
+              {person.homepage ? (
+                <View style={styles.homepageButtonMain}>
+                  <TouchableOpacity
+                    style={styles.homepageButtonDiv}
+                    onPress={goToWebsite}
                   >
-                    {i18n.t('homepage')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-            <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
-              {person.biography}
-            </Text>
-          </View>
+                    <Text
+                      style={[
+                        styles.homepageButton,
+                        themeTextStyle,
+                        themeBtnBackground,
+                      ]}
+                    >
+                      {i18n.t('homepage')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+              <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
+                {person.biography}
+              </Text>
+            </View>
 
-          <View style={styles.moviesMain}>
-            <Text style={[styles.moviesHeading, themeTextStyle]}>
-              {i18n.t('knownFor')}
-            </Text>
-            <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
-              <View style={styles.moviesDiv}>
-                {personCredit.person?.known_for.map((movie, idx) => {
-                  if (movie.poster_path !== null) {
-                    return (
-                      <TouchableOpacity
-                        style={styles.moviesCard}
-                        key={idx}
-                        onPress={() =>
-                          navigation.push('Details', {
-                            id: movie.id,
-                            headerTitle: movie.title,
-                          })
-                        }
-                      >
-                        <Image
-                          style={styles.posterImage}
-                          source={{
-                            uri: `${basePosterUrl + movie.poster_path}`,
-                          }}
-                          ImageCacheEnum={'force-cache'}
-                        />
-                        <Text style={[styles.textRating, themeTextStyle]}>
-                          <FontAwesome5
-                            name={'star'}
-                            solid
-                            style={{ color: 'red', fontSize: 13 }}
-                          />{' '}
-                          {movie.vote_average}/10
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }
-                })}
-              </View>
-            </ScrollView>
-          </View>
-        </ScrollView>
+            <View style={styles.moviesMain}>
+              <Text style={[styles.moviesHeading, themeTextStyle]}>
+                {i18n.t('knownFor')}
+              </Text>
+              <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
+                <View style={styles.moviesDiv}>
+                  {personCredit.person?.known_for.map((movie, idx) => {
+                    if (movie.poster_path !== null) {
+                      return (
+                        <TouchableOpacity
+                          style={styles.moviesCard}
+                          key={idx}
+                          onPress={() =>
+                            navigation.push('Details', {
+                              id: movie.id,
+                              headerTitle: movie.title,
+                            })
+                          }
+                        >
+                          <View style={boxShadow}>
+                            <Image
+                              style={styles.posterImage}
+                              source={{
+                                uri: `${basePosterUrl + movie.poster_path}`,
+                              }}
+                              ImageCacheEnum={'force-cache'}
+                            />
+                          </View>
+                          <Text style={[styles.textRating, themeTextStyle]}>
+                            <FontAwesome5
+                              name={'star'}
+                              solid
+                              style={{ color: 'red', fontSize: 13 }}
+                            />{' '}
+                            {movie.vote_average}/10
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    }
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -236,6 +242,9 @@ const styles = StyleSheet.create({
     width: deviceWidth,
     justifyContent: 'center',
   },
+  scrollViewWrapper: {
+    marginBottom: 45,
+  },
   backdrop: {
     width: '100%',
     height: 250,
@@ -245,6 +254,7 @@ const styles = StyleSheet.create({
     height: 180,
     marginTop: -250 / 2,
     marginLeft: 20,
+    borderRadius: borderRadius,
   },
   title: {
     marginTop: 30,

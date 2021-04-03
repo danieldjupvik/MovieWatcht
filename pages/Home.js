@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -34,6 +34,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import { borderRadius } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -92,6 +93,10 @@ const Home = ({ navigation }) => {
   };
 
   useEffect(() => {
+    getRegion();
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       getRegion();
     });
@@ -109,7 +114,11 @@ const Home = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+  const defaultRegion = Localization.region
+    ? Platform.OS === 'ios'
+      ? Localization.region
+      : 'US'
+    : 'US';
 
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
@@ -194,11 +203,13 @@ const Home = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replace(/\d+/g, '').trim();
-    if (inputValue.length >= 1) {
+    var title = inputValue.replaceAll(' ', '%').trim();
+    console.log(title);
+    if (title.length >= 1) {
       getSearch(title);
     } else {
       setRefreshIndicator(!refreshIndicator);
+      setLoader(false);
     }
   }
 
@@ -347,19 +358,21 @@ const Home = ({ navigation }) => {
                         })
                       }
                     >
-                      <Animated.Image
-                        source={movie.poster_path ? posterImage : noImage}
-                        style={[
-                          styles.image,
-                          {
-                            opacity: fadeAnim,
-                          },
-                        ]}
-                        resizeMode='contain'
-                        defaultSource={posterLoader}
-                        ImageCacheEnum={'force-cache'}
-                        onLoad={fadeIn}
-                      />
+                      <View style={styles.imageDiv}>
+                        <Animated.Image
+                          source={movie.poster_path ? posterImage : noImage}
+                          style={[
+                            styles.image,
+                            {
+                              opacity: fadeAnim,
+                            },
+                          ]}
+                          resizeMode='cover'
+                          defaultSource={posterLoader}
+                          ImageCacheEnum={'force-cache'}
+                          onLoad={fadeIn}
+                        />
+                      </View>
                       <Text style={[styles.rating, themeTextStyle]}>
                         {iconStar} {movie.vote_average}/10
                       </Text>
@@ -410,16 +423,28 @@ export const styles = StyleSheet.create({
   mainParent: {
     flex: 1,
     alignItems: 'center',
+    alignSelf: 'center',
     justifyContent: 'center',
   },
   image: {
-    width: '100%',
-    height: deviceWidth / 2.23,
+    width: deviceWidth / 3.3,
+    height: deviceWidth / 2.24,
+    backgroundColor: 'grey',
+    borderRadius: borderRadius,
+  },
+  imageDiv: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.55,
+    shadowRadius: 3.2,
   },
   cards: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 2,
     alignItems: 'center',
+    marginLeft: 5,
+    marginRight: 5,
     marginBottom: 20,
   },
   rating: {
@@ -447,7 +472,7 @@ export const styles = StyleSheet.create({
     width: deviceWidth - 50,
     alignItems: 'center',
     padding: 20,
-    borderRadius: 20,
+    borderRadius: borderRadius,
   },
   loginImage: {
     width: 140,

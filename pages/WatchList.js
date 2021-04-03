@@ -213,8 +213,8 @@ const WatchList = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replace(/\d+/g, '').trim();
-    if (inputValue.length >= 1) {
+    var title = inputValue.replaceAll(' ', '%').trim();
+    if (title.length >= 1) {
       getSearch(title);
     } else {
       setRefreshIndicator(!refreshIndicator);
@@ -349,21 +349,23 @@ const WatchList = ({ navigation }) => {
                                 })
                               }
                             >
-                              <Animated.Image
-                                source={
-                                  movie.poster_path ? posterImage : noImage
-                                }
-                                style={[
-                                  styles.image,
-                                  {
-                                    opacity: fadeAnim,
-                                  },
-                                ]}
-                                resizeMode='contain'
-                                defaultSource={posterLoader}
-                                ImageCacheEnum={'force-cache'}
-                                onLoad={fadeIn}
-                              />
+                              <View style={styles.imageDiv}>
+                                <Animated.Image
+                                  source={
+                                    movie.poster_path ? posterImage : noImage
+                                  }
+                                  style={[
+                                    styles.image,
+                                    {
+                                      opacity: fadeAnim,
+                                    },
+                                  ]}
+                                  resizeMode='cover'
+                                  defaultSource={posterLoader}
+                                  ImageCacheEnum={'force-cache'}
+                                  onLoad={fadeIn}
+                                />
+                              </View>
                               <Text style={[styles.rating, themeTextStyle]}>
                                 {iconStar} {movie.vote_average}/10
                               </Text>

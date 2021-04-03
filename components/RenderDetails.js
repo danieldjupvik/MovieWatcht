@@ -30,7 +30,10 @@ import {
   backgroundColorLight,
   textColorDark,
   textColorLight,
+  primaryButton,
 } from '../colors/colors';
+import { borderRadius, boxShadow } from '../styles/globalStyles';
+import ButtonStyles from '../styles/buttons';
 import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -59,6 +62,8 @@ const RenderDetails = ({ navigation, id }) => {
   const [sessionId, setSessionId] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [stateFinish, setStateFinish] = useState(true);
+  const [digitalRelease, setDigitalRelease] = useState();
+  const [releaseNote, setReleaseNote] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -110,13 +115,30 @@ const RenderDetails = ({ navigation, id }) => {
             detailsMovieUrl +
             id +
             apiKey +
-            '&append_to_response=translations,recommendations,credits'
+            '&append_to_response=translations,recommendations,credits,release_dates'
           }`
         );
-        console.log(response.data.recommendations);
         setVideos(videos.data.results);
         setMovie(response.data);
         setSessionId(sessionId);
+        {
+          response.data.release_dates.results
+            .filter((region) => region.iso_3166_1 === 'US')[0]
+            .release_dates.filter((type) => type.type === 4)[0]
+            ? (setDigitalRelease(
+                response.data.release_dates.results
+                  .filter((region) => region.iso_3166_1 === 'US')[0]
+                  .release_dates.filter((type) => type.type === 4)[0]
+                  .release_date
+              ),
+              setReleaseNote(
+                response.data.release_dates.results
+                  .filter((region) => region.iso_3166_1 === 'US')[0]
+                  .release_dates.filter((type) => type.type === 4)[0].note
+              ))
+            : null;
+        }
+
         {
           sessionId ? getMovieState(sessionId) : null;
         }
@@ -206,6 +228,7 @@ const RenderDetails = ({ navigation, id }) => {
     return response;
   };
 
+  // premiere
   var d = new Date(movie.release_date);
 
   var year = d.getFullYear();
@@ -213,6 +236,13 @@ const RenderDetails = ({ navigation, id }) => {
   var day = d.getDate();
   var releaseDate = `${day}. ${month} ${year}`;
 
+  var dd = new Date(digitalRelease);
+  var yearDigital = dd.getFullYear();
+  var monthDigital = monthNames[dd.getMonth()];
+  var dayDigital = dd.getDate();
+  var digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+
+  // Runtime
   let runtime = timeConvert(movie.runtime);
   function timeConvert(num) {
     var hours = num / 60;
@@ -242,21 +272,28 @@ const RenderDetails = ({ navigation, id }) => {
     <SafeAreaView style={[styles.container, themeContainerStyle]}>
       <View style={modal.centeredView}>
         <Modal
-          animationType='slide'
+          animationType='fade'
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
-            Alert.alert('Modal has been closed.');
             setModalVisible(!modalVisible);
           }}
         >
-          <View style={modal.centeredView}>
+          <View
+            style={[
+              modal.centeredView,
+              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
+            ]}
+          >
             <View style={[modal.modalView, themeBoxStyle]}>
               <Text style={[modal.modalText, themeTextStyle]}>
                 {i18n.t('watchlistModalTex')}
               </Text>
               <TouchableOpacity
-                style={{ ...modal.openButton, backgroundColor: '#2196F3' }}
+                style={[
+                  ButtonStyles.smallButtonStyling,
+                  { backgroundColor: primaryButton },
+                ]}
                 onPress={() => {
                   setModalVisible(!modalVisible);
                 }}
@@ -278,13 +315,12 @@ const RenderDetails = ({ navigation, id }) => {
                   uri: `${baseBackdropUrl + movie.backdrop_path}`,
                 }}
                 style={styles.backdrop}
-                blurRadius={2.5}
                 defaultSource={posterLoader}
                 ImageCacheEnum={'force-cache'}
               >
                 <View style={styles.child} />
               </ImageBackground>
-              <View style={styles.imageDiv}>
+              <View style={[styles.imageDiv, boxShadow]}>
                 <Image
                   source={{
                     uri: `${basePosterUrl + movie.poster_path}`,
@@ -330,6 +366,14 @@ const RenderDetails = ({ navigation, id }) => {
                 <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
                 {releaseDate}
               </Text>
+              {digitalRelease ? (
+                <Text style={[styles.genre, themeTextStyle]}>
+                  <Text style={styles.category}>
+                    {i18n.t('digitalReleaseDate')}
+                  </Text>{' '}
+                  {digitalReleaseDate} ({releaseNote})
+                </Text>
+              ) : null}
               <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('runtime')}</Text>{' '}
                 {runtime}
@@ -397,18 +441,20 @@ const RenderDetails = ({ navigation, id }) => {
                       var maxlimit = 32;
                       return (
                         <View style={styles.videoDiv} key={idx}>
-                          <WebView
-                            allowsFullscreenVideo
-                            useWebKit
-                            allowsInlineMediaPlayback
-                            mediaPlaybackRequiresUserAction
-                            javaScriptEnabled
-                            scrollEnabled={false}
-                            style={styles.videoElem}
-                            source={{
-                              uri: `https://www.youtube.com/embed/${video.key}`,
-                            }}
-                          />
+                          <View style={boxShadow}>
+                            <WebView
+                              allowsFullscreenVideo
+                              useWebKit
+                              allowsInlineMediaPlayback
+                              mediaPlaybackRequiresUserAction
+                              javaScriptEnabled
+                              scrollEnabled={false}
+                              style={styles.videoElem}
+                              source={{
+                                uri: `https://www.youtube.com/embed/${video.key}`,
+                              }}
+                            />
+                          </View>
                           <Text style={[styles.videoText, themeTextStyle]}>
                             {video.name.length > maxlimit
                               ? video.name.substring(0, maxlimit - 3) + '...'
@@ -448,13 +494,15 @@ const RenderDetails = ({ navigation, id }) => {
                         }
                       >
                         <View style={styles.castCard}>
-                          <Image
-                            style={styles.profileImage}
-                            source={
-                              cast.profile_path ? profilePicture : noImage
-                            }
-                            ImageCacheEnum={'force-cache'}
-                          />
+                          <View style={boxShadow}>
+                            <Image
+                              style={styles.profileImage}
+                              source={
+                                cast.profile_path ? profilePicture : noImage
+                              }
+                              ImageCacheEnum={'force-cache'}
+                            />
+                          </View>
                           <Text style={[styles.textName, themeTextStyle]}>
                             {cast.name}
                           </Text>
@@ -496,13 +544,15 @@ const RenderDetails = ({ navigation, id }) => {
                                 })
                               }
                             >
-                              <Image
-                                style={styles.posterImage}
-                                source={{
-                                  uri: `${basePosterUrl + movie.poster_path}`,
-                                }}
-                                ImageCacheEnum={'force-cache'}
-                              />
+                              <View style={boxShadow}>
+                                <Image
+                                  style={styles.posterImage}
+                                  source={{
+                                    uri: `${basePosterUrl + movie.poster_path}`,
+                                  }}
+                                  ImageCacheEnum={'force-cache'}
+                                />
+                              </View>
                               <Text style={[styles.textRating, themeTextStyle]}>
                                 <FontAwesome5
                                   name={'star'}
@@ -556,11 +606,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
   },
+  child: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
   posterImg: {
     width: 120,
     height: 180,
     marginTop: -250 / 2,
     marginLeft: 20,
+    borderRadius: borderRadius,
   },
   imageDiv: {
     flex: 1,
@@ -609,10 +664,6 @@ const styles = StyleSheet.create({
   runtime: {
     marginBottom: globalPadding * 4,
   },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-  },
   rating: {
     marginLeft: 22,
     fontSize: globalFontsize,
@@ -658,7 +709,7 @@ const styles = StyleSheet.create({
     width: deviceWidth / 1.9,
     height: deviceWidth / 3.4,
     marginRight: 30,
-    borderRadius: 8,
+    borderRadius: borderRadius,
   },
   castMain: {
     marginTop: 25 + globalPadding,
@@ -728,6 +779,7 @@ const styles = StyleSheet.create({
     width: deviceWidth / 4.5,
     height: deviceWidth / 3,
     marginBottom: 13,
+    borderRadius: borderRadius,
   },
   textRating: {
     paddingTop: 8,
@@ -764,7 +816,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const modal = StyleSheet.create({
+export const modal = StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -773,7 +825,7 @@ const modal = StyleSheet.create({
   modalView: {
     margin: 20,
     backgroundColor: 'white',
-    borderRadius: 20,
+    borderRadius: borderRadius,
     padding: 35,
     alignItems: 'center',
     shadowColor: '#000',
@@ -792,13 +844,20 @@ const modal = StyleSheet.create({
     elevation: 2,
   },
   textStyle: {
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
     textAlign: 'center',
   },
   modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
+    marginBottom: 25,
+    textAlign: 'left',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  modalHeading: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 25,
   },
 });
 export default RenderDetails;

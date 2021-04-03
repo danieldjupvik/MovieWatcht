@@ -10,7 +10,8 @@
   "mainSettings": "Hovedinnstillinger",
   "about": "Om",
   "login": "Logg Inn",
-  "releaseDate": "Utgivelsesdato",
+  "releaseDate": "Premiere",
+  "digitalReleaseDate": "Strømming",
   "runtime": "Spilletid",
   "status": "Status",
   "revenue": "Inntekter",
@@ -75,10 +76,14 @@
   "region": "Område",
   "adult": "Voksen",
   "regionDescription": "Område for innhold",
+  "adultButtonDescription": "Inkluder voksen i søk",
   "deviceRegion": "System",
   "deviceRegionDescription": "Bruk system",
   "norway": "Norge",
   "norwayDescription": "Bruk Norge",
   "unitedState": "United States",
-  "unitedStateDescription": "Bruk United States"
+  "unitedStateDescription": "Bruk United States",
+  "license": "Lisens",
+  "loginModalHeading": "The Movie Database Konto",
+  "loginModalText": "Registrer deg eller logg inn med The Movie Database-kontoen for å få tilgang til min liste. Dette produktet bruker TMDb API, men er ikke godkjent eller sertifisert av TMDb."
 }

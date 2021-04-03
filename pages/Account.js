@@ -24,13 +24,16 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { accountUrl, baseProfileUrl } from './../settings/api';
 import axios from 'axios';
+import { apiKey } from '../settings/api';
 import noAvatar from '../assets/no-avatar.jpg';
 import Loader from '../components/Loader';
 import ButtonStyles from '../styles/buttons';
+import { borderRadius } from '../styles/globalStyles';
 import { primaryButton, secondaryButton } from '../colors/colors';
 
 const Account = ({ navigation }) => {
   const [accountInfo, setAccountInfo] = useState();
+  const [sessionId, setSessionId] = useState();
   const [appearance, setAppearance] = useState();
   const [loader, setLoader] = useState(true);
 
@@ -74,6 +77,7 @@ const Account = ({ navigation }) => {
         setAccountInfo(response.data);
         console.log(response.data);
         console.log(sessionId);
+        setSessionId(sessionId);
       } catch (e) {
         alert('error reading login credentials');
       } finally {
@@ -89,11 +93,30 @@ const Account = ({ navigation }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('sessionId');
+      deleteSession();
       navigation.goBack();
     } catch (e) {
-      // remove error
+      console.log(e);
     }
     console.log('Done.');
+  };
+
+  const deleteSession = async () => {
+    console.log('logged out');
+    try {
+      const response = await axios({
+        method: 'DELETE',
+        url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
+        headers: {},
+        data: {
+          session_id: sessionId,
+        },
+      });
+      console.log(response.data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
   };
 
   const profilePicture = {
@@ -210,7 +233,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flex: 1,
     padding: 50,
-    borderRadius: 15,
+    borderRadius: borderRadius,
     justifyContent: 'center',
     alignItems: 'center',
     width: deviceWidth - 70,

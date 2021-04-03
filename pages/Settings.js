@@ -13,7 +13,12 @@ import {
   backgroundColorLight,
   textColorDark,
   textColorLight,
+  primaryButton,
+  secondaryButton,
 } from '../colors/colors';
+import axios from 'axios';
+import { apiKey } from '../settings/api';
+import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Settings = ({ navigation }) => {
@@ -86,10 +91,29 @@ const Settings = ({ navigation }) => {
     try {
       await AsyncStorage.removeItem('sessionId');
       setSessionId('');
+      deleteSession();
     } catch (e) {
       // remove error
     }
     console.log('Done.');
+  };
+
+  const deleteSession = async () => {
+    console.log('logged out');
+    try {
+      const response = await axios({
+        method: 'DELETE',
+        url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
+        headers: {},
+        data: {
+          session_id: sessionId,
+        },
+      });
+      console.log(response.data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
   };
 
   useEffect(() => {
@@ -306,7 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: borderRadius,
     width: '100%',
   },
   iconElement: {
@@ -322,7 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   logoutButton: {
-    backgroundColor: '#01b4e4',
+    backgroundColor: primaryButton,
   },
 
   icon: {

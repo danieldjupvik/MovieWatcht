@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Dimensions,
+  Button,
+  Modal,
+} from 'react-native';
 import {
   detailsMovieUrl,
   apiKey,
@@ -20,8 +28,10 @@ import {
   primaryButton,
   secondaryButton,
 } from '../colors/colors';
+import { borderRadius } from '../styles/globalStyles';
 import { TextInput } from 'react-native';
 import { Image } from 'react-native';
+import { modal } from '../components/RenderDetails';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
@@ -39,13 +49,15 @@ const goToForgotPassword = () => {
 
 export let testVariable;
 
-const Login = ({ navigation }) => {
+const Login = ({ navigation, route }) => {
   const [password, setPassword] = useState();
   const [username, setUsername] = useState();
   const [showError, setShowError] = useState(false);
   const [usernameInput, setUsernameInput] = useState();
   const [passwordInput, setPasswordInput] = useState();
   const [appearance, setAppearance] = useState();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loginDisabled, setLoginDisabled] = useState(false);
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -76,10 +88,12 @@ const Login = ({ navigation }) => {
   const placeHolderText = colorScheme === 'light' ? 'black' : 'white';
 
   const getToken = async () => {
+    setLoginDisabled(true);
     try {
       const response = await axios.get(`${getTokenUrl}`);
       getRequestToken(response.data.request_token);
     } catch (e) {
+      setLoginDisabled(false);
       console.log(e);
     } finally {
     }
@@ -103,6 +117,7 @@ const Login = ({ navigation }) => {
       setShowError(true);
       usernameInput.clear();
       passwordInput.clear();
+      setLoginDisabled(false);
     } finally {
     }
   };
@@ -128,7 +143,9 @@ const Login = ({ navigation }) => {
       usernameInput.clear();
       passwordInput.clear();
       console.log(e);
+      setLoginDisabled(false);
     } finally {
+      setLoginDisabled(false);
     }
   };
 
@@ -167,10 +184,58 @@ const Login = ({ navigation }) => {
     setShowError(false);
     setPassword(password);
   };
+  console.log(route.params);
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <FontAwesome5
+            name={'question-circle'}
+            style={{ color: route.params.color, fontSize: 22, marginRight: 15 }}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
   return (
     <>
       <SafeAreaView style={[styles.container, themeContainerStyle]}>
+        <Modal
+          animationType='fade'
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View
+            style={[
+              modal.centeredView,
+              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
+            ]}
+          >
+            <View style={[modal.modalView, themeBoxStyle]}>
+              <Text style={[modal.modalHeading, themeTextStyle]}>
+                {i18n.t('loginModalHeading')}
+              </Text>
+              <Text style={[modal.modalText, themeTextStyle]}>
+                {i18n.t('loginModalText')}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  ButtonStyles.smallButtonStyling,
+                  { backgroundColor: primaryButton },
+                ]}
+                onPress={() => {
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <Text style={modal.textStyle}>{i18n.t('close')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         <ScrollView style={styles.main}>
           <View style={styles.loginWrap}>
             <Image
@@ -252,9 +317,11 @@ const Login = ({ navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
+                disabled={loginDisabled}
                 style={[
                   ButtonStyles.mediumButtonStyling,
                   styles.buttonStylingRight,
+                  loginDisabled ? { backgroundColor: 'grey' } : null,
                 ]}
                 onPress={getToken}
               >
@@ -290,16 +357,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 15,
     width: deviceWidth - 50,
-    borderRadius: 10,
+    borderRadius: borderRadius,
   },
   loginViewEmail: {
     marginBottom: 15,
-    borderRadius: 10,
+    borderRadius: borderRadius,
     flexDirection: 'row',
     alignItems: 'center',
   },
   loginViewPassword: {
-    borderRadius: 10,
+    borderRadius: borderRadius,
     flexDirection: 'row',
     alignItems: 'center',
   },
