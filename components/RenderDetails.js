@@ -10,6 +10,7 @@ import {
   ImageBackground,
   TouchableWithoutFeedback,
   Modal,
+  Pressable,
 } from 'react-native';
 import {
   detailsMovieUrl,
@@ -336,7 +337,7 @@ const RenderDetails = ({ navigation, id }) => {
                     size={'small'}
                   />
                 ) : (
-                  <TouchableWithoutFeedback onPress={watchListFunction}>
+                  <Pressable onPress={watchListFunction}>
                     <View style={styles.watchListDiv}>
                       <FontAwesome5
                         name={'bookmark'}
@@ -347,7 +348,7 @@ const RenderDetails = ({ navigation, id }) => {
                         {i18n.t('watchlistBtn')}
                       </Text>
                     </View>
-                  </TouchableWithoutFeedback>
+                  </Pressable>
                 )}
               </View>
               <Text style={[styles.title, themeTextStyle]} selectable>
@@ -371,7 +372,7 @@ const RenderDetails = ({ navigation, id }) => {
                   <Text style={styles.category}>
                     {i18n.t('digitalReleaseDate')}
                   </Text>{' '}
-                  {digitalReleaseDate} ({releaseNote})
+                  {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
                 </Text>
               ) : null}
               <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
@@ -438,7 +439,7 @@ const RenderDetails = ({ navigation, id }) => {
                         type.type === 'Trailer' && type.site === 'YouTube'
                     )
                     .map((video, idx) => {
-                      var maxlimit = 32;
+                      var maxLimit = 32;
                       return (
                         <View style={styles.videoDiv} key={idx}>
                           <View style={boxShadow}>
@@ -456,8 +457,8 @@ const RenderDetails = ({ navigation, id }) => {
                             />
                           </View>
                           <Text style={[styles.videoText, themeTextStyle]}>
-                            {video.name.length > maxlimit
-                              ? video.name.substring(0, maxlimit - 3) + '...'
+                            {video.name.length > maxLimit
+                              ? video.name.substring(0, maxLimit - 3) + '...'
                               : video.name}
                           </Text>
                           <Text style={[styles.typeText, themeTextStyle]}>

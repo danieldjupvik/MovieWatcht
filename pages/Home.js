@@ -425,6 +425,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',
+    width: deviceWidth,
   },
   image: {
     width: deviceWidth / 3.3,
