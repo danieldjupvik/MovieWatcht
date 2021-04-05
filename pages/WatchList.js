@@ -32,6 +32,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { styles } from './Home';
 import ButtonStyles from '../styles/buttons';
+import tmdbLogo from '../assets/tmdb-logo-small.png';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -366,9 +367,16 @@ const WatchList = ({ navigation }) => {
                                   onLoad={fadeIn}
                                 />
                               </View>
-                              <Text style={[styles.rating, themeTextStyle]}>
-                                {iconStar} {movie.vote_average}/10
-                              </Text>
+                              <View style={styles.ratingDiv}>
+                                <Image
+                                  source={tmdbLogo}
+                                  style={styles.tmdbLogo}
+                                  resizeMode='contain'
+                                />
+                                <Text style={[styles.rating, themeTextStyle]}>
+                                  {Math.floor((movie.vote_average * 100) / 10)}%
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           );
                         })}

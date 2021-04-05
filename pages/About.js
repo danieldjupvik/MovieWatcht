@@ -172,15 +172,6 @@ const About = () => {
                   FontAwesome
                 </Text>
               </Text>
-              <Text style={[styles.text, themeTextStyle]}>
-                The Movie Database API{' '}
-                <Text
-                  onPress={goToTheMovieDbLicense}
-                  style={[{ color: 'blue' }]}
-                >
-                  Overview
-                </Text>
-              </Text>
             </View>
           </ScrollView>
         </View>

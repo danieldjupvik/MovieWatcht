@@ -34,6 +34,7 @@ import {
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
 import { monthNames } from '../components/RenderDetails';
+import tmdbLogo from '../assets/tmdb-logo-small.png';
 
 const PersonDetails = ({ route, navigation }) => {
   const { id } = route.params;
@@ -205,14 +206,16 @@ const PersonDetails = ({ route, navigation }) => {
                               ImageCacheEnum={'force-cache'}
                             />
                           </View>
-                          <Text style={[styles.textRating, themeTextStyle]}>
-                            <FontAwesome5
-                              name={'star'}
-                              solid
-                              style={{ color: 'red', fontSize: 13 }}
-                            />{' '}
-                            {movie.vote_average}/10
-                          </Text>
+                          <View style={styles.ratingDiv}>
+                            <Image
+                              source={tmdbLogo}
+                              style={styles.tmdbLogo}
+                              resizeMode='contain'
+                            />
+                            <Text style={[styles.rating, themeTextStyle]}>
+                              {Math.floor((movie.vote_average * 100) / 10)}%
+                            </Text>
+                          </View>
                         </TouchableOpacity>
                       );
                     }
@@ -367,9 +370,18 @@ const styles = StyleSheet.create({
     height: deviceWidth / 3,
     marginBottom: 13,
   },
-  textRating: {
-    paddingTop: 8,
-    fontSize: 12,
+  rating: {
+    marginLeft: 6,
+  },
+  ratingDiv: {
+    marginTop: 10,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tmdbLogo: {
+    width: 25,
+    height: 12,
   },
   moviesHeading: {
     fontSize: 18,

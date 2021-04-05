@@ -37,6 +37,7 @@ import {
 import { borderRadius } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
+import tmdbLogo from '../assets/tmdb-logo-small.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { primaryButton, secondaryButton } from '../colors/colors';
@@ -373,9 +374,16 @@ const Home = ({ navigation }) => {
                           onLoad={fadeIn}
                         />
                       </View>
-                      <Text style={[styles.rating, themeTextStyle]}>
-                        {iconStar} {movie.vote_average}/10
-                      </Text>
+                      <View style={styles.ratingDiv}>
+                        <Image
+                          source={tmdbLogo}
+                          style={styles.tmdbLogo}
+                          resizeMode='contain'
+                        />
+                        <Text style={[styles.rating, themeTextStyle]}>
+                          {Math.floor((movie.vote_average * 100) / 10)}%
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
@@ -449,7 +457,17 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   rating: {
-    marginTop: 8,
+    marginLeft: 6,
+  },
+  ratingDiv: {
+    marginTop: 10,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tmdbLogo: {
+    width: 25,
+    height: 12,
   },
   description: {
     fontSize: 15,

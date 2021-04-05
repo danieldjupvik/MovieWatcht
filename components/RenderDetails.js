@@ -39,6 +39,10 @@ import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
+import imdbLogo from '../assets/imdb-logo.png';
+import tmdbLogo from '../assets/tmdb-logo-small.png';
+import freshNegative from '../assets/freshNegative.png';
+import freshPositive from '../assets/freshPositive.png';
 
 export const monthNames = [
   'Jan',
@@ -65,6 +69,8 @@ const RenderDetails = ({ navigation, id }) => {
   const [stateFinish, setStateFinish] = useState(true);
   const [digitalRelease, setDigitalRelease] = useState();
   const [releaseNote, setReleaseNote] = useState();
+  const [omdb, setOmdb] = useState();
+  const [rottenTomato, setRottenTomato] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -120,6 +126,7 @@ const RenderDetails = ({ navigation, id }) => {
           }`
         );
         setVideos(videos.data.results);
+        getOmdbInfo(response.data.imdb_id);
         setMovie(response.data);
         setSessionId(sessionId);
         {
@@ -146,7 +153,6 @@ const RenderDetails = ({ navigation, id }) => {
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
       }
     };
     getMovie();
@@ -154,6 +160,29 @@ const RenderDetails = ({ navigation, id }) => {
       isCancelled = true;
     };
   }, []);
+
+  const getOmdbInfo = async (imdbId) => {
+    try {
+      const response = await axios.get(
+        `http://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
+      );
+      setOmdb(response.data);
+      setRottenTomato(
+        JSON.parse(
+          response.data.Ratings.filter(
+            (source) => source.Source === 'Rotten Tomatoes'
+          )
+            .map((type) => type.Value)[0]
+            .replace('%', '')
+        )
+      );
+      return response;
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoader(false);
+    }
+  };
 
   const getMovieState = async (session) => {
     try {
@@ -352,36 +381,42 @@ const RenderDetails = ({ navigation, id }) => {
                 )}
               </View>
               <Text style={[styles.title, themeTextStyle]} selectable>
-                {movie.title} <Text>({year})</Text>
+                {movie.title}
               </Text>
-              {movie.tagline ? (
-                <Text style={[styles.tagline, themeTextStyle]}>
-                  {movie.tagline}
-                </Text>
-              ) : null}
+              <View style={styles.underTitleDiv}>
+                <View style={styles.underTitleElem}>
+                  <Text style={[styles.underTitle, themeTextStyle]}>
+                    {year}
+                  </Text>
+                </View>
+                <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                <View style={styles.underTitleElem}>
+                  <Text style={[styles.underTitle, themeTextStyle]}>
+                    {runtime}
+                  </Text>
+                </View>
+                <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                <View style={styles.underTitleElem}>
+                  <Text style={[styles.underTitle, themeTextStyle]}>
+                    {omdb?.Rated}
+                  </Text>
+                </View>
+              </View>
               <Text style={[styles.rating, themeTextStyle]}>
-                {iconStar} {movie.vote_average}/10 ({movie.vote_count}{' '}
-                {i18n.t('votes')})
-              </Text>
-              <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
                 {releaseDate}
               </Text>
               {digitalRelease ? (
-                <Text style={[styles.genre, themeTextStyle]}>
+                <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
                   <Text style={styles.category}>
                     {i18n.t('digitalReleaseDate')}
                   </Text>{' '}
                   {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
                 </Text>
               ) : null}
-              <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('runtime')}</Text>{' '}
-                {runtime}
-              </Text>
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-                {movie.status}
+                {movie.status.toLowerCase()}
               </Text>
               {movie.budget !== 0 ? (
                 <Text style={[styles.genre, themeTextStyle]}>
@@ -400,26 +435,36 @@ const RenderDetails = ({ navigation, id }) => {
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
                 {movie.genres?.map((genre) => genre.name + ' ')}
               </Text>
-              {movie.homepage ? (
-                <>
-                  <View style={styles.homepageButtonMain}>
-                    <TouchableOpacity
-                      style={styles.homepageButtonDiv}
-                      onPress={goToWebsite}
-                    >
-                      <Text
-                        style={[
-                          styles.homepageButton,
-                          themeTextStyle,
-                          themeBtnBackground,
-                        ]}
-                      >
-                        {i18n.t('homepage')}
-                      </Text>
-                    </TouchableOpacity>
+              <View style={[styles.rating, styles.ratingDiv]}>
+                <View style={styles.ratingElem}>
+                  <Image
+                    source={tmdbLogo}
+                    style={styles.tmdbLogo}
+                    resizeMode='contain'
+                  />
+                  <Text style={[themeTextStyle]}>
+                    {Math.floor((movie.vote_average * 100) / 10)}%
+                  </Text>
+                </View>
+                <View style={styles.ratingElem}>
+                  <Image
+                    source={imdbLogo}
+                    style={styles.imdbLogo}
+                    resizeMode='contain'
+                  />
+                  <Text style={[themeTextStyle]}>{omdb?.imdbRating}/10</Text>
+                </View>
+                {rottenTomato ? (
+                  <View style={styles.ratingElem}>
+                    <Image
+                      source={rottenTomato > 60 ? freshPositive : freshNegative}
+                      style={styles.rottenLogo}
+                      resizeMode='cover'
+                    />
+                    <Text style={[themeTextStyle]}>{rottenTomato}%</Text>
                   </View>
-                </>
-              ) : null}
+                ) : null}
+              </View>
               <Text style={[styles.overview, themeTextStyle]}>
                 {movie.overview}
               </Text>
@@ -554,14 +599,18 @@ const RenderDetails = ({ navigation, id }) => {
                                   ImageCacheEnum={'force-cache'}
                                 />
                               </View>
-                              <Text style={[styles.textRating, themeTextStyle]}>
-                                <FontAwesome5
-                                  name={'star'}
-                                  solid
-                                  style={{ color: 'red', fontSize: 13 }}
-                                />{' '}
-                                {movie.vote_average}/10
-                              </Text>
+                              <View style={styles.ratingDivRec}>
+                                <Image
+                                  source={tmdbLogo}
+                                  style={styles.tmdbLogoRec}
+                                  resizeMode='contain'
+                                />
+                                <Text
+                                  style={[styles.textRating, themeTextStyle]}
+                                >
+                                  {Math.floor((movie.vote_average * 100) / 10)}%
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           );
                         }
@@ -639,11 +688,28 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: 30,
-    marginBottom: 10,
+    marginBottom: 12,
     marginLeft: 22,
     marginRight: 22,
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
+  },
+  underTitleDiv: {
+    marginLeft: 22,
+    marginRight: 22,
+    flex: 1,
+    flexDirection: 'row',
+  },
+  underTitleElem: {},
+  separators: {
+    opacity: 0.6,
+    marginRight: 7.5,
+    marginLeft: 7.5,
+  },
+  underTitle: {
+    opacity: 0.6,
+    fontWeight: '400',
+    fontSize: 14.5,
   },
   overview: {
     marginLeft: 22,
@@ -667,10 +733,39 @@ const styles = StyleSheet.create({
   },
   rating: {
     marginLeft: 22,
+    marginRight: 22,
     fontSize: globalFontsize,
     fontWeight: normalFontWeight,
     marginTop: 20,
     marginBottom: globalPadding,
+  },
+  ratingDiv: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 25,
+    marginBottom: 10,
+  },
+  ratingElem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  imdbLogo: {
+    width: 40,
+    height: 18,
+    marginRight: 7,
+  },
+  tmdbLogo: {
+    width: 40,
+    height: 17,
+    marginRight: 7,
+  },
+  rottenLogo: {
+    width: 25,
+    height: 25,
+    marginRight: 7,
   },
   tagline: {
     marginLeft: 22,
@@ -783,8 +878,19 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius,
   },
   textRating: {
-    paddingTop: 8,
+    // paddingTop: 8,
+    marginLeft: 6,
     fontSize: 12,
+  },
+  ratingDivRec: {
+    marginTop: 10,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tmdbLogoRec: {
+    width: 25,
+    height: 12,
   },
   moviesHeading: {
     fontSize: 18,

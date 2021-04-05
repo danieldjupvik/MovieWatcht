@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Animated,
   Share,
+  Image,
 } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
@@ -26,6 +27,7 @@ import posterLoader from '../assets/poster-loader.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import noImage from '../assets/no-image.jpg';
+import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Localization from 'expo-localization';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
@@ -337,9 +339,16 @@ const Upcoming = ({ navigation }) => {
                           onLoad={fadeIn}
                         />
                       </View>
-                      <Text style={[styles.rating, themeTextStyle]}>
-                        {iconStar} {movie.vote_average}/10
-                      </Text>
+                      <View style={styles.ratingDiv}>
+                        <Image
+                          source={tmdbLogo}
+                          style={styles.tmdbLogo}
+                          resizeMode='contain'
+                        />
+                        <Text style={[styles.rating, themeTextStyle]}>
+                          {Math.floor((movie.vote_average * 100) / 10)}%
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
