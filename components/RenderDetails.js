@@ -164,7 +164,7 @@ const RenderDetails = ({ navigation, id }) => {
   const getOmdbInfo = async (imdbId) => {
     try {
       const response = await axios.get(
-        `http://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
+        `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
       );
       setOmdb(response.data);
       setRottenTomato(
