@@ -85,5 +85,7 @@
   "unitedStateDescription": "Bruk United States",
   "license": "Lisens",
   "loginModalHeading": "The Movie Database Konto",
-  "loginModalText": "Registrer deg eller logg inn med The Movie Database-kontoen for å få tilgang til min liste. Dette produktet bruker TMDb API, men er ikke godkjent eller sertifisert av TMDb."
+  "loginModalText": "Registrer deg eller logg inn med The Movie Database-kontoen for å få tilgang til min liste. Dette produktet bruker TMDb API, men er ikke godkjent eller sertifisert av TMDb.",
+  "similar": "Lignende",
+  "director": "Regissør"
 }

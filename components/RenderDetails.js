@@ -71,6 +71,7 @@ const RenderDetails = ({ navigation, id }) => {
   const [releaseNote, setReleaseNote] = useState();
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
+  const [imdbVotes, setImdbVotes] = useState();
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -122,7 +123,7 @@ const RenderDetails = ({ navigation, id }) => {
             detailsMovieUrl +
             id +
             apiKey +
-            '&append_to_response=translations,recommendations,credits,release_dates'
+            '&append_to_response=translations,recommendations,similar,credits,release_dates'
           }`
         );
         setVideos(videos.data.results);
@@ -167,6 +168,7 @@ const RenderDetails = ({ navigation, id }) => {
         `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
       );
       setOmdb(response.data);
+      setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
       setRottenTomato(
         JSON.parse(
           response.data.Ratings.filter(
@@ -298,6 +300,16 @@ const RenderDetails = ({ navigation, id }) => {
     WebBrowser.openBrowserAsync(movie.homepage);
   };
 
+  const numFormatter = (num) => {
+    if (num > 999 && num < 1000000) {
+      return (num / 1000).toFixed() + 'k';
+    } else if (num > 1000000) {
+      return (num / 1000000).toFixed(1) + 'm';
+    } else if (num < 900) {
+      return num;
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, themeContainerStyle]}>
       <View style={modal.centeredView}>
@@ -416,7 +428,7 @@ const RenderDetails = ({ navigation, id }) => {
               ) : null}
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-                {movie.status.toLowerCase()}
+                {movie.status}
               </Text>
               {movie.budget !== 0 ? (
                 <Text style={[styles.genre, themeTextStyle]}>
@@ -430,38 +442,77 @@ const RenderDetails = ({ navigation, id }) => {
                   {movie.revenue.toLocaleString()}
                 </Text>
               ) : null}
-
+              <Text
+                style={[styles.genre, themeTextStyle]}
+                onPress={() =>
+                  navigation.push('PersonDetails', {
+                    id: movie.credits.crew.filter(
+                      (crew) => crew.job === 'Director'
+                    )[0].id,
+                    creditId: movie.credits.crew.filter(
+                      (crew) => crew.job === 'Director'
+                    )[0].credit_id,
+                    headerTitle: movie.credits.crew.filter(
+                      (crew) => crew.job === 'Director'
+                    )[0].name,
+                  })
+                }
+              >
+                <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
+                {
+                  movie.credits.crew.filter(
+                    (crew) => crew.job === 'Director'
+                  )[0].name
+                }
+              </Text>
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
-                {movie.genres?.map((genre) => genre.name + ' ')}
+                {movie.genres?.map((genre) => genre.name).join(', ')}
               </Text>
+
               <View style={[styles.rating, styles.ratingDiv]}>
-                <View style={styles.ratingElem}>
+                <View style={[styles.ratingWrapper]}>
                   <Image
                     source={tmdbLogo}
                     style={styles.tmdbLogo}
                     resizeMode='contain'
                   />
-                  <Text style={[themeTextStyle]}>
-                    {Math.floor((movie.vote_average * 100) / 10)}%
-                  </Text>
+                  <View style={styles.ratingElem}>
+                    <Text style={[themeTextStyle]}>
+                      {Math.floor((movie.vote_average * 100) / 10)}%{' '}
+                    </Text>
+                    <Text style={[styles.ratingCounter, themeTextStyle]}>
+                      {numFormatter(movie.vote_count)}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.ratingElem}>
+
+                <View style={[styles.ratingWrapper]}>
                   <Image
                     source={imdbLogo}
                     style={styles.imdbLogo}
                     resizeMode='contain'
                   />
-                  <Text style={[themeTextStyle]}>{omdb?.imdbRating}/10</Text>
+                  <View style={styles.ratingElem}>
+                    <Text style={[themeTextStyle]}>{omdb?.imdbRating}/10</Text>
+                    <Text style={[styles.ratingCounter, themeTextStyle]}>
+                      {numFormatter(imdbVotes)}
+                    </Text>
+                  </View>
                 </View>
                 {rottenTomato ? (
-                  <View style={styles.ratingElem}>
+                  <View style={[styles.ratingWrapper]}>
                     <Image
                       source={rottenTomato > 60 ? freshPositive : freshNegative}
                       style={styles.rottenLogo}
                       resizeMode='cover'
                     />
-                    <Text style={[themeTextStyle]}>{rottenTomato}%</Text>
+                    <View style={styles.ratingElem}>
+                      <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
+                      <Text style={[styles.ratingCounter, themeTextStyle]}>
+                        {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                      </Text>
+                    </View>
                   </View>
                 ) : null}
               </View>
@@ -576,7 +627,7 @@ const RenderDetails = ({ navigation, id }) => {
                 >
                   <View style={styles.moviesDiv}>
                     {movie.recommendations.results
-                      .slice(0, 10)
+                      .slice(0, 50)
                       .map((movie, idx) => {
                         if (movie.poster_path !== null) {
                           return (
@@ -615,6 +666,56 @@ const RenderDetails = ({ navigation, id }) => {
                           );
                         }
                       })}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
+            {movie.similar.results.length > 0 ? (
+              <View style={styles.moviesMain}>
+                <Text style={[styles.moviesHeading, themeTextStyle]}>
+                  {i18n.t('similar')}
+                </Text>
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={styles.moviesDiv}>
+                    {movie.similar.results.slice(0, 50).map((movie, idx) => {
+                      if (movie.poster_path !== null) {
+                        return (
+                          <TouchableOpacity
+                            style={styles.moviesCard}
+                            key={idx}
+                            onPress={() =>
+                              navigation.push('Details', {
+                                id: movie.id,
+                                headerTitle: movie.title,
+                              })
+                            }
+                          >
+                            <View style={boxShadow}>
+                              <Image
+                                style={styles.posterImage}
+                                source={{
+                                  uri: `${basePosterUrl + movie.poster_path}`,
+                                }}
+                                ImageCacheEnum={'force-cache'}
+                              />
+                            </View>
+                            <View style={styles.ratingDivRec}>
+                              <Image
+                                source={tmdbLogo}
+                                style={styles.tmdbLogoRec}
+                                resizeMode='contain'
+                              />
+                              <Text style={[styles.textRating, themeTextStyle]}>
+                                {Math.floor((movie.vote_average * 100) / 10)}%
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      }
+                    })}
                   </View>
                 </ScrollView>
               </View>
@@ -747,10 +848,18 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginBottom: 10,
   },
-  ratingElem: {
+  ratingWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
+  },
+  ratingElem: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    marginLeft: 4,
+  },
+  ratingCounter: {
+    opacity: 0.7,
   },
   imdbLogo: {
     width: 40,

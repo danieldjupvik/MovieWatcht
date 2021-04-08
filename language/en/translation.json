@@ -85,5 +85,7 @@
   "unitedStateDescription": "Use United States",
   "license": "License",
   "loginModalHeading": "The Movie Database Account",
-  "loginModalText": "Register or login your with The Movie Database account to access your watch list. This product uses the TMDb API but is not endorsed or certified by TMDb."
+  "loginModalText": "Register or login your with The Movie Database account to access your watch list. This product uses the TMDb API but is not endorsed or certified by TMDb.",
+  "similar": "Similar",
+  "director": "Director"
 }
