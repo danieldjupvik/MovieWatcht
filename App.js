@@ -23,7 +23,9 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { BlurView } from 'expo-blur';
 
 import Home from './pages/Home';
+import Series from './pages/series';
 import Details from './pages/Details';
+import SeriesDetails from './pages/SeriesDetails';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import About from './pages/About';
@@ -38,6 +40,9 @@ import Region from './pages/Region';
 import Adult from './pages/Adult';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { enableScreens } from 'react-native-screens';
+enableScreens();
+
 import { RegionProvider } from './components/RegionContext';
 
 const Tab = createBottomTabNavigator();
@@ -119,9 +124,9 @@ function HomeStackScreen() {
   );
 }
 
-const topRatedStack = createStackNavigator();
+const seriesStack = createStackNavigator();
 
-function topRatedStackScreen() {
+function seriesStackScreen() {
   const [appearance, setAppearance] = useState();
 
   useEffect(() => {
@@ -148,18 +153,18 @@ function topRatedStackScreen() {
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   return (
-    <topRatedStack.Navigator>
-      <topRatedStack.Screen
-        name='topRated'
-        component={TopRated}
+    <seriesStack.Navigator>
+      <seriesStack.Screen
+        name='series'
+        component={Series}
         options={{
           headerShown: false,
           animationEnabled: false,
         }}
       />
-      <topRatedStack.Screen
-        name='Details'
-        component={Details}
+      <seriesStack.Screen
+        name='SeriesDetails'
+        component={SeriesDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
@@ -171,7 +176,7 @@ function topRatedStackScreen() {
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <topRatedStack.Screen
+      <seriesStack.Screen
         name='PersonDetails'
         component={PersonDetails}
         options={({ route }) => ({
@@ -185,77 +190,7 @@ function topRatedStackScreen() {
           headerTintColor: themeHeaderTintColor,
         })}
       />
-    </topRatedStack.Navigator>
-  );
-}
-
-const upcomingStack = createStackNavigator();
-
-function upcomingStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeContainerStyle =
-    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
-
-  return (
-    <upcomingStack.Navigator>
-      <upcomingStack.Screen
-        name='upcoming'
-        component={upcoming}
-        options={{
-          headerShown: false,
-          animationEnabled: false,
-        }}
-      />
-      <upcomingStack.Screen
-        name='Details'
-        component={Details}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <upcomingStack.Screen
-        name='PersonDetails'
-        component={PersonDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-    </upcomingStack.Navigator>
+    </seriesStack.Navigator>
   );
 }
 
@@ -573,7 +508,7 @@ export default function App() {
                   let iconName;
 
                   if (route.name === 'Home') {
-                    iconName = 'fire';
+                    iconName = 'film';
                   } else if (route.name === 'topRated') {
                     iconName = 'medal';
                   } else if (route.name === 'upcoming') {
@@ -582,6 +517,8 @@ export default function App() {
                     iconName = 'sliders-h';
                   } else if (route.name === 'watchList') {
                     iconName = 'bookmark';
+                  } else if (route.name === 'series') {
+                    iconName = 'tv';
                   }
 
                   return (
@@ -610,11 +547,11 @@ export default function App() {
               <Tab.Screen
                 name='Home'
                 options={{
-                  tabBarLabel: i18n.t('popular'),
+                  tabBarLabel: i18n.t('movies'),
                 }}
                 component={HomeStackScreen}
               />
-              <Tab.Screen
+              {/* <Tab.Screen
                 name='topRated'
                 options={{
                   tabBarLabel: i18n.t('topRated'),
@@ -627,6 +564,13 @@ export default function App() {
                   tabBarLabel: i18n.t('upcoming'),
                 }}
                 component={upcomingStackScreen}
+              /> */}
+              <Tab.Screen
+                name='series'
+                options={{
+                  tabBarLabel: i18n.t('series'),
+                }}
+                component={seriesStackScreen}
               />
               <Tab.Screen
                 name='watchList'

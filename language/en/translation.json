@@ -87,5 +87,12 @@
   "loginModalHeading": "The Movie Database Account",
   "loginModalText": "Register or login your with The Movie Database account to access your watch list. This product uses the TMDb API but is not endorsed or certified by TMDb.",
   "similar": "Similar",
-  "director": "Director"
+  "director": "Director",
+  "moviesIn": "Movies in",
+  "movies": "Movie",
+  "cancel": "Cancel",
+  "latest": "Latest",
+  "nowPlaying": "Now Playing",
+  "series": "TV Show",
+  "searchSeries": "Search series"
 }

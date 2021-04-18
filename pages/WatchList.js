@@ -50,6 +50,7 @@ const WatchList = ({ navigation }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [appearance, setAppearance] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
+  const [showCancel, setShowCancel] = useState(true);
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -80,6 +81,7 @@ const WatchList = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
+  const themeSearchBarStyle = colorScheme === 'light' ? '#bfc5ce' : '#313337';
 
   // Initialize Page
   useEffect(() => {
@@ -282,20 +284,29 @@ const WatchList = ({ navigation }) => {
               placeholder={i18n.t('search')}
               onChangeText={(text) => handleSearch(text)}
               lightTheme={themeSearchbar}
+              platform={Platform.OS}
               containerStyle={{
                 backgroundColor: 'transparent',
                 paddingLeft: 0,
                 paddingRight: 0,
+                height: 10,
                 width: '90%',
-                paddingBottom: 30,
+                paddingTop: 25,
+                paddingBottom: 25,
                 borderTopColor: 'transparent',
                 borderBottomColor: 'transparent',
+                alignSelf: 'center',
               }}
+              inputContainerStyle={{ backgroundColor: themeSearchBarStyle }}
+              cancelButtonTitle={i18n.t('cancel')}
+              cancelButtonProps={{ color: 'red' }}
+              showCancel={showCancel}
               searchIcon={{ size: 25, color: searchBarTheme }}
               placeholderTextColor={searchBarTheme}
               inputStyle={{ color: searchBarTheme }}
-              round
               value={search}
+              returnKeyType={'search'}
+              enablesReturnKeyAutomatically={true}
             />
             <Text style={[styles.heading, themeTextStyle]}>
               {i18n.t('watchList')}

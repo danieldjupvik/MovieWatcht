@@ -1,4 +1,5 @@
 export const basePosterUrl = 'https://image.tmdb.org/t/p/w154';
+export const baseSearchPosterUrl = 'https://image.tmdb.org/t/p/w92';
 export const baseBackdropUrl = 'https://image.tmdb.org/t/p/w780';
 export const baseProfileUrl = 'https://image.tmdb.org/t/p/w185';
 export const detailsMovieUrl = 'https://api.themoviedb.org/3/movie/';
@@ -12,3 +13,9 @@ export const personUrl = `https://api.themoviedb.org/3/person/`;
 export const creditPerson = `https://api.themoviedb.org/3/credit/`;
 export const getTokenUrl = `https://api.themoviedb.org/3/authentication/token/new${apiKey}`;
 export const accountUrl = `https://api.themoviedb.org/3/account${apiKey}`;
+
+//Series
+export const popularSeriesUrl = `https://api.themoviedb.org/3/tv/popular${apiKey}`;
+export const topRatedSeriesUrl = `https://api.themoviedb.org/3/tv/top_rated${apiKey}`;
+export const searchSeriesUrl = `https://api.themoviedb.org/3/search/tv${apiKey}`;
+export const detailsSeriesUrl = 'https://api.themoviedb.org/3/tv/';

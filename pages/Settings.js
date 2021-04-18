@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, SafeAreaView } from 'react-native';
+import { Text, View, StyleSheet, SafeAreaView,ActionSheetIOS } from 'react-native';
 import {
   ScrollView,
   TouchableWithoutFeedback,

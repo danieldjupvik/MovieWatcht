@@ -9,11 +9,9 @@ import {
 import { SearchBar } from 'react-native-elements';
 import axios from 'axios';
 import {
-  baseUrl,
-  searchMovieUrl,
-  topRatedMovieUrl,
-  upcomingMovieUrl,
-  nowPlayingUrl,
+  popularSeriesUrl,
+  topRatedSeriesUrl,
+  searchSeriesUrl,
 } from '../settings/api';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
@@ -26,12 +24,12 @@ import {
 import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { primaryButton, secondaryButton } from '../colors/colors';
-import RenderMovies from '../components/RenderMovies';
+import RenderSeries from '../components/RenderSeries';
 import SearchResults from '../components/SearchResults';
 
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
-const Home = ({ navigation }) => {
+const Series = ({ navigation }) => {
   const [movies, setMovies] = useState();
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
@@ -71,7 +69,9 @@ const Home = ({ navigation }) => {
   const getSearch = async (title) => {
     setLoader(true);
     try {
-      const response = await axios.get(`${searchMovieUrl + `&query=${title}`}`);
+      const response = await axios.get(
+        `${searchSeriesUrl + `&query=${title}`}`
+      );
       setMovies(response.data.results);
     } catch (e) {
       console.log(e);
@@ -101,21 +101,15 @@ const Home = ({ navigation }) => {
 
   const [routes] = React.useState([
     { key: 'first', title: i18n.t('popular') },
-    { key: 'second', title: i18n.t('nowPlaying') },
-    { key: 'third', title: i18n.t('topRated') },
-    { key: 'fourth', title: i18n.t('upcoming') },
+    { key: 'second', title: i18n.t('topRated') },
   ]);
 
   const renderScene = ({ route }) => {
     switch (route.key) {
       case 'first':
-        return <RenderMovies baseUrl={baseUrl} />;
+        return <RenderSeries baseUrl={popularSeriesUrl} />;
       case 'second':
-        return <RenderMovies baseUrl={nowPlayingUrl} />;
-      case 'third':
-        return <RenderMovies baseUrl={topRatedMovieUrl} />;
-      case 'fourth':
-        return <RenderMovies baseUrl={upcomingMovieUrl} />;
+        return <RenderSeries baseUrl={topRatedSeriesUrl} />;
       default:
         return null;
     }
@@ -148,7 +142,7 @@ const Home = ({ navigation }) => {
   return (
     <SafeAreaView style={[{ flex: 1 }, themeContainerStyle]}>
       <SearchBar
-        placeholder={i18n.t('search')}
+        placeholder={i18n.t('searchSeries')}
         onChangeText={(text) => handleSearch(text)}
         lightTheme={themeSearchbar}
         platform={Platform.OS}
@@ -318,4 +312,4 @@ export const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default Series;
