@@ -111,7 +111,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   useEffect(() => {
     let isCancelled = false;
     setStateFinish(false);
-    const getMovie = async () => {
+    const getSeries = async () => {
       try {
         const videos = await axios.get(
           `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US'
@@ -130,15 +130,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         getOmdbInfo(response.data.external_ids.imdb_id);
         setSeries(response.data);
         setSessionId(sessionId);
-        {
-          sessionId ? getMovieState(sessionId) : null;
-        }
+        // {
+        //   sessionId ? getMovieState(sessionId) : null;
+        // }
       } catch (e) {
         console.log(e);
       } finally {
       }
     };
-    getMovie();
+    getSeries();
     return () => {
       isCancelled = true;
     };
@@ -249,12 +249,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   var month = monthNames[d.getMonth()];
   var day = d.getDate();
   var releaseDate = `${day}. ${month} ${year}`;
-
-  var dd = new Date(digitalRelease);
-  var yearDigital = dd.getFullYear();
-  var monthDigital = monthNames[dd.getMonth()];
-  var dayDigital = dd.getDate();
-  var digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
 
   const goToWebsite = () => {
     WebBrowser.openBrowserAsync(series.homepage);
@@ -374,22 +368,26 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.rating, themeTextStyle]}>
+              <Text style={[styles.rating, styles.runtime, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
                 {releaseDate}
               </Text>
-              {digitalRelease ? (
-                <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
-                  <Text style={styles.category}>
-                    {i18n.t('digitalReleaseDate')}
-                  </Text>{' '}
-                  {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
-                </Text>
-              ) : null}
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
                 {series.status}
               </Text>
+              {series.number_of_episodes !== 0 ? (
+                <Text style={[styles.genre, themeTextStyle]}>
+                  <Text style={styles.category}>{i18n.t('totalEpisodes')}</Text>{' '}
+                  {series.number_of_episodes}
+                </Text>
+              ) : null}
+              {series.number_of_seasons !== 0 ? (
+                <Text style={[styles.genre, themeTextStyle]}>
+                  <Text style={styles.category}>{i18n.t('totalSeasons')}</Text>{' '}
+                  {series.number_of_seasons}
+                </Text>
+              ) : null}
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
                 {series.genres?.map((genre) => genre.name).join(', ')}
@@ -411,20 +409,24 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     </Text>
                   </View>
                 </View>
-
-                <View style={[styles.ratingWrapper]}>
-                  <Image
-                    source={imdbLogo}
-                    style={styles.imdbLogo}
-                    resizeMode='contain'
-                  />
-                  <View style={styles.ratingElem}>
-                    <Text style={[themeTextStyle]}>{omdb?.imdbRating}/10</Text>
-                    <Text style={[styles.ratingCounter, themeTextStyle]}>
-                      {numFormatter(imdbVotes)}
-                    </Text>
+                {omdb.imdbRating !== 'N/A' ? (
+                  <View style={[styles.ratingWrapper]}>
+                    <Image
+                      source={imdbLogo}
+                      style={styles.imdbLogo}
+                      resizeMode='contain'
+                    />
+                    <View style={styles.ratingElem}>
+                      <Text style={[themeTextStyle]}>
+                        {omdb?.imdbRating}/10
+                      </Text>
+                      <Text style={[styles.ratingCounter, themeTextStyle]}>
+                        {numFormatter(imdbVotes)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                ) : null}
+
                 {rottenTomato ? (
                   <View style={[styles.ratingWrapper]}>
                     <Image
@@ -445,6 +447,55 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 {series.overview}
               </Text>
             </View>
+            {series.seasons.length > 0 ? (
+              <View style={styles.seasonMain}>
+                <Text style={[styles.moviesHeading, themeTextStyle]}>
+                  {i18n.t('seasons')}
+                </Text>
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={styles.seasonDiv}>
+                    {series.seasons.map((serie, idx) => {
+                      if (serie.poster_path !== null) {
+                        return (
+                          <View
+                            style={styles.seasonCard}
+                            key={idx}
+                            // onPress={() =>
+                            //   navigation.push('SeriesDetails', {
+                            //     id: serie.id,
+                            //     headerTitle: serie.original_name,
+                            //   })
+                            // }
+                          >
+                            <View style={boxShadow}>
+                              <Image
+                                style={styles.posterImage}
+                                source={{
+                                  uri: `${basePosterUrl + serie.poster_path}`,
+                                }}
+                                ImageCacheEnum={'force-cache'}
+                              />
+                            </View>
+                            <Text style={[styles.textName, themeTextStyle]}>
+                              {i18n.t('seasons')} {serie.season_number}
+                            </Text>
+                            <Text
+                              numberOfLines={2}
+                              style={[styles.textCharacter, themeTextStyle]}
+                            >
+                              {serie.episode_count} {i18n.t('episodes')}
+                            </Text>
+                          </View>
+                        );
+                      }
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
             <View style={styles.trailerMain}>
               <Text style={[styles.trailerHeading, themeTextStyle]}>
                 {i18n.t('extras')}
@@ -553,16 +604,16 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {series.recommendations.results
                       .slice(0, 50)
-                      .map((movie, idx) => {
-                        if (movie.poster_path !== null) {
+                      .map((series, idx) => {
+                        if (series.poster_path !== null) {
                           return (
                             <TouchableOpacity
                               style={styles.moviesCard}
                               key={idx}
                               onPress={() =>
-                                navigation.push('Details', {
-                                  id: movie.id,
-                                  headerTitle: movie.title,
+                                navigation.push('SeriesDetails', {
+                                  id: series.id,
+                                  headerTitle: series.original_name,
                                 })
                               }
                             >
@@ -570,7 +621,9 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 <Image
                                   style={styles.posterImage}
                                   source={{
-                                    uri: `${basePosterUrl + movie.poster_path}`,
+                                    uri: `${
+                                      basePosterUrl + series.poster_path
+                                    }`,
                                   }}
                                   ImageCacheEnum={'force-cache'}
                                 />
@@ -584,7 +637,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((movie.vote_average * 100) / 10)}%
+                                  {Math.floor((series.vote_average * 100) / 10)}
+                                  %
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -605,16 +659,16 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {series.similar.results.slice(0, 50).map((movie, idx) => {
-                      if (movie.poster_path !== null) {
+                    {series.similar.results.slice(0, 50).map((series, idx) => {
+                      if (series.poster_path !== null) {
                         return (
                           <TouchableOpacity
                             style={styles.moviesCard}
                             key={idx}
                             onPress={() =>
-                              navigation.push('Details', {
-                                id: movie.id,
-                                headerTitle: movie.title,
+                              navigation.push('SeriesDetails', {
+                                id: series.id,
+                                headerTitle: series.original_name,
                               })
                             }
                           >
@@ -622,7 +676,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               <Image
                                 style={styles.posterImage}
                                 source={{
-                                  uri: `${basePosterUrl + movie.poster_path}`,
+                                  uri: `${basePosterUrl + series.poster_path}`,
                                 }}
                                 ImageCacheEnum={'force-cache'}
                               />
@@ -634,7 +688,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 resizeMode='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((movie.vote_average * 100) / 10)}%
+                                {Math.floor((series.vote_average * 100) / 10)}%
                               </Text>
                             </View>
                           </TouchableOpacity>
@@ -878,6 +932,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     paddingBottom: 20,
+  },
+  seasonCard: {
+    alignItems: 'flex-start',
+    marginRight: 20,
+  },
+  seasonMain: {
+    marginTop: 35 + globalPadding,
+    marginLeft: 22,
+  },
+  seasonDiv: {
+    flex: 1,
+    flexDirection: 'row',
+    marginBottom: 30,
   },
   homepageButton: {
     fontSize: 17,

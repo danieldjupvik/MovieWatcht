@@ -93,6 +93,13 @@
   "cancel": "Cancel",
   "latest": "Latest",
   "nowPlaying": "Now Playing",
+  "airingToday": "Airing Today",
+  "airingNow": "On The Air",
   "series": "TV Show",
-  "searchSeries": "Search series"
+  "searchSeries": "Search series",
+  "seasons": "Seasons",
+  "season": "Season",
+  "episodes": "episodes",
+  "totalEpisodes": "Total episodes",
+  "totalSeasons": "Total seasons"
 }

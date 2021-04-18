@@ -93,6 +93,13 @@
   "cancel": "Avbryt",
   "latest": "Siste",
   "nowPlaying": "Spilles nå",
+  "airingToday": "Sendes i dag",
+  "airingNow": "På lufta",
   "series": "Serie",
-  "searchSeries": "Søk serie"
+  "searchSeries": "Søk serie",
+  "seasons": "Sesonger",
+  "season": "Sesong",
+  "episodes": "episoder",
+  "totalEpisodes": "Totalt episoder",
+  "totalSeasons": "Totalt sesonger"
 }

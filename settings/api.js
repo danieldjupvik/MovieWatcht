@@ -17,5 +17,7 @@ export const accountUrl = `https://api.themoviedb.org/3/account${apiKey}`;
 //Series
 export const popularSeriesUrl = `https://api.themoviedb.org/3/tv/popular${apiKey}`;
 export const topRatedSeriesUrl = `https://api.themoviedb.org/3/tv/top_rated${apiKey}`;
+export const onTheAirSeriesUrl = `https://api.themoviedb.org/3/tv/on_the_air${apiKey}`;
+export const airingTodaySeriesUrl = `https://api.themoviedb.org/3/tv/airing_today${apiKey}`;
 export const searchSeriesUrl = `https://api.themoviedb.org/3/search/tv${apiKey}`;
 export const detailsSeriesUrl = 'https://api.themoviedb.org/3/tv/';

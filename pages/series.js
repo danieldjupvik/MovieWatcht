@@ -12,6 +12,8 @@ import {
   popularSeriesUrl,
   topRatedSeriesUrl,
   searchSeriesUrl,
+  onTheAirSeriesUrl,
+  airingTodaySeriesUrl,
 } from '../settings/api';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
@@ -25,12 +27,12 @@ import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { primaryButton, secondaryButton } from '../colors/colors';
 import RenderSeries from '../components/RenderSeries';
-import SearchResults from '../components/SearchResults';
+import SeriesSearchResults from '../components/SeriesSearchResults';
 
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
 const Series = ({ navigation }) => {
-  const [movies, setMovies] = useState();
+  const [series, setSeries] = useState();
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [appearance, setAppearance] = useState();
@@ -72,7 +74,7 @@ const Series = ({ navigation }) => {
       const response = await axios.get(
         `${searchSeriesUrl + `&query=${title}`}`
       );
-      setMovies(response.data.results);
+      setSeries(response.data.results);
     } catch (e) {
       console.log(e);
     } finally {
@@ -101,7 +103,9 @@ const Series = ({ navigation }) => {
 
   const [routes] = React.useState([
     { key: 'first', title: i18n.t('popular') },
-    { key: 'second', title: i18n.t('topRated') },
+    { key: 'second', title: i18n.t('airingToday') },
+    { key: 'third', title: i18n.t('airingNow') },
+    { key: 'forth', title: i18n.t('topRated') },
   ]);
 
   const renderScene = ({ route }) => {
@@ -109,6 +113,10 @@ const Series = ({ navigation }) => {
       case 'first':
         return <RenderSeries baseUrl={popularSeriesUrl} />;
       case 'second':
+        return <RenderSeries baseUrl={airingTodaySeriesUrl} />;
+      case 'third':
+        return <RenderSeries baseUrl={onTheAirSeriesUrl} />;
+      case 'forth':
         return <RenderSeries baseUrl={topRatedSeriesUrl} />;
       default:
         return null;
@@ -170,7 +178,7 @@ const Series = ({ navigation }) => {
         enablesReturnKeyAutomatically={true}
       />
       {showSearch ? (
-        <SearchResults movies={movies} loader={loader} />
+        <SeriesSearchResults series={series} loader={loader} />
       ) : (
         <TabView
           navigationState={{ index, routes }}

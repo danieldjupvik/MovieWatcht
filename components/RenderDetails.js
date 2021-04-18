@@ -471,35 +471,41 @@ const RenderDetails = ({ navigation, id }) => {
               </Text>
 
               <View style={[styles.rating, styles.ratingDiv]}>
-                <View style={[styles.ratingWrapper]}>
-                  <Image
-                    source={tmdbLogo}
-                    style={styles.tmdbLogo}
-                    resizeMode='contain'
-                  />
-                  <View style={styles.ratingElem}>
-                    <Text style={[themeTextStyle]}>
-                      {Math.floor((movie.vote_average * 100) / 10)}%{' '}
-                    </Text>
-                    <Text style={[styles.ratingCounter, themeTextStyle]}>
-                      {numFormatter(movie.vote_count)}
-                    </Text>
+                {movie.vote_average !== 0 ? (
+                  <View style={[styles.ratingWrapper]}>
+                    <Image
+                      source={tmdbLogo}
+                      style={styles.tmdbLogo}
+                      resizeMode='contain'
+                    />
+                    <View style={styles.ratingElem}>
+                      <Text style={[themeTextStyle]}>
+                        {Math.floor((movie.vote_average * 100) / 10)}%{' '}
+                      </Text>
+                      <Text style={[styles.ratingCounter, themeTextStyle]}>
+                        {numFormatter(movie.vote_count)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                ) : null}
 
-                <View style={[styles.ratingWrapper]}>
-                  <Image
-                    source={imdbLogo}
-                    style={styles.imdbLogo}
-                    resizeMode='contain'
-                  />
-                  <View style={styles.ratingElem}>
-                    <Text style={[themeTextStyle]}>{omdb?.imdbRating}/10</Text>
-                    <Text style={[styles.ratingCounter, themeTextStyle]}>
-                      {numFormatter(imdbVotes)}
-                    </Text>
+                {omdb.imdbRating !== 'N/A' ? (
+                  <View style={[styles.ratingWrapper]}>
+                    <Image
+                      source={imdbLogo}
+                      style={styles.imdbLogo}
+                      resizeMode='contain'
+                    />
+                    <View style={styles.ratingElem}>
+                      <Text style={[themeTextStyle]}>
+                        {omdb?.imdbRating}/10
+                      </Text>
+                      <Text style={[styles.ratingCounter, themeTextStyle]}>
+                        {numFormatter(imdbVotes)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                ) : null}
                 {rottenTomato ? (
                   <View style={[styles.ratingWrapper]}>
                     <Image
