@@ -5,6 +5,7 @@ import {
   ScrollView,
   View,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   SafeAreaView,
   RefreshControl,
   Dimensions,
@@ -34,6 +35,7 @@ import * as Haptics from 'expo-haptics';
 import { primaryButton, secondaryButton } from '../colors/colors';
 import * as Localization from 'expo-localization';
 import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 
 const RenderMovies = ({ baseUrl }) => {
   const [movies, setMovies] = useState([]);
@@ -311,14 +313,11 @@ const RenderMovies = ({ baseUrl }) => {
                     uri: `${basePosterUrl + movie.poster_path}`,
                   };
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={movie.id}
-                      style={styles.cards}
                       onLongPress={() =>
                         onShare(movie.title, movie.id, movie.overview)
                       }
-                      onPressIn={() => animateIn()}
-                      onPressOut={() => animateOut()}
                       onPress={() =>
                         navigation.navigate('Details', {
                           id: movie.id,
@@ -326,32 +325,34 @@ const RenderMovies = ({ baseUrl }) => {
                         })
                       }
                     >
-                      <View style={styles.imageDiv}>
-                        <Animated.Image
-                          source={movie.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='cover'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
-                        />
+                      <View style={styles.cards}>
+                        <View style={styles.imageDiv}>
+                          <Animated.Image
+                            source={movie.poster_path ? posterImage : noImage}
+                            style={[
+                              styles.image,
+                              {
+                                opacity: fadeAnim,
+                              },
+                            ]}
+                            resizeMode='cover'
+                            defaultSource={posterLoader}
+                            ImageCacheEnum={'force-cache'}
+                            onLoad={fadeIn}
+                          />
+                        </View>
+                        <View style={styles.ratingDiv}>
+                          <Image
+                            source={tmdbLogo}
+                            style={styles.tmdbLogo}
+                            resizeMode='contain'
+                          />
+                          <Text style={[styles.rating, themeTextStyle]}>
+                            {Math.floor((movie.vote_average * 100) / 10)}%
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.ratingDiv}>
-                        <Image
-                          source={tmdbLogo}
-                          style={styles.tmdbLogo}
-                          resizeMode='contain'
-                        />
-                        <Text style={[styles.rating, themeTextStyle]}>
-                          {Math.floor((movie.vote_average * 100) / 10)}%
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })}
               </View>

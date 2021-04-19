@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   Image,
   Dimensions,
+  ActionSheetIOS,
 } from 'react-native';
 import {
   ScrollView,
@@ -101,6 +102,23 @@ const Account = ({ navigation }) => {
     console.log('Done.');
   };
 
+  const openActionSheet = () =>
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: [i18n.t('cancel'), i18n.t('logout')],
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 0,
+        title: i18n.t('areYouSure'),
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          // cancel action
+        } else if (buttonIndex === 1) {
+          logout();
+        }
+      }
+    );
+
   const deleteSession = async () => {
     console.log('logged out');
     try {
@@ -185,7 +203,7 @@ const Account = ({ navigation }) => {
             <View style={styles.buttonWrap}>
               <TouchableOpacity
                 style={[ButtonStyles.mediumButtonStyling, styles.logoutBtn]}
-                onPress={logout}
+                onPress={openActionSheet}
               >
                 <Text style={[ButtonStyles.buttonText]}>
                   {i18n.t('logout')}

@@ -14,6 +14,7 @@ import {
   searchSeriesUrl,
   onTheAirSeriesUrl,
   airingTodaySeriesUrl,
+  trendingSeriesUrl,
 } from '../settings/api';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
@@ -102,21 +103,24 @@ const Series = ({ navigation }) => {
   const [index, setIndex] = React.useState(0);
 
   const [routes] = React.useState([
-    { key: 'first', title: i18n.t('popular') },
-    { key: 'second', title: i18n.t('airingToday') },
-    { key: 'third', title: i18n.t('airingNow') },
-    { key: 'forth', title: i18n.t('topRated') },
+    { key: 'first', title: i18n.t('trending') },
+    { key: 'second', title: i18n.t('popular') },
+    { key: 'third', title: i18n.t('airingToday') },
+    { key: 'forth', title: i18n.t('airingNow') },
+    { key: 'fifth', title: i18n.t('topRated') },
   ]);
 
   const renderScene = ({ route }) => {
     switch (route.key) {
       case 'first':
-        return <RenderSeries baseUrl={popularSeriesUrl} />;
+        return <RenderSeries baseUrl={trendingSeriesUrl} />;
       case 'second':
-        return <RenderSeries baseUrl={airingTodaySeriesUrl} />;
+        return <RenderSeries baseUrl={popularSeriesUrl} />;
       case 'third':
-        return <RenderSeries baseUrl={onTheAirSeriesUrl} />;
+        return <RenderSeries baseUrl={airingTodaySeriesUrl} />;
       case 'forth':
+        return <RenderSeries baseUrl={onTheAirSeriesUrl} />;
+      case 'fifth':
         return <RenderSeries baseUrl={topRatedSeriesUrl} />;
       default:
         return null;
@@ -134,14 +138,14 @@ const Series = ({ navigation }) => {
       }}
       activeColor={'red'}
       inactiveColor={searchBarTheme}
-      labelStyle={{ fontWeight: '600' }}
+      labelStyle={{ fontWeight: '600', fontSize: 16 }}
       getLabelText={({ route }) => route.title}
       scrollEnabled={true}
       tabStyle={{
-        width: 135,
-        padding: 0,
-        paddingLeft: 0,
-        paddingRight: 0,
+        width: 'auto',
+        // padding: 0,
+        paddingLeft: 20,
+        paddingRight: 20,
       }}
       bounces={true}
     />

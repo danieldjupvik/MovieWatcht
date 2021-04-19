@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, SafeAreaView,ActionSheetIOS } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  SafeAreaView,
+  ActionSheetIOS,
+} from 'react-native';
 import {
   ScrollView,
   TouchableWithoutFeedback,
@@ -97,6 +103,23 @@ const Settings = ({ navigation }) => {
     }
     console.log('Done.');
   };
+
+  const openActionSheet = () =>
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: [i18n.t('cancel'), i18n.t('logout')],
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 0,
+        title: i18n.t('areYouSure'),
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          // cancel action
+        } else if (buttonIndex === 1) {
+          logout();
+        }
+      }
+    );
 
   const deleteSession = async () => {
     console.log('logged out');
@@ -263,7 +286,7 @@ const Settings = ({ navigation }) => {
             ) : null}
 
             {sessionId ? (
-              <TouchableOpacity onPress={logout}>
+              <TouchableOpacity onPress={openActionSheet}>
                 <View style={[styles.listElement, styles.logoutButton]}>
                   <View style={styles.iconElement}>
                     <View>

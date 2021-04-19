@@ -33,6 +33,7 @@ import * as Haptics from 'expo-haptics';
 import { primaryButton, secondaryButton } from '../colors/colors';
 import * as Localization from 'expo-localization';
 import { useNavigation } from '@react-navigation/native';
+import { Pressable } from 'react-native';
 
 const RenderSeries = ({ baseUrl }) => {
   const [series, setSeries] = useState([]);
@@ -216,9 +217,8 @@ const RenderSeries = ({ baseUrl }) => {
                     uri: `${basePosterUrl + series.poster_path}`,
                   };
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={series.id}
-                      style={styles.cards}
                       onLongPress={() =>
                         onShare(series.title, series.id, series.overview)
                       }
@@ -229,32 +229,34 @@ const RenderSeries = ({ baseUrl }) => {
                         })
                       }
                     >
-                      <View style={styles.imageDiv}>
-                        <Animated.Image
-                          source={series.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='cover'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
-                        />
+                      <View style={styles.cards}>
+                        <View style={styles.imageDiv}>
+                          <Animated.Image
+                            source={series.poster_path ? posterImage : noImage}
+                            style={[
+                              styles.image,
+                              {
+                                opacity: fadeAnim,
+                              },
+                            ]}
+                            resizeMode='cover'
+                            defaultSource={posterLoader}
+                            ImageCacheEnum={'force-cache'}
+                            onLoad={fadeIn}
+                          />
+                        </View>
+                        <View style={styles.ratingDiv}>
+                          <Image
+                            source={tmdbLogo}
+                            style={styles.tmdbLogo}
+                            resizeMode='contain'
+                          />
+                          <Text style={[styles.rating, themeTextStyle]}>
+                            {Math.floor((series.vote_average * 100) / 10)}%
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.ratingDiv}>
-                        <Image
-                          source={tmdbLogo}
-                          style={styles.tmdbLogo}
-                          resizeMode='contain'
-                        />
-                        <Text style={[styles.rating, themeTextStyle]}>
-                          {Math.floor((series.vote_average * 100) / 10)}%
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })}
               </View>

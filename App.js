@@ -23,14 +23,13 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { BlurView } from 'expo-blur';
 
 import Home from './pages/Home';
-import Series from './pages/series';
+import Series from './pages/Series';
 import Details from './pages/Details';
 import SeriesDetails from './pages/SeriesDetails';
+import SeriesSeason from './pages/SeriesSeason';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import About from './pages/About';
-import TopRated from './pages/TopRated';
-import upcoming from './pages/Upcoming';
 import PersonDetails from './pages/PersonDetails';
 import Account from './pages/Account';
 import watchList from './pages/WatchList';
@@ -38,6 +37,7 @@ import Appearance from './pages/Appearance';
 import ContentSettings from './pages/ContentSettings';
 import Region from './pages/Region';
 import Adult from './pages/Adult';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enableScreens } from 'react-native-screens';
@@ -165,6 +165,20 @@ function seriesStackScreen() {
       <seriesStack.Screen
         name='SeriesDetails'
         component={SeriesDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <seriesStack.Screen
+        name='SeriesSeason'
+        component={SeriesSeason}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),
@@ -508,26 +522,20 @@ export default function App() {
                   let iconName;
 
                   if (route.name === 'Home') {
-                    iconName = 'film';
-                  } else if (route.name === 'topRated') {
-                    iconName = 'medal';
-                  } else if (route.name === 'upcoming') {
-                    iconName = 'newspaper';
-                  } else if (route.name === 'settings') {
-                    iconName = 'sliders-h';
-                  } else if (route.name === 'watchList') {
-                    iconName = 'bookmark';
+                    iconName = focused ? 'ios-film' : 'ios-film-outline';
                   } else if (route.name === 'series') {
-                    iconName = 'tv';
+                    iconName = focused ? 'ios-tv' : 'ios-tv-outline';
+                  } else if (route.name === 'watchList') {
+                    iconName = focused
+                      ? 'ios-bookmark'
+                      : 'ios-bookmark-outline';
+                  } else if (route.name === 'settings') {
+                    iconName = focused
+                      ? 'ios-settings'
+                      : 'ios-settings-outline';
                   }
 
-                  return (
-                    <FontAwesome5
-                      name={iconName}
-                      solid
-                      style={{ color: color, fontSize: size }}
-                    />
-                  );
+                  return <Ionicons name={iconName} size={size} color={color} />;
                 },
               })}
               tabBarOptions={{

@@ -368,26 +368,36 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   </Text>
                 </View>
               </View>
+
+              <View style={styles.underTitleDiv2}>
+                <View style={styles.underTitleElem}>
+                  <Text style={[styles.underTitle, themeTextStyle]}>
+                    {series.number_of_seasons} {i18n.t('totalSeasons')}
+                  </Text>
+                </View>
+                <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                <View style={styles.underTitleElem}>
+                  <Text style={[styles.underTitle, themeTextStyle]}>
+                    {series.number_of_episodes} {i18n.t('totalEpisodes')}
+                  </Text>
+                </View>
+              </View>
+
               <Text style={[styles.rating, styles.runtime, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
                 {releaseDate}
               </Text>
+
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
                 {series.status}
               </Text>
-              {series.number_of_episodes !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('totalEpisodes')}</Text>{' '}
-                  {series.number_of_episodes}
-                </Text>
-              ) : null}
-              {series.number_of_seasons !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('totalSeasons')}</Text>{' '}
-                  {series.number_of_seasons}
-                </Text>
-              ) : null}
+
+              <Text style={[styles.genre, themeTextStyle]}>
+                <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
+                {series.created_by[0].name}
+              </Text>
+
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
                 {series.genres?.map((genre) => genre.name).join(', ')}
@@ -452,27 +462,26 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('seasons')}
                 </Text>
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}
-                >
+                <ScrollView showsHorizontalScrollIndicator={false}>
                   <View style={styles.seasonDiv}>
                     {series.seasons.map((serie, idx) => {
                       if (serie.poster_path !== null) {
                         return (
-                          <View
+                          <TouchableOpacity
                             style={styles.seasonCard}
                             key={idx}
-                            // onPress={() =>
-                            //   navigation.push('SeriesDetails', {
-                            //     id: serie.id,
-                            //     headerTitle: serie.original_name,
-                            //   })
-                            // }
+                            onPress={() =>
+                              navigation.push('SeriesSeason', {
+                                id: series.id,
+                                headerTitle:
+                                  i18n.t('season') + ' ' + serie.season_number,
+                                season: serie.season_number,
+                              })
+                            }
                           >
                             <View style={boxShadow}>
                               <Image
-                                style={styles.posterImage}
+                                style={styles.seasonImage}
                                 source={{
                                   uri: `${basePosterUrl + serie.poster_path}`,
                                 }}
@@ -488,7 +497,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             >
                               {serie.episode_count} {i18n.t('episodes')}
                             </Text>
-                          </View>
+                          </TouchableOpacity>
                         );
                       }
                     })}
@@ -780,6 +789,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
+  underTitleDiv2: {
+    marginLeft: 22,
+    marginRight: 22,
+    marginTop: 6,
+    flex: 1,
+    flexDirection: 'row',
+  },
   underTitleElem: {},
   separators: {
     opacity: 0.6,
@@ -935,7 +951,8 @@ const styles = StyleSheet.create({
   },
   seasonCard: {
     alignItems: 'flex-start',
-    marginRight: 20,
+    marginRight: 18,
+    marginBottom: 18,
   },
   seasonMain: {
     marginTop: 35 + globalPadding,
@@ -944,7 +961,14 @@ const styles = StyleSheet.create({
   seasonDiv: {
     flex: 1,
     flexDirection: 'row',
-    marginBottom: 30,
+    flexWrap: 'wrap',
+    // marginBottom: 20,
+  },
+  seasonImage: {
+    width: deviceWidth / 3.9,
+    height: deviceWidth / 2.4,
+    marginBottom: 13,
+    borderRadius: borderRadius,
   },
   homepageButton: {
     fontSize: 17,
@@ -972,6 +996,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 20,
   },
+
   posterImage: {
     width: deviceWidth / 4.5,
     height: deviceWidth / 3,

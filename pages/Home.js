@@ -14,6 +14,7 @@ import {
   topRatedMovieUrl,
   upcomingMovieUrl,
   nowPlayingUrl,
+  trendingMovieUrl,
 } from '../settings/api';
 import i18n from 'i18n-js';
 import { useColorScheme } from 'react-native-appearance';
@@ -100,21 +101,24 @@ const Home = ({ navigation }) => {
   const [index, setIndex] = React.useState(0);
 
   const [routes] = React.useState([
-    { key: 'first', title: i18n.t('popular') },
-    { key: 'second', title: i18n.t('nowPlaying') },
-    { key: 'third', title: i18n.t('topRated') },
-    { key: 'fourth', title: i18n.t('upcoming') },
+    { key: 'first', title: i18n.t('trending') },
+    { key: 'second', title: i18n.t('popular') },
+    { key: 'third', title: i18n.t('nowPlaying') },
+    { key: 'fourth', title: i18n.t('topRated') },
+    { key: 'fifth', title: i18n.t('upcoming') },
   ]);
 
   const renderScene = ({ route }) => {
     switch (route.key) {
       case 'first':
-        return <RenderMovies baseUrl={baseUrl} />;
+        return <RenderMovies baseUrl={trendingMovieUrl} />;
       case 'second':
-        return <RenderMovies baseUrl={nowPlayingUrl} />;
+        return <RenderMovies baseUrl={baseUrl} />;
       case 'third':
-        return <RenderMovies baseUrl={topRatedMovieUrl} />;
+        return <RenderMovies baseUrl={nowPlayingUrl} />;
       case 'fourth':
+        return <RenderMovies baseUrl={topRatedMovieUrl} />;
+      case 'fifth':
         return <RenderMovies baseUrl={upcomingMovieUrl} />;
       default:
         return null;
@@ -132,14 +136,14 @@ const Home = ({ navigation }) => {
       }}
       activeColor={'red'}
       inactiveColor={searchBarTheme}
-      labelStyle={{ fontWeight: '600' }}
+      labelStyle={{ fontWeight: '600', fontSize: 16 }}
       getLabelText={({ route }) => route.title}
       scrollEnabled={true}
       tabStyle={{
-        width: 135,
-        padding: 0,
-        paddingLeft: 0,
-        paddingRight: 0,
+        width: 'auto',
+        // padding: 0,
+        paddingLeft: 20,
+        paddingRight: 20,
       }}
       bounces={true}
     />
