@@ -72,6 +72,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
+  const [lastEpisodeShow, setLastEpisodeShow] = useState(true);
 
   useEffect(() => {
     const getAppearance = async () => {
@@ -250,6 +251,42 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   var day = d.getDate();
   var releaseDate = `${day}. ${month} ${year}`;
 
+  // Next episode
+
+  const nextEpisode = (date) => {
+    var newDate = new Date(date);
+    var nextYear = newDate.getFullYear();
+    var nextMonth = monthNames[newDate.getMonth()];
+    var nextDay = newDate.getDate();
+    var nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
+    return nextReleaseDate;
+  };
+
+  const nextAirCountdown = (date) => {
+    var cleanDate = date.replaceAll('-', '/');
+    var dates = `${cleanDate} 00:00 AM`;
+    var end = new Date(dates);
+    var _second = 1000;
+    var _minute = _second * 60;
+    var _hour = _minute * 60;
+    var _day = _hour * 24;
+
+    var now = new Date();
+    var distance = end - now;
+
+    var days = Math.floor(distance / _day);
+    var hours = Math.floor((distance % _day) / _hour);
+    var dayString = days > 1 ? i18n.t('days') : i18n.t('day');
+    var hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
+    var timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
+
+    if (distance < 0) {
+      return false;
+    }
+
+    return timeUntilAir;
+  };
+
   const goToWebsite = () => {
     WebBrowser.openBrowserAsync(series.homepage);
   };
@@ -393,11 +430,12 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 {series.status}
               </Text>
 
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
-                {series.created_by[0].name}
-              </Text>
-
+              {series.created_by[0] ? (
+                <Text style={[styles.genre, themeTextStyle]}>
+                  <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
+                  {series.created_by[0].name}
+                </Text>
+              ) : null}
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
                 {series.genres?.map((genre) => genre.name).join(', ')}
@@ -457,6 +495,70 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 {series.overview}
               </Text>
             </View>
+            {series.next_episode_to_air &&
+            nextAirCountdown(series.next_episode_to_air.air_date) ? (
+              <View style={styles.episodeMain}>
+                <Text style={[styles.episodeHeading, themeTextStyle]}>
+                  {i18n.t('nextEpisodeToAir')}
+                </Text>
+                <View style={[styles.infoDiv, themeBoxStyle, boxShadow]}>
+                  <Text style={[styles.timeUntilAir, themeTextStyle]}>
+                    {i18n.t('airsIn') +
+                      ' ' +
+                      nextAirCountdown(series.next_episode_to_air.air_date)}
+                  </Text>
+                  <View
+                    style={{
+                      borderBottomColor: 'grey',
+                      borderBottomWidth: 1,
+                      // opacity: 0.6,
+                      marginBottom: 10,
+                    }}
+                  />
+                  {
+                    <Text style={[styles.episodeName, themeTextStyle]}>
+                      {series.next_episode_to_air.episode_number} -{' '}
+                      {series.next_episode_to_air.name}
+                    </Text>
+                  }
+                  <Text style={[styles.releaseDate, themeTextStyle]}>
+                    {nextEpisode(series.next_episode_to_air.air_date)}
+                  </Text>
+
+                  <Text
+                    numberOfLines={3}
+                    style={[styles.NextEpisodeOverview, themeTextStyle]}
+                  >
+                    {series.next_episode_to_air.overview}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <>
+                {series.last_episode_to_air ? (
+                  <View style={styles.episodeMain}>
+                    <Text style={[styles.episodeHeading, themeTextStyle]}>
+                      {i18n.t('lastEpisodeToAir')}
+                    </Text>
+                    <View style={[styles.infoDiv, themeBoxStyle]}>
+                      <Text style={[styles.episodeName, themeTextStyle]}>
+                        {series.last_episode_to_air.episode_number} -{' '}
+                        {series.last_episode_to_air.name}
+                      </Text>
+                      <Text style={[styles.releaseDate, themeTextStyle]}>
+                        {nextEpisode(series.last_episode_to_air.air_date)}
+                      </Text>
+                      <Text
+                        numberOfLines={3}
+                        style={[styles.NextEpisodeOverview, themeTextStyle]}
+                      >
+                        {series.last_episode_to_air.overview}
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
+              </>
+            )}
             {series.seasons.length > 0 ? (
               <View style={styles.seasonMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
@@ -814,6 +916,42 @@ const styles = StyleSheet.create({
     fontWeight: normalFontWeight,
     marginTop: 20,
     lineHeight: 29,
+  },
+  episodeMain: {
+    marginTop: 35 + globalPadding,
+    marginLeft: 22,
+    marginRight: 22,
+  },
+  episodeHeading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingBottom: 10,
+  },
+  episodeName: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  releaseDate: {
+    marginTop: 10,
+    opacity: 0.7,
+    fontSize: 14,
+  },
+  infoDiv: {
+    marginTop: 12,
+    padding: 10,
+    borderRadius: borderRadius,
+  },
+  NextEpisodeOverview: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: '400',
+    paddingBottom: 3,
+  },
+  timeUntilAir: {
+    // marginTop: 6,
+    fontSize: 16,
+    fontWeight: '600',
+    paddingBottom: 15,
   },
   genre: {
     marginLeft: 22,

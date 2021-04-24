@@ -24,6 +24,8 @@
   "back": "Tilbake",
   "hour": " t ",
   "hours": " t ",
+  "days": "dager",
+  "day": "dag",
   "aboutThisApp": "Om denne appen",
   "allRightsReserved": "Alle rettigheter er forbeholdt.",
   "version": "Versjon",
@@ -104,5 +106,8 @@
   "totalEpisodes": "episoder",
   "totalSeasons": "sesonger",
   "areYouSure": "Er du sikker?",
-  "createdBy": "Laget av"
+  "createdBy": "Laget av",
+  "nextEpisodeToAir": "Neste episode som sendes",
+  "lastEpisodeToAir": "Sist episode som sendtes",
+  "airsIn": "Sendes om"
 }

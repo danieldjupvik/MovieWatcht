@@ -24,6 +24,8 @@
   "back": "Back",
   "hour": " hr ",
   "hours": " hrs ",
+  "days": "days",
+  "day": "day",
   "aboutThisApp": "About this app",
   "allRightsReserved": "All Rights Reserved.",
   "version": "Version",
@@ -104,5 +106,8 @@
   "totalEpisodes": "episodes",
   "totalSeasons": "seasons",
   "areYouSure": "Are you sure?",
-  "createdBy": "Created by"
+  "createdBy": "Created by",
+  "nextEpisodeToAir": "Next episode to air",
+  "lastEpisodeToAir": "Last episode to air",
+  "airsIn": "Airs in"
 }
