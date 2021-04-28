@@ -107,6 +107,20 @@ function HomeStackScreen() {
         })}
       />
       <HomeStack.Screen
+        name='SeriesDetails'
+        component={SeriesDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <HomeStack.Screen
         name='PersonDetails'
         component={PersonDetails}
         options={({ route }) => ({
@@ -165,6 +179,20 @@ function seriesStackScreen() {
       <seriesStack.Screen
         name='SeriesDetails'
         component={SeriesDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerBackTitle: i18n.t('back'),
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+            shadowColor: 'transparent',
+          },
+          headerTransparent: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <seriesStack.Screen
+        name='Details'
+        component={Details}
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerBackTitle: i18n.t('back'),

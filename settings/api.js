@@ -1,5 +1,5 @@
 //Movies
-export const basePosterUrl = 'https://image.tmdb.org/t/p/w154';
+export const basePosterUrl = 'https://image.tmdb.org/t/p/w342';
 export const baseSearchPosterUrl = 'https://image.tmdb.org/t/p/w92';
 export const baseStillImageUrl = 'https://image.tmdb.org/t/p/w300';
 export const baseBackdropUrl = 'https://image.tmdb.org/t/p/w780';

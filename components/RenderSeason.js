@@ -196,7 +196,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollViewWrapper: {
-    marginBottom: 45,
+    paddingBottom: 45,
+    height: '100%',
   },
   main: {
     marginLeft: 22,

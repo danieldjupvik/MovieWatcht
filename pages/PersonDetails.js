@@ -59,7 +59,9 @@ const PersonDetails = ({ route, navigation }) => {
   useEffect(() => {
     const getPerson = async () => {
       try {
-        const response = await axios.get(`${personUrl + id + apiKey}`);
+        const response = await axios.get(
+          `${personUrl + id + apiKey}&append_to_response=combined_credits`
+        );
         setPerson(response.data);
       } catch (e) {
         console.log(e);
@@ -186,12 +188,18 @@ const PersonDetails = ({ route, navigation }) => {
                 <View style={styles.moviesDiv}>
                   {personCredit.person?.known_for.map((movie, idx) => {
                     if (movie.poster_path !== null) {
+                      let mediaType;
+                      if (movie.media_type === 'movie') {
+                        mediaType = 'Details';
+                      } else {
+                        mediaType = 'SeriesDetails';
+                      }
                       return (
                         <TouchableOpacity
                           style={styles.moviesCard}
                           key={idx}
                           onPress={() =>
-                            navigation.push('Details', {
+                            navigation.push(mediaType, {
                               id: movie.id,
                               headerTitle: movie.title,
                             })
@@ -214,6 +222,63 @@ const PersonDetails = ({ route, navigation }) => {
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
                               {Math.floor((movie.vote_average * 100) / 10)}%
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    }
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+
+            <View style={styles.moviesMain}>
+              <Text style={[styles.moviesHeading, themeTextStyle]}>
+                {i18n.t('appearsIn')}
+              </Text>
+              <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
+                <View style={styles.moviesDiv}>
+                  {person.combined_credits?.cast.map((movie, idx) => {
+                    if (movie.poster_path !== null) {
+                      let mediaType;
+                      if (movie.media_type === 'movie') {
+                        mediaType = 'Details';
+                      } else {
+                        mediaType = 'SeriesDetails';
+                      }
+                      return (
+                        <TouchableOpacity
+                          style={styles.moviesCard}
+                          key={idx}
+                          onPress={() =>
+                            navigation.push(mediaType, {
+                              id: movie.id,
+                              headerTitle: movie.title,
+                            })
+                          }
+                        >
+                          <View style={boxShadow}>
+                            <Image
+                              style={styles.posterImage}
+                              source={{
+                                uri: `${basePosterUrl + movie.poster_path}`,
+                              }}
+                              ImageCacheEnum={'force-cache'}
+                            />
+                          </View>
+                          <View style={styles.ratingDiv}>
+                            <Image
+                              source={tmdbLogo}
+                              style={styles.tmdbLogo}
+                              resizeMode='contain'
+                            />
+                            <Text style={[styles.rating, themeTextStyle]}>
+                              {Math.floor((movie.vote_average * 100) / 10)}%
+                            </Text>
+                          </View>
+                          <View style={styles.ratingDiv}>
+                            <Text style={[styles.rating, themeTextStyle]}>
+                              {movie.media_type === 'movie' ? 'Movie' : 'TV'}
                             </Text>
                           </View>
                         </TouchableOpacity>
