@@ -7,6 +7,6 @@ Created in React Native
 <br>
 <br>
 
-[App Website](https://www.danieldjupvik.dev/movieWatcht)
+[Download Link](https://www.danieldjupvik.dev/movieWatcht)
 
 Copyright 2021 © Daniel Djupvik Sætre All rights Reserved.
