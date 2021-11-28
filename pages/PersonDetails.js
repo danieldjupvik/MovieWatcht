@@ -19,6 +19,7 @@ import {
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18n-js';
 import brandIcon from '../assets/icon.png';
 
@@ -33,7 +34,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
-import { monthNames } from '../components/RenderDetails';
+import { monthNames } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 
 const PersonDetails = ({ route, navigation }) => {
@@ -43,9 +44,27 @@ const PersonDetails = ({ route, navigation }) => {
   const [loader, setLoader] = useState(true);
   const [person, setPerson] = useState([]);
   const [personCredit, setPersonCredit] = useState([]);
+  const [appearance, setAppearance] = useState();
 
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const getAppearance = async () => {
+      try {
+        const value = await AsyncStorage.getItem('appearance');
+        if (value !== null) {
+          setAppearance(value);
+        } else {
+          setAppearance('auto');
+          console.log('there is no appearance set');
+        }
+      } catch (e) {
+        alert('error reading home value');
+      }
+    };
+    getAppearance();
+  }, []);
 
+  const defaultColor = useColorScheme();
+  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;

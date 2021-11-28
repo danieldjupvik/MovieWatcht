@@ -6,8 +6,7 @@ import {
   BottomTabBar,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
-import axios from 'axios';
-import { apiKey } from './settings/api';
+import * as Haptics from 'expo-haptics';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
 import translationsEN from './language/en/translation.json';
@@ -586,27 +585,23 @@ export default function App() {
                   tabBarLabel: i18n.t('movies'),
                 }}
                 component={HomeStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
               />
-              {/* <Tab.Screen
-                name='topRated'
-                options={{
-                  tabBarLabel: i18n.t('topRated'),
-                }}
-                component={topRatedStackScreen}
-              />
-              <Tab.Screen
-                name='upcoming'
-                options={{
-                  tabBarLabel: i18n.t('upcoming'),
-                }}
-                component={upcomingStackScreen}
-              /> */}
               <Tab.Screen
                 name='series'
                 options={{
                   tabBarLabel: i18n.t('series'),
                 }}
                 component={seriesStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
               />
               <Tab.Screen
                 name='watchList'
@@ -614,6 +609,11 @@ export default function App() {
                   tabBarLabel: i18n.t('watchList'),
                 }}
                 component={watchListStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
               />
               <Tab.Screen
                 name='settings'
@@ -621,6 +621,11 @@ export default function App() {
                   tabBarLabel: i18n.t('settings'),
                 }}
                 component={SettingsStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
               />
             </Tab.Navigator>
           </NavigationContainer>
