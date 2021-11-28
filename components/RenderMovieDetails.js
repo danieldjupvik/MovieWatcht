@@ -20,8 +20,9 @@ import {
   baseProfileUrl,
 } from '../settings/api';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Loader from '../components/Loader';
+import Loader from './Loader';
 import * as WebBrowser from 'expo-web-browser';
+import * as Haptics from 'expo-haptics';
 import i18n from 'i18n-js';
 import axios from 'axios';
 import { useColorScheme } from 'react-native-appearance';
@@ -97,16 +98,8 @@ const RenderDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBtnBackground =
-    colorScheme === 'light'
-      ? styles.lightThemeBtnBackground
-      : styles.darkThemeBtnBackground;
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
-  const themeButtonStyle =
-    colorScheme === 'light' ? styles.darkThemeBox : styles.lightThemeBox;
-  const themeButtonTextStyle =
-    colorScheme === 'light' ? styles.darkThemeText : styles.lightThemeText;
 
   useEffect(() => {
     let isCancelled = false;
@@ -206,9 +199,11 @@ const RenderDetails = ({ navigation, id }) => {
       setMovieExist(!movieExist);
       if (movieExist) {
         removeMovieToWatchlist();
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         console.log('movie was removed');
       } else {
         setMovieToWatchlist();
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         console.log('movie was added');
       }
     } else {

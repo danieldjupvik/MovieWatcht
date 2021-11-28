@@ -98,16 +98,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBtnBackground =
-    colorScheme === 'light'
-      ? styles.lightThemeBtnBackground
-      : styles.darkThemeBtnBackground;
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
-  const themeButtonStyle =
-    colorScheme === 'light' ? styles.darkThemeBox : styles.lightThemeBox;
-  const themeButtonTextStyle =
-    colorScheme === 'light' ? styles.darkThemeText : styles.lightThemeText;
 
   useEffect(() => {
     let isCancelled = false;

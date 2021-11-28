@@ -31,7 +31,7 @@ import {
 import { borderRadius } from '../styles/globalStyles';
 import { TextInput } from 'react-native';
 import { Image } from 'react-native';
-import { modal } from '../components/RenderDetails';
+import { modal } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
@@ -103,8 +103,7 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url:
-          'https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: 'https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=0e336e0a85a0361c6c6ce28bdce52748',
         headers: {},
         data: {
           username: username,
@@ -126,8 +125,7 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url:
-          'https://api.themoviedb.org/3/authentication/session/new?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: 'https://api.themoviedb.org/3/authentication/session/new?api_key=0e336e0a85a0361c6c6ce28bdce52748',
         headers: {},
         data: {
           request_token: authorizedToken,
