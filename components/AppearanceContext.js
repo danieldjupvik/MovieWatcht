@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AppearanceContext = createContext();
@@ -18,13 +18,26 @@ export const AppearanceProvider = ({ children }) => {
 
   const colorScheme = appearance === 'auto' ? systemColorScheme : appearance;
 
-  const updateAppearance = async (value) => {
+  useEffect(() => {
+    if (appearance === 'auto') {
+      Appearance.setColorScheme(null);
+    } else {
+      Appearance.setColorScheme(appearance);
+    }
+  }, [appearance]);
+
+  const updateAppearance = useCallback(async (value) => {
     setAppearance(value);
     await AsyncStorage.setItem('appearance', value);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ colorScheme, appearance, updateAppearance }),
+    [colorScheme, appearance, updateAppearance]
+  );
 
   return (
-    <AppearanceContext.Provider value={{ colorScheme, appearance, updateAppearance }}>
+    <AppearanceContext.Provider value={value}>
       {children}
     </AppearanceContext.Provider>
   );

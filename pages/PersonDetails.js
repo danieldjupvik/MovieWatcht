@@ -4,7 +4,8 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions
+  Dimensions,
+  Pressable
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -22,7 +23,6 @@ import i18n from 'i18n-js';
 import { useAppearance } from '../components/AppearanceContext';
 
 import axios from 'axios';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -183,7 +183,7 @@ const PersonDetails = ({ route, navigation }) => {
 
               {person.homepage ? (
                 <View style={styles.homepageButtonMain}>
-                  <TouchableOpacity
+                  <Pressable
                     style={styles.homepageButtonDiv}
                     onPress={goToWebsite}
                   >
@@ -196,7 +196,7 @@ const PersonDetails = ({ route, navigation }) => {
                     >
                       {i18n.t('homepage')}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               ) : null}
               <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
@@ -219,7 +219,7 @@ const PersonDetails = ({ route, navigation }) => {
                         mediaType = 'SeriesDetails';
                       }
                       return (
-                        <TouchableOpacity
+                        <Pressable
                           style={styles.moviesCard}
                           key={idx}
                           onPress={() =>
@@ -250,7 +250,7 @@ const PersonDetails = ({ route, navigation }) => {
                               {Math.floor((movie.vote_average * 100) / 10)}%
                             </Text>
                           </View>
-                        </TouchableOpacity>
+                        </Pressable>
                       );
                     }
                   })}
@@ -273,7 +273,7 @@ const PersonDetails = ({ route, navigation }) => {
                         mediaType = 'SeriesDetails';
                       }
                       return (
-                        <TouchableOpacity
+                        <Pressable
                           style={styles.moviesCard}
                           key={idx}
                           onPress={() =>
@@ -309,7 +309,7 @@ const PersonDetails = ({ route, navigation }) => {
                               {movie.media_type === 'movie' ? 'Movie' : 'TV'}
                             </Text>
                           </View>
-                        </TouchableOpacity>
+                        </Pressable>
                       );
                     }
                   })}

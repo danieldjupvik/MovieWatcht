@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, StatusBar, Platform, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BottomTabBar,
@@ -63,6 +63,7 @@ function HomeStackScreen() {
         options={{
           headerShown: false,
           animation: 'none',
+          title: i18n.t('movies'),
         }}
       />
       <HomeStack.Screen
@@ -70,7 +71,6 @@ function HomeStackScreen() {
         component={Details}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -83,7 +83,6 @@ function HomeStackScreen() {
         component={SeriesDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -96,7 +95,6 @@ function HomeStackScreen() {
         component={PersonDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -124,6 +122,7 @@ function SeriesStackScreen() {
         options={{
           headerShown: false,
           animation: 'none',
+          title: i18n.t('series'),
         }}
       />
       <SeriesStack.Screen
@@ -131,7 +130,6 @@ function SeriesStackScreen() {
         component={SeriesDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -144,7 +142,6 @@ function SeriesStackScreen() {
         component={Details}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -157,7 +154,6 @@ function SeriesStackScreen() {
         component={SeriesSeason}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -170,7 +166,6 @@ function SeriesStackScreen() {
         component={PersonDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -203,6 +198,7 @@ function WatchListStackScreen() {
         options={{
           headerShown: false,
           animation: 'none',
+          title: i18n.t('watchList'),
         }}
       />
       <WatchListStack.Screen
@@ -210,7 +206,6 @@ function WatchListStackScreen() {
         component={Details}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -223,7 +218,6 @@ function WatchListStackScreen() {
         component={PersonDetails}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
           },
@@ -237,7 +231,6 @@ function WatchListStackScreen() {
         initialParams={{ color: iconColor }}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -266,7 +259,6 @@ function SettingsStackScreen() {
         component={Settings}
         options={() => ({
           title: i18n.t('settings'),
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -279,7 +271,6 @@ function SettingsStackScreen() {
         component={About}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -293,7 +284,6 @@ function SettingsStackScreen() {
         initialParams={{ color: iconColor }}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -306,7 +296,6 @@ function SettingsStackScreen() {
         component={Account}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -319,7 +308,6 @@ function SettingsStackScreen() {
         component={Appearance}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -332,7 +320,6 @@ function SettingsStackScreen() {
         component={ContentSettings}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -345,7 +332,6 @@ function SettingsStackScreen() {
         component={Region}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -358,7 +344,6 @@ function SettingsStackScreen() {
         component={Adult}
         options={({ route }) => ({
           title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
           },
@@ -381,6 +366,17 @@ function AppContent() {
     colorScheme === 'light'
       ? styles.tabBarStyleLightAndroid
       : styles.tabBarStyleDarkAndroid;
+
+  const isDark = colorScheme === 'dark';
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      background: isDark ? backgroundColorDark : backgroundColorLight,
+      card: isDark ? backgroundColorDark : backgroundColorLight,
+    },
+  };
 
   const TabBar = (props) => {
     if (Platform.OS === 'ios') {
@@ -411,7 +407,7 @@ function AppContent() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RegionProvider>
           <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
-          <NavigationContainer>
+          <NavigationContainer theme={navTheme}>
             <Tab.Navigator
               initialRouteName='Home'
               tabBar={TabBar}

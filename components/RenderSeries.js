@@ -1,37 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
-  Text,
-  ScrollView,
+  FlatList,
   View,
   RefreshControl,
   Dimensions,
-  Share,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
 import axios from 'axios';
-import { basePosterUrl } from '../settings/api';
 import Loader from '../components/Loader';
-import i18n from 'i18n-js';
+import SeriesCard from '../components/SeriesCard';
 import {
   backgroundColorDark,
   backgroundColorLight,
-  textColorDark,
-  textColorLight,
 } from '../colors/colors';
-import { borderRadius } from '../styles/globalStyles';
-import { imageBlurhash } from '../settings/imagePlaceholder';
-import noImage from '../assets/no-image.jpg';
-import tmdbLogo from '../assets/tmdb-logo-small.png';
-import * as Haptics from 'expo-haptics';
-import { primaryButton, secondaryButton } from '../colors/colors';
-import { useNavigation } from '@react-navigation/native';
-import { Pressable } from 'react-native';
 
 const RenderSeries = ({ baseUrl }) => {
   const [series, setSeries] = useState([]);
-  const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,12 +24,8 @@ const RenderSeries = ({ baseUrl }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
   const isBottomLoadingRef = useRef(false);
-  const navigation = useNavigation();
 
   const { colorScheme } = useAppearance();
-  const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
@@ -86,7 +67,7 @@ const RenderSeries = ({ baseUrl }) => {
     onRefresh();
   }, [refreshIndicator]);
 
-  const onBottomLoad = async () => {
+  const onBottomLoad = useCallback(async () => {
     if (
       isBottomLoadingRef.current ||
       !totalPageNumberFromApi ||
@@ -114,7 +95,7 @@ const RenderSeries = ({ baseUrl }) => {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
     }
-  };
+  }, [totalPageNumberFromApi, pageNumber, baseUrl]);
 
   function onRefresh() {
     setRefreshing(true);
@@ -123,126 +104,54 @@ const RenderSeries = ({ baseUrl }) => {
     isBottomLoadingRef.current = false;
   }
 
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }) => {
-    const paddingToBottom = 150;
-    return (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    );
-  };
+  const keyExtractor = useCallback((item) => item.id.toString(), []);
 
-  const onShare = async (title, id) => {
-    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
-      if (!Haptics.impactAsync) {
-        throw new UnavailabilityError('Haptic', 'impactAsync');
-      }
-      await Haptics.impactAsync(style);
-    }
-    impactAsync();
+  const renderItem = useCallback(({ item }) => (
+    <SeriesCard
+      id={item.id}
+      posterPath={item.poster_path}
+      name={item.original_name}
+      voteAverage={item.vote_average}
+      colorScheme={colorScheme}
+    />
+  ), [colorScheme]);
 
-    const url = 'https://www.themoviedb.org/movie/' + id;
-
-    try {
-      const result = await Share.share({
-        title: title,
-        url: url,
-      });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  const ListFooter = useCallback(() => (
+    <>
+      {bottomLoader ? (
+        <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
+      ) : null}
+      <View style={styles.view} />
+    </>
+  ), [bottomLoader]);
 
   return (
     <>
       <View style={styles.container}>
-        <ScrollView
-          style={[styles.scrollView, themeContainerStyle]}
-          keyboardDismissMode={'on-drag'}
-          indicatorStyle={themeTabBar}
-          onScroll={({ nativeEvent }) => {
-            if (isCloseToBottom(nativeEvent)) {
-              console.log('load bottom');
-              if (series.length >= 1) {
-                onBottomLoad();
-              }
+        {loader ? (
+          <Loader loadingStyle={styles.loaderStyle} />
+        ) : (
+          <FlatList
+            data={series}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={3}
+            style={[styles.scrollView, themeContainerStyle]}
+            contentContainerStyle={styles.flatListContent}
+            columnWrapperStyle={styles.columnWrapper}
+            keyboardDismissMode='on-drag'
+            onEndReached={onBottomLoad}
+            onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                tintColor='red'
+                onRefresh={onRefresh}
+              />
             }
-          }}
-          scrollEventThrottle={400}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              tintColor='red'
-              onRefresh={onRefresh}
-            />
-          }
-        >
-          <View style={styles.mainParent}>
-            {loader ? (
-              <Loader loadingStyle={styles.loaderStyle} />
-            ) : (
-              <View style={styles.main}>
-                {series?.map((series) => {
-                  const posterImage = {
-                    uri: `${basePosterUrl + series.poster_path}`,
-                  };
-                  return (
-                    <Pressable
-                      key={series.id}
-                      onLongPress={() =>
-                        onShare(series.title, series.id, series.overview)
-                      }
-                      onPress={() =>
-                        navigation.navigate('SeriesDetails', {
-                          id: series.id,
-                          headerTitle: series.original_name,
-                        })
-                      }
-                    >
-                      <View style={styles.cards}>
-                        <View style={styles.imageDiv}>
-                          <Image
-                            source={series.poster_path ? posterImage : noImage}
-                            style={styles.image}
-                            placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
-                            transition={300}
-                          />
-                        </View>
-                        <View style={styles.ratingDiv}>
-                          <Image
-                            source={tmdbLogo}
-                            style={styles.tmdbLogo}
-                            contentFit='contain'
-                          />
-                          <Text style={[styles.rating, themeTextStyle]}>
-                            {Math.floor((series.vote_average * 100) / 10)}%
-                          </Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-          {bottomLoader ? (
-            <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
-          ) : null}
-          <View style={styles.view}></View>
-        </ScrollView>
+            ListFooterComponent={ListFooter}
+          />
+        )}
       </View>
     </>
   );
@@ -251,7 +160,7 @@ const RenderSeries = ({ baseUrl }) => {
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -259,123 +168,31 @@ export const styles = StyleSheet.create({
     paddingTop: 20,
     width: deviceWidth,
   },
-  heading: {
-    fontSize: 30,
-    marginBottom: 20,
-    fontWeight: 'bold',
-  },
   view: {
     height: 75,
   },
   scrollView: {
-    // marginHorizontal: 20,
     height: '100%',
     width: '100%',
     alignSelf: 'center',
     marginTop: 40,
   },
-  main: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: '100%',
-  },
-  mainParent: {
-    flex: 1,
+  flatListContent: {
     alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
     width: deviceWidth,
   },
-  image: {
-    width: deviceWidth / 3.3,
-    height: deviceWidth / 2.24,
-    backgroundColor: 'grey',
-    borderRadius: borderRadius,
-  },
-  imageDiv: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.55,
-    shadowRadius: 3.2,
-  },
-  cards: {
-    alignItems: 'center',
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 20,
-  },
-  rating: {
-    marginLeft: 6,
-  },
-  ratingDiv: {
-    marginTop: 10,
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  tmdbLogo: {
-    width: 25,
-    height: 12,
-  },
-  description: {
-    fontSize: 15,
-    paddingBottom: 20,
+  columnWrapper: {
+    justifyContent: 'center',
   },
   loaderStyle: {
     paddingTop: deviceHeight / 4.5,
     paddingBottom: deviceHeight,
-  },
-  // Watch list styles
-  noMoviesDiv: {
-    marginTop: deviceHeight / 4.5,
-    flexDirection: 'row',
-  },
-  noMoviesText: {
-    fontSize: 19,
-    fontWeight: '600',
-    marginRight: 10,
-  },
-  loginSection: {
-    width: deviceWidth - 50,
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: borderRadius,
-  },
-  loginImage: {
-    width: 140,
-    height: 140,
-  },
-  loginSectionText: {
-    fontWeight: '500',
-    fontSize: 17,
-    marginTop: 20,
-  },
-  loginButton: {
-    backgroundColor: primaryButton,
-    marginTop: 20,
-    marginBottom: 10,
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,
   },
   darkContainer: {
     backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
   },
 });
 

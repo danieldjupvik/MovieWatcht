@@ -1,13 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  StyleSheet,
   Text,
-  ScrollView,
+  FlatList,
   View,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
-  Dimensions,
-  Share,
   Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,26 +12,15 @@ import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
 import { useAppearance } from '../components/AppearanceContext';
 import axios from 'axios';
-import { basePosterUrl, searchMovieUrl, apiKey } from '../settings/api';
+import { searchMovieUrl, apiKey } from '../settings/api';
 import Loader from '../components/Loader';
+import MovieCard from '../components/MovieCard';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
-import {
-  backgroundColorDark,
-  backgroundColorLight,
-  textColorDark,
-  textColorLight,
-} from '../colors/colors';
-import { imageBlurhash } from '../settings/imagePlaceholder';
-import noImage from '../assets/no-image.jpg';
 import logoTransparent from '../assets/icon-transparent.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
-import { styles } from './Home';
+import { sharedStyles as styles } from '../styles/sharedStyles';
 import ButtonStyles from '../styles/buttons';
-import tmdbLogo from '../assets/tmdb-logo-small.png';
-
-const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
 const WatchList = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
@@ -142,7 +128,7 @@ const WatchList = ({ navigation }) => {
     }
   };
 
-  const onBottomLoad = async () => {
+  const onBottomLoad = useCallback(async () => {
     if (
       isBottomLoadingRef.current ||
       !totalPageNumberFromApi ||
@@ -173,7 +159,7 @@ const WatchList = ({ navigation }) => {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
     }
-  };
+  }, [accountId, sessionId, totalPageNumberFromApi, pageNumber]);
 
   // on refresh
   const refreshFetch = async () => {
@@ -225,47 +211,42 @@ const WatchList = ({ navigation }) => {
     }
   }
 
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }) => {
-    const paddingToBottom = 0;
-    return (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    );
-  };
+  const keyExtractor = useCallback((item) => item.id.toString(), []);
 
-  const onShare = async (title, id) => {
-    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
-      if (!Haptics.impactAsync) {
-        throw new UnavailabilityError('Haptic', 'impactAsync');
-      }
-      await Haptics.impactAsync(style);
-    }
-    impactAsync();
+  const renderItem = useCallback(({ item }) => (
+    <MovieCard
+      id={item.id}
+      posterPath={item.poster_path}
+      title={item.title}
+      voteAverage={item.vote_average}
+      colorScheme={colorScheme}
+    />
+  ), [colorScheme]);
 
-    const url = 'https://www.themoviedb.org/movie/' + id;
+  const ListFooter = useCallback(() => (
+    <>
+      {bottomLoader ? (
+        <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
+      ) : null}
+      <View style={styles.view} />
+    </>
+  ), [bottomLoader]);
 
-    try {
-      const result = await Share.share({
-        title: title,
-        url: url,
-      });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  const ListEmpty = useCallback(() => (
+    <>
+      {whileLoading ? (
+        <View style={styles.noMoviesDiv}>
+          <Text style={[styles.noMoviesText, themeTextStyle]}>
+            {i18n.t('noMoviesInWatchlist')}
+          </Text>
+          <FontAwesome5
+            name={'heart-broken'}
+            style={{ color: 'red', fontSize: 22 }}
+          />
+        </View>
+      ) : null}
+    </>
+  ), [whileLoading, themeTextStyle]);
 
   return (
     <>
@@ -306,101 +287,31 @@ const WatchList = ({ navigation }) => {
             <Text style={[styles.description, themeTextStyle]}>
               {i18n.t('watchListDescription')}
             </Text>
-            <SafeAreaView style={styles.container}></SafeAreaView>
-            <ScrollView
-              style={[styles.scrollView, themeContainerStyle]}
-              keyboardDismissMode={'on-drag'}
-              indicatorStyle={themeTabBar}
-              onScroll={({ nativeEvent }) => {
-                if (isCloseToBottom(nativeEvent)) {
-                  console.log('load bottom');
-                  if (movies.length >= 1) {
-                    onBottomLoad();
-                  }
+            {loader ? (
+              <Loader loadingStyle={styles.loaderStyle} />
+            ) : (
+              <FlatList
+                data={movies}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                numColumns={3}
+                style={[styles.scrollView, themeContainerStyle]}
+                contentContainerStyle={styles.flatListContent}
+                columnWrapperStyle={movies.length > 0 ? styles.columnWrapper : undefined}
+                keyboardDismissMode='on-drag'
+                onEndReached={onBottomLoad}
+                onEndReachedThreshold={0.5}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    tintColor='red'
+                    onRefresh={onRefresh}
+                  />
                 }
-              }}
-              scrollEventThrottle={400}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  tintColor='red'
-                  onRefresh={onRefresh}
-                />
-              }
-            >
-              <View style={styles.mainParent}>
-                {loader ? (
-                  <Loader loadingStyle={styles.loaderStyle} />
-                ) : (
-                  <>
-                    {movies.length >= 1 ? (
-                      <View style={styles.main}>
-                        {movies?.map((movie) => {
-                          const posterImage = {
-                            uri: `${basePosterUrl + movie.poster_path}`,
-                          };
-                          return (
-                            <TouchableOpacity
-                              key={movie.id}
-                              style={styles.cards}
-                              onLongPress={() =>
-                                onShare(movie.title, movie.id, movie.overview)
-                              }
-                              onPress={() =>
-                                navigation.navigate('Details', {
-                                  id: movie.id,
-                                  headerTitle: movie.title,
-                                })
-                              }
-                            >
-                              <View style={styles.imageDiv}>
-                                <Image
-                                  source={
-                                    movie.poster_path ? posterImage : noImage
-                                  }
-                                  style={styles.image}
-                                  placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
-                                  transition={300}
-                                />
-                              </View>
-                              <View style={styles.ratingDiv}>
-                                <Image
-                                  source={tmdbLogo}
-                                  style={styles.tmdbLogo}
-                                  contentFit='contain'
-                                />
-                                <Text style={[styles.rating, themeTextStyle]}>
-                                  {Math.floor((movie.vote_average * 100) / 10)}%
-                                </Text>
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    ) : (
-                      <>
-                        {whileLoading ? (
-                          <View style={styles.noMoviesDiv}>
-                            <Text style={[styles.noMoviesText, themeTextStyle]}>
-                              {i18n.t('noMoviesInWatchlist')}
-                            </Text>
-                            <FontAwesome5
-                              name={'heart-broken'}
-                              style={{ color: 'red', fontSize: 22 }}
-                            />
-                          </View>
-                        ) : null}
-                      </>
-                    )}
-                  </>
-                )}
-              </View>
-              {bottomLoader ? (
-                <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
-              ) : null}
-              <View style={styles.view}></View>
-            </ScrollView>
+                ListFooterComponent={ListFooter}
+                ListEmptyComponent={ListEmpty}
+              />
+            )}
           </>
         ) : (
           <View style={[styles.loginSection, themeBoxStyle]}>
@@ -408,7 +319,7 @@ const WatchList = ({ navigation }) => {
             <Text style={[styles.loginSectionText, themeTextStyle]}>
               {i18n.t('watchListRequirement')}
             </Text>
-            <TouchableOpacity
+            <Pressable
               style={[ButtonStyles.mediumButtonStyling, styles.loginButton]}
               onPress={() =>
                 navigation.navigate('Login', {
@@ -417,7 +328,7 @@ const WatchList = ({ navigation }) => {
               }
             >
               <Text style={ButtonStyles.buttonText}>{i18n.t('login')}</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </SafeAreaView>

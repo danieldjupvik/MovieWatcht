@@ -19,7 +19,7 @@ import {
 import Loader from '../components/Loader';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
-import { styles } from './Home';
+import { sharedStyles as styles } from '../styles/sharedStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';

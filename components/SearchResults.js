@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   View,
-  TouchableOpacity,
+  Pressable,
   Dimensions,
   Share,
 } from 'react-native';
@@ -87,7 +87,7 @@ const SearchResults = ({ movies, loader }) => {
                   var year = d.getFullYear();
 
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={movie.id}
                       style={[styles.cards, themeContainerStyle]}
                       onLongPress={() =>
@@ -126,7 +126,7 @@ const SearchResults = ({ movies, loader }) => {
                           </Text>
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })}
               </View>
@@ -142,7 +142,7 @@ const SearchResults = ({ movies, loader }) => {
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',

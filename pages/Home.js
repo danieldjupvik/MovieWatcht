@@ -1,10 +1,6 @@
-import React, { useState, useRef, useContext } from 'react';
-import {
-  StyleSheet,
-  Dimensions,
-  Platform,
-  useWindowDimensions
-} from 'react-native';
+import React, { useState } from 'react';
+import { Platform, useWindowDimensions } from 'react-native';
+import { sharedStyles as styles } from '../styles/sharedStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
@@ -17,19 +13,10 @@ import {
   trendingMovieUrl,
 } from '../settings/api';
 import i18n from 'i18n-js';
-import {
-  backgroundColorDark,
-  backgroundColorLight,
-  textColorDark,
-  textColorLight,
-} from '../colors/colors';
-import { borderRadius } from '../styles/globalStyles';
-import { primaryButton, secondaryButton } from '../colors/colors';
 import { useAppearance } from '../components/AppearanceContext';
 import RenderMovies from '../components/RenderMovies';
 import SearchResults from '../components/SearchResults';
-
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { TabView, TabBar } from 'react-native-tab-view';
 
 const Home = ({ navigation }) => {
   const [movies, setMovies] = useState();
@@ -172,133 +159,5 @@ const Home = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
-
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heading: {
-    fontSize: 30,
-    marginTop: 20,
-    marginBottom: 20,
-    fontWeight: 'bold',
-  },
-  view: {
-    height: 75,
-  },
-  scrollView: {
-    // marginHorizontal: 20,
-    height: '100%',
-    width: '100%',
-  },
-  main: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: '100%',
-  },
-  mainParent: {
-    flex: 1,
-    alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    width: deviceWidth,
-  },
-  image: {
-    width: deviceWidth / 3.3,
-    height: deviceWidth / 2.24,
-    backgroundColor: 'grey',
-    borderRadius: borderRadius,
-  },
-  imageDiv: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.55,
-    shadowRadius: 3.2,
-  },
-  cards: {
-    alignItems: 'center',
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 20,
-  },
-  rating: {
-    marginLeft: 6,
-  },
-  ratingDiv: {
-    marginTop: 10,
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  tmdbLogo: {
-    width: 25,
-    height: 12,
-  },
-  description: {
-    fontSize: 15,
-    paddingBottom: 20,
-  },
-  loaderStyle: {
-    paddingTop: deviceHeight / 4.5,
-    paddingBottom: deviceHeight,
-  },
-  // Watch list styles
-  noMoviesDiv: {
-    marginTop: deviceHeight / 4.5,
-    flexDirection: 'row',
-  },
-  noMoviesText: {
-    fontSize: 19,
-    fontWeight: '600',
-    marginRight: 10,
-  },
-  loginSection: {
-    width: deviceWidth - 50,
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: borderRadius,
-  },
-  loginImage: {
-    width: 140,
-    height: 140,
-  },
-  loginSectionText: {
-    fontWeight: '500',
-    fontSize: 17,
-    marginTop: 20,
-  },
-  loginButton: {
-    backgroundColor: primaryButton,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
-  },
-});
 
 export default Home;

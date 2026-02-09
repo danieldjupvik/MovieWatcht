@@ -25,7 +25,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import i18n from 'i18n-js';
 import axios from 'axios';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -306,7 +305,7 @@ const RenderDetails = ({ navigation, id }) => {
               <Text style={[modal.modalText, themeTextStyle]}>
                 {i18n.t('watchlistModalTex')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 style={[
                   ButtonStyles.smallButtonStyling,
                   { backgroundColor: primaryButton },
@@ -316,7 +315,7 @@ const RenderDetails = ({ navigation, id }) => {
                 }}
               >
                 <Text style={modal.textStyle}>{i18n.t('close')}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </Modal>
@@ -575,7 +574,7 @@ const RenderDetails = ({ navigation, id }) => {
                       uri: `${baseProfileUrl + cast.profile_path}`,
                     };
                     return (
-                      <TouchableOpacity
+                      <Pressable
                         key={idx}
                         onPress={() =>
                           navigation.push('PersonDetails', {
@@ -606,7 +605,7 @@ const RenderDetails = ({ navigation, id }) => {
                             {cast.character}
                           </Text>
                         </View>
-                      </TouchableOpacity>
+                      </Pressable>
                     );
                   })}
                 </View>
@@ -627,7 +626,7 @@ const RenderDetails = ({ navigation, id }) => {
                       .map((movie, idx) => {
                         if (movie.poster_path !== null) {
                           return (
-                            <TouchableOpacity
+                            <Pressable
                               style={styles.moviesCard}
                               key={idx}
                               onPress={() =>
@@ -659,7 +658,7 @@ const RenderDetails = ({ navigation, id }) => {
                                   {Math.floor((movie.vote_average * 100) / 10)}%
                                 </Text>
                               </View>
-                            </TouchableOpacity>
+                            </Pressable>
                           );
                         }
                       })}
@@ -680,7 +679,7 @@ const RenderDetails = ({ navigation, id }) => {
                     {movie.similar.results.slice(0, 50).map((movie, idx) => {
                       if (movie.poster_path !== null) {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             style={styles.moviesCard}
                             key={idx}
                             onPress={() =>
@@ -710,7 +709,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 {Math.floor((movie.vote_average * 100) / 10)}%
                               </Text>
                             </View>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       }
                     })}
