@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
-  TouchableWithoutFeedback,
   Modal,
   Pressable,
 } from 'react-native';
@@ -17,6 +16,7 @@ import {
   apiKey,
   basePosterUrl,
   baseBackdropUrl,
+  baseBackdropPlaceholderUrl,
   baseProfileUrl,
 } from '../settings/api';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -34,7 +34,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import ButtonStyles from '../styles/buttons';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
@@ -317,11 +317,25 @@ const RenderSeriesDetails = ({ navigation, id }) => {
             <View style={styles.main}>
               <View style={styles.backdrop}>
                 <Image
-                  source={{
-                    uri: `${baseBackdropUrl + series.backdrop_path}`,
-                  }}
+                  source={
+                    series.backdrop_path
+                      ? {
+                          uri: `${baseBackdropUrl + series.backdrop_path}`,
+                        }
+                      : noImage
+                  }
                   style={StyleSheet.absoluteFill}
-                  placeholder={posterLoader}
+                  placeholder={
+                    series.backdrop_path
+                      ? {
+                          uri: `${
+                            baseBackdropPlaceholderUrl + series.backdrop_path
+                          }`,
+                        }
+                      : imageBlurhash
+                  }
+                  placeholderContentFit='cover'
+                  transition={350}
                   contentFit='cover'
                 />
                 <View style={styles.child} />
@@ -331,7 +345,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   source={{
                     uri: `${basePosterUrl + series.poster_path}`,
                   }}
-                  placeholder={posterLoader}
+                  placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
                 {/* {!stateFinish && sessionId ? (

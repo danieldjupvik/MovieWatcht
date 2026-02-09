@@ -1,23 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
   ScrollView,
   View,
   TouchableOpacity,
-  SafeAreaView,
-  RefreshControl,
   Dimensions,
-  Platform,
   Share,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
-import { SearchBar } from '@rneui/themed';
-import axios from 'axios';
-import { baseSearchPosterUrl, searchMovieUrl } from '../settings/api';
+import { baseSearchPosterUrl } from '../settings/api';
 import Loader from '../components/Loader';
-import i18n from 'i18n-js';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -25,28 +19,16 @@ import {
   textColorLight,
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Haptics from 'expo-haptics';
-import { primaryButton, secondaryButton } from '../colors/colors';
-import * as Localization from 'expo-localization';
 import { useNavigation } from '@react-navigation/native';
 
 const SearchResults = ({ movies, loader }) => {
-  const [search, setSearch] = useState();
-  const [bottomLoader, setBottomLoader] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshIndicator, setRefreshIndicator] = useState(true);
-  const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
-  const [pageNumber, setPageNumber] = useState(2);
-  const [regionsText, setRegionsText] = useState();
-  const [regionFinal, setRegionFinal] = useState();
   const navigation = useNavigation();
 
   const { colorScheme } = useAppearance();
-  const themeSearchbar = colorScheme === 'light' ? true : false;
-  const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -83,33 +65,6 @@ const SearchResults = ({ movies, loader }) => {
     }
   };
 
-  const onBottomLoad = async () => {
-    if (pageNumber <= totalPageNumberFromApi) {
-      setBottomLoader(true);
-      setPageNumber(pageNumber + 1);
-      try {
-        const response = await axios.get(`${baseUrl + `&page=${pageNumber}`}`);
-        setMovies((movies) => [...movies, ...response.data.results]);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setBottomLoader(false);
-      }
-    }
-  };
-
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }) => {
-    const paddingToBottom = 150;
-    return (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    );
-  };
-
   return (
     <>
       <View style={styles.container}>
@@ -117,15 +72,6 @@ const SearchResults = ({ movies, loader }) => {
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
           indicatorStyle={themeTabBar}
-          onScroll={({ nativeEvent }) => {
-            if (isCloseToBottom(nativeEvent)) {
-              console.log('load bottom');
-              if (movies.length >= 1) {
-                onBottomLoad();
-              }
-            }
-          }}
-          scrollEventThrottle={400}
         >
           <View style={styles.mainParent}>
             {loader ? (
@@ -158,7 +104,8 @@ const SearchResults = ({ movies, loader }) => {
                         <Image
                           source={movie.poster_path ? posterImage : noImage}
                           style={styles.image}
-                          placeholder={posterLoader}
+                          placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                           transition={300}
                         />
                       </View>
@@ -185,9 +132,6 @@ const SearchResults = ({ movies, loader }) => {
               </View>
             )}
           </View>
-          {bottomLoader ? (
-            <Loader loadingStyle={{ paddingTop: 0, paddingBottom: 100 }} />
-          ) : null}
           <View style={styles.view}></View>
         </ScrollView>
       </View>

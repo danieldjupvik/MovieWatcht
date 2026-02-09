@@ -10,17 +10,16 @@ import {
 import { Image } from 'expo-image';
 import {
   baseBackdropUrl,
+  baseBackdropPlaceholderUrl,
   apiKey,
   basePosterUrl,
   personUrl,
   creditPerson,
 } from '../settings/api';
-import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from 'i18n-js';
 import { useAppearance } from '../components/AppearanceContext';
-import brandIcon from '../assets/icon.png';
 
 import axios from 'axios';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -31,17 +30,18 @@ import {
   textColorLight,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import { monthNames } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
+import noImage from '../assets/no-image.jpg';
 
 const PersonDetails = ({ route, navigation }) => {
   const { id } = route.params;
   const { creditId } = route.params;
 
   const [loader, setLoader] = useState(true);
-  const [person, setPerson] = useState([]);
-  const [personCredit, setPersonCredit] = useState([]);
+  const [person, setPerson] = useState({});
+  const [personCredit, setPersonCredit] = useState({});
 
   const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
@@ -72,6 +72,9 @@ const PersonDetails = ({ route, navigation }) => {
 
   useEffect(() => {
     const getCreditPerson = async () => {
+      if (!creditId) {
+        return;
+      }
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
@@ -91,11 +94,18 @@ const PersonDetails = ({ route, navigation }) => {
   var day = dBirthday.getDate();
   var birthday = `${day}. ${month} ${year}`;
 
-  var dDeathday = new Date(person.birthday);
-  var year = dDeathday.getFullYear();
-  var month = monthNames[dDeathday.getMonth()];
-  var day = dDeathday.getDate();
-  var deathday = `${day}. ${month} ${year}`;
+  var dDeathday = new Date(person.deathday);
+  var deathYear = dDeathday.getFullYear();
+  var deathMonth = monthNames[dDeathday.getMonth()];
+  var deathDay = dDeathday.getDate();
+  var deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
+
+  const knownForItems = (person.combined_credits?.cast || [])
+    .slice()
+    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    .slice(0, 20);
+
+  const appearsInItems = person.combined_credits?.cast || [];
 
   const goToWebsite = () => {
     WebBrowser.openBrowserAsync(person.homepage);
@@ -111,11 +121,26 @@ const PersonDetails = ({ route, navigation }) => {
             <View style={styles.main}>
               <View style={styles.backdrop}>
                 <Image
-                  source={{
-                    uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
-                  }}
+                  source={
+                    personCredit.media?.backdrop_path
+                      ? {
+                          uri: `${baseBackdropUrl + personCredit.media.backdrop_path}`,
+                        }
+                      : noImage
+                  }
                   style={StyleSheet.absoluteFill}
-                  placeholder={posterLoader}
+                  placeholder={
+                    personCredit.media?.backdrop_path
+                      ? {
+                          uri: `${
+                            baseBackdropPlaceholderUrl +
+                            personCredit.media.backdrop_path
+                          }`,
+                        }
+                      : imageBlurhash
+                  }
+                  placeholderContentFit='cover'
+                  transition={350}
                   contentFit='cover'
                 />
                 <View style={styles.child} />
@@ -125,7 +150,8 @@ const PersonDetails = ({ route, navigation }) => {
                   source={{
                     uri: `${basePosterUrl + person.profile_path}`,
                   }}
-                  placeholder={posterLoader}
+                  placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
@@ -184,7 +210,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {personCredit.person?.known_for.map((movie, idx) => {
+                  {knownForItems.map((movie, idx) => {
                     if (movie.poster_path !== null) {
                       let mediaType;
                       if (movie.media_type === 'movie') {
@@ -199,7 +225,8 @@ const PersonDetails = ({ route, navigation }) => {
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
-                              headerTitle: movie.title,
+                              headerTitle:
+                                movie.title || movie.name || movie.original_name,
                             })
                           }
                         >
@@ -237,7 +264,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {person.combined_credits?.cast.map((movie, idx) => {
+                  {appearsInItems.map((movie, idx) => {
                     if (movie.poster_path !== null) {
                       let mediaType;
                       if (movie.media_type === 'movie') {
@@ -252,7 +279,8 @@ const PersonDetails = ({ route, navigation }) => {
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
-                              headerTitle: movie.title,
+                              headerTitle:
+                                movie.title || movie.name || movie.original_name,
                             })
                           }
                         >

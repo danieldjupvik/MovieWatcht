@@ -24,7 +24,7 @@ import {
   textColorLight,
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Haptics from 'expo-haptics';
@@ -203,7 +203,8 @@ const RenderSeries = ({ baseUrl }) => {
                           <Image
                             source={series.poster_path ? posterImage : noImage}
                             style={styles.image}
-                            placeholder={posterLoader}
+                            placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                             transition={300}
                           />
                         </View>

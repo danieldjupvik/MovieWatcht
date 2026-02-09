@@ -24,7 +24,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import logoTransparent from '../assets/icon-transparent.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -337,7 +337,8 @@ const WatchList = ({ navigation }) => {
                                     movie.poster_path ? posterImage : noImage
                                   }
                                   style={styles.image}
-                                  placeholder={posterLoader}
+                                  placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                                   transition={300}
                                 />
                               </View>

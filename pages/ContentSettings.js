@@ -74,12 +74,12 @@ const ContentSettings = ({ navigation }) => {
   };
 
   useEffect(() => {
-    const subscribed = navigation.addListener('focus', () => {
-      console.log(sessionId);
+    const unsubscribe = navigation.addListener('focus', () => {
       getData();
-      return subscribed;
     });
-  }, [sessionId]);
+
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <>

@@ -74,11 +74,12 @@ const Region = ({ navigation }) => {
   };
 
   useEffect(() => {
-    const subscribed = navigation.addListener('focus', () => {
+    const unsubscribe = navigation.addListener('focus', () => {
       getRegion();
-      return subscribed;
     });
-  }, [buttonPressed]);
+
+    return unsubscribe;
+  }, [navigation]);
   return (
     <>
       <SafeAreaView style={[styles.container, themeContainerStyle]}>

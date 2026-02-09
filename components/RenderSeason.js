@@ -29,7 +29,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import ButtonStyles from '../styles/buttons';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 
 export const monthNames = [
@@ -99,7 +99,8 @@ const RenderSeason = ({ navigation, id, season }) => {
                   source={{
                     uri: `${basePosterUrl + episodes.poster_path}`,
                   }}
-                  placeholder={posterLoader}
+                  placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
@@ -118,7 +119,8 @@ const RenderSeason = ({ navigation, id, season }) => {
                           source={{
                             uri: `${baseStillImageUrl + episode.still_path}`,
                           }}
-                          placeholder={posterLoader}
+                          placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                           style={styles.stillImg}
 
 

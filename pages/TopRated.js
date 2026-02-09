@@ -20,7 +20,7 @@ import Loader from '../components/Loader';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
 import { styles } from './Home';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import noImage from '../assets/no-image.jpg';
@@ -297,7 +297,8 @@ const TopRated = ({ navigation }) => {
                         <Image
                           source={movie.poster_path ? posterImage : noImage}
                           style={styles.image}
-                          placeholder={posterLoader}
+                          placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
                           transition={300}
                         />
                       </View>

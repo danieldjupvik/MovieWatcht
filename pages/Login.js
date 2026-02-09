@@ -246,7 +246,7 @@ const Login = ({ navigation, route }) => {
                     passwordInput.focus();
                   }}
                   blurOnSubmit={false}
-                  autoCompleteType={'username'}
+                  autoComplete='username'
                   autoCorrect={false}
                   autoCapitalize={'none'}
                   enablesReturnKeyAutomatically={true}
@@ -270,7 +270,7 @@ const Login = ({ navigation, route }) => {
                     setPasswordInput(input);
                   }}
                   returnKeyType={'go'}
-                  autoCompleteType={'password'}
+                  autoComplete='current-password'
                   onSubmitEditing={getToken}
                 />
               </View>
