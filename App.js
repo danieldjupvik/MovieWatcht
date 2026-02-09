@@ -182,8 +182,13 @@ function SearchStackScreen() {
         name='SearchScreen'
         component={Search}
         options={{
-          title: i18n.t('searchAll'),
-          headerLargeTitle: true,
+          title: '',
+          headerLargeTitle: false,
+          headerSearchBarOptions: {
+            placeholder: i18n.t('searchAll'),
+            placement: 'automatic',
+            allowToolbarIntegration: true,
+          },
           headerShadowVisible: false,
           headerStyle: { backgroundColor: themeContainerStyle },
           headerTintColor: themeHeaderTintColor,

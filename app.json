@@ -10,9 +10,6 @@
       "resizeMode": "cover",
       "backgroundColor": "#1D1D1C"
     },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -44,6 +41,12 @@
       "expo-web-browser",
       "expo-image",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a574474b-ca75-4d67-ae5d-a73b04e9b00b"
+      }
+    },
+    "owner": "danieldjupvik"
   }
 }

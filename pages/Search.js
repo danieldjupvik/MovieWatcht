@@ -1,13 +1,15 @@
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Dimensions,
   FlatList,
+  Platform,
   Pressable,
   Share,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import i18n from '../language/i18n';
 import { Image } from 'expo-image';
@@ -112,23 +114,13 @@ const Search = ({ navigation }) => {
   const [loader, setLoader] = useState(false);
   const [query, setQuery] = useState('');
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerSearchBarOptions: {
-        placeholder: i18n.t('searchAll'),
-        placement: 'stacked',
-        hideWhenScrolling: false,
-        onChangeText: (e) => handleSearch(e.nativeEvent.text ?? ''),
-        onCancelButtonPress: () => {
-          setQuery('');
-          setResults([]);
-          setLoader(false);
-        },
-      },
-    });
-  }, [navigation]);
+  const clearSearch = useCallback(() => {
+    setQuery('');
+    setResults([]);
+    setLoader(false);
+  }, []);
 
-  const handleSearch = async (inputValue) => {
+  const handleSearch = useCallback(async (inputValue) => {
     const rawQuery = inputValue.trim();
     setQuery(rawQuery);
 
@@ -153,7 +145,27 @@ const Search = ({ navigation }) => {
     } finally {
       setLoader(false);
     }
-  };
+  }, []);
+
+  const applySearchBarOptions = useCallback(() => {
+    navigation.setOptions({
+      headerSearchBarOptions: {
+        placeholder: i18n.t('searchAll'),
+        ...(Platform.OS === 'ios'
+          ? { placement: 'automatic', allowToolbarIntegration: true }
+          : null),
+        hideWhenScrolling: false,
+        onChangeText: (e) => handleSearch(e.nativeEvent.text ?? ''),
+        onCancelButtonPress: clearSearch,
+      },
+    });
+  }, [clearSearch, handleSearch, navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      applySearchBarOptions();
+    }, [applySearchBarOptions])
+  );
 
   const openItem = useCallback((item) => {
     const isSeries = item.media_type === 'tv';
@@ -231,7 +243,7 @@ const Search = ({ navigation }) => {
         keyExtractor={keyExtractor}
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        contentInsetAdjustmentBehavior='automatic'
+        contentInsetAdjustmentBehavior='always'
         keyboardDismissMode='on-drag'
         indicatorStyle={themeTabBar}
         scrollEnabled={results.length > 0}
