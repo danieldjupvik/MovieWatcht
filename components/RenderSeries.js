@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
+  Text,
   FlatList,
   View,
   RefreshControl,
@@ -10,9 +11,12 @@ import { useAppearance } from './AppearanceContext';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import SeriesCard from '../components/SeriesCard';
+import i18n from 'i18n-js';
 import {
   backgroundColorDark,
   backgroundColorLight,
+  textColorDark,
+  textColorLight,
 } from '../colors/colors';
 
 const RenderSeries = ({ baseUrl }) => {
@@ -26,6 +30,8 @@ const RenderSeries = ({ baseUrl }) => {
   const isBottomLoadingRef = useRef(false);
 
   const { colorScheme } = useAppearance();
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
@@ -128,6 +134,9 @@ const RenderSeries = ({ baseUrl }) => {
   return (
     <>
       <View style={styles.container}>
+        <Text style={[styles.description, themeTextStyle]}>
+          {i18n.t('series')}
+        </Text>
         {loader ? (
           <Loader loadingStyle={styles.loaderStyle} />
         ) : (
@@ -139,6 +148,7 @@ const RenderSeries = ({ baseUrl }) => {
             style={[styles.scrollView, themeContainerStyle]}
             contentContainerStyle={styles.flatListContent}
             columnWrapperStyle={styles.columnWrapper}
+            contentInsetAdjustmentBehavior='never'
             keyboardDismissMode='on-drag'
             onEndReached={onBottomLoad}
             onEndReachedThreshold={0.5}
@@ -165,7 +175,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20,
     width: deviceWidth,
   },
   view: {
@@ -175,7 +184,6 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     alignSelf: 'center',
-    marginTop: 40,
   },
   flatListContent: {
     alignItems: 'center',
@@ -183,6 +191,10 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {
     justifyContent: 'center',
+  },
+  description: {
+    fontSize: 15,
+    paddingBottom: 20,
   },
   loaderStyle: {
     paddingTop: deviceHeight / 4.5,
@@ -193,6 +205,12 @@ const styles = StyleSheet.create({
   },
   darkContainer: {
     backgroundColor: backgroundColorDark,
+  },
+  lightThemeText: {
+    color: textColorLight,
+  },
+  darkThemeText: {
+    color: textColorDark,
   },
 });
 

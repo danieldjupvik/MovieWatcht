@@ -1,11 +1,8 @@
 import React from 'react';
-import { StyleSheet, StatusBar, Platform, View } from 'react-native';
+import { StyleSheet, StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import {
-  BottomTabBar,
-  createBottomTabNavigator,
-} from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import * as Haptics from 'expo-haptics';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
@@ -15,11 +12,11 @@ import {
   backgroundColorDark,
   backgroundColorLight,
 } from './colors/colors';
-import { BlurView } from 'expo-blur';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import Home from './pages/Home';
 import Series from './pages/series';
+import Search from './pages/Search';
 import Details from './pages/Details';
 import SeriesDetails from './pages/SeriesDetails';
 import SeriesSeason from './pages/SeriesSeason';
@@ -33,12 +30,11 @@ import Appearance from './pages/Appearance';
 import ContentSettings from './pages/ContentSettings';
 import Region from './pages/Region';
 import Adult from './pages/Adult';
-import { Ionicons } from '@expo/vector-icons';
 
 import { RegionProvider } from './components/RegionContext';
 import { AppearanceProvider, useAppearance } from './components/AppearanceContext';
 
-const Tab = createBottomTabNavigator();
+const Tab = createNativeBottomTabNavigator();
 
 i18n.translations = {
   nb: translationsNB,
@@ -61,9 +57,12 @@ function HomeStackScreen() {
         name='HomeScreen'
         component={Home}
         options={{
-          headerShown: false,
-          animation: 'none',
           title: i18n.t('movies'),
+          headerTitleAlign: 'left',
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: themeContainerStyle },
+          headerTintColor: themeHeaderTintColor,
+          animation: 'none',
         }}
       />
       <HomeStack.Screen
@@ -120,9 +119,12 @@ function SeriesStackScreen() {
         name='SeriesScreen'
         component={Series}
         options={{
-          headerShown: false,
-          animation: 'none',
           title: i18n.t('series'),
+          headerTitleAlign: 'left',
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: themeContainerStyle },
+          headerTintColor: themeHeaderTintColor,
+          animation: 'none',
         }}
       />
       <SeriesStack.Screen
@@ -174,6 +176,80 @@ function SeriesStackScreen() {
         })}
       />
     </SeriesStack.Navigator>
+  );
+}
+
+const SearchStack = createNativeStackNavigator();
+
+function SearchStackScreen() {
+  const { colorScheme } = useAppearance();
+  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
+  const themeContainerStyle =
+    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+
+  return (
+    <SearchStack.Navigator>
+      <SearchStack.Screen
+        name='SearchScreen'
+        component={Search}
+        options={{
+          title: i18n.t('searchAll'),
+          headerLargeTitle: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: themeContainerStyle },
+          headerTintColor: themeHeaderTintColor,
+          animation: 'none',
+        }}
+      />
+      <SearchStack.Screen
+        name='Details'
+        component={Details}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+          },
+          headerShadowVisible: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SearchStack.Screen
+        name='SeriesDetails'
+        component={SeriesDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+          },
+          headerShadowVisible: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SearchStack.Screen
+        name='SeriesSeason'
+        component={SeriesSeason}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+          },
+          headerShadowVisible: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+      <SearchStack.Screen
+        name='PersonDetails'
+        component={PersonDetails}
+        options={({ route }) => ({
+          title: route.params.headerTitle,
+          headerStyle: {
+            backgroundColor: themeContainerStyle,
+          },
+          headerShadowVisible: false,
+          headerTintColor: themeHeaderTintColor,
+        })}
+      />
+    </SearchStack.Navigator>
   );
 }
 
@@ -357,15 +433,8 @@ function SettingsStackScreen() {
 
 function AppContent() {
   const { colorScheme } = useAppearance();
-  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
   const themeStatusBarStyle =
     colorScheme === 'light' ? 'dark-content' : 'light-content';
-  const themeTabBarStyle =
-    colorScheme === 'light' ? styles.tabBarStyleLight : styles.tabBarStyleDark;
-  const themeTabBarStyleAndroid =
-    colorScheme === 'light'
-      ? styles.tabBarStyleLightAndroid
-      : styles.tabBarStyleDarkAndroid;
 
   const isDark = colorScheme === 'dark';
   const baseTheme = isDark ? DarkTheme : DefaultTheme;
@@ -378,31 +447,6 @@ function AppContent() {
     },
   };
 
-  const TabBar = (props) => {
-    if (Platform.OS === 'ios') {
-      return (
-        <BlurView
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-          }}
-          tint={themeTabBar}
-          intensity={100}
-        >
-          <BottomTabBar {...props} />
-        </BlurView>
-      );
-    } else {
-      return (
-        <View style={styles.androidNavBar}>
-          <BottomTabBar {...props} />
-        </View>
-      );
-    }
-  };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RegionProvider>
@@ -410,39 +454,20 @@ function AppContent() {
           <NavigationContainer theme={navTheme}>
             <Tab.Navigator
               initialRouteName='Home'
-              tabBar={TabBar}
-              screenOptions={({ route }) => ({
+              screenOptions={{
                 headerShown: false,
-                tabBarIcon: ({ focused, color, size }) => {
-                  let iconName;
-
-                  if (route.name === 'Home') {
-                    iconName = focused ? 'film' : 'film-outline';
-                  } else if (route.name === 'series') {
-                    iconName = focused ? 'tv' : 'tv-outline';
-                  } else if (route.name === 'watchList') {
-                    iconName = focused
-                      ? 'bookmark'
-                      : 'bookmark-outline';
-                  } else if (route.name === 'settings') {
-                    iconName = focused
-                      ? 'settings'
-                      : 'settings-outline';
-                  }
-
-                  return <Ionicons name={iconName} size={size} color={color} />;
-                },
                 tabBarActiveTintColor: 'red',
                 tabBarInactiveTintColor: 'gray',
-                tabBarStyle:
-                  Platform.OS === 'ios'
-                    ? themeTabBarStyle
-                    : themeTabBarStyleAndroid,
-              })}
+                tabBarMinimizeBehavior: 'onScrollDown',
+              }}
             >
               <Tab.Screen
                 name='Home'
                 options={{
+                  tabBarIcon: ({ focused }) => ({
+                    type: 'sfSymbol',
+                    name: focused ? 'movieclapper.fill' : 'movieclapper',
+                  }),
                   tabBarLabel: i18n.t('movies'),
                 }}
                 component={HomeStackScreen}
@@ -455,6 +480,10 @@ function AppContent() {
               <Tab.Screen
                 name='series'
                 options={{
+                  tabBarIcon: ({ focused }) => ({
+                    type: 'sfSymbol',
+                    name: focused ? 'tv.fill' : 'tv',
+                  }),
                   tabBarLabel: i18n.t('series'),
                 }}
                 component={SeriesStackScreen}
@@ -465,8 +494,21 @@ function AppContent() {
                 })}
               />
               <Tab.Screen
+                name='search'
+                options={{
+                  tabBarSystemItem: 'search',
+                }}
+                component={SearchStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
+              />
+              <Tab.Screen
                 name='watchList'
                 options={{
+                  tabBarSystemItem: 'bookmarks',
                   tabBarLabel: i18n.t('watchList'),
                 }}
                 component={WatchListStackScreen}
@@ -479,6 +521,7 @@ function AppContent() {
               <Tab.Screen
                 name='settings'
                 options={{
+                  tabBarSystemItem: 'more',
                   tabBarLabel: i18n.t('settings'),
                 }}
                 component={SettingsStackScreen}
@@ -504,44 +547,10 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  androidNavBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
   darkThemeBox: {
     backgroundColor: '#313337',
   },
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
-  },
-  tabBarStyleLight: {
-    borderTopColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  tabBarStyleDark: {
-    borderTopColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  tabBarStyleLightAndroid: {
-    borderTopColor: 'transparent',
-    backgroundColor: backgroundColorLight,
-  },
-  tabBarStyleDarkAndroid: {
-    borderTopColor: 'transparent',
-    backgroundColor: backgroundColorDark,
-    height: 55,
-    paddingBottom: 5,
   },
 });

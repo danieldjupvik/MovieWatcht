@@ -38,7 +38,9 @@
     "githubUrl": "https://github.com/danieldjupvik/MovieWatch-app",
     "plugins": [
       "expo-localization",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image",
+      "expo-font"
     ]
   }
 }

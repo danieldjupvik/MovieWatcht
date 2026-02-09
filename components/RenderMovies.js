@@ -218,6 +218,7 @@ const RenderMovies = ({ baseUrl }) => {
             style={[styles.scrollView, themeContainerStyle]}
             contentContainerStyle={styles.flatListContent}
             columnWrapperStyle={styles.columnWrapper}
+            contentInsetAdjustmentBehavior='never'
             keyboardDismissMode='on-drag'
             onEndReached={onBottomLoad}
             onEndReachedThreshold={0.5}
@@ -244,7 +245,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20,
     width: deviceWidth,
   },
   view: {
