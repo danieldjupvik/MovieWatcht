@@ -7,17 +7,19 @@ MovieWatcht — a React Native (Expo) mobile app for discovering movies and TV s
 ## Commands
 
 ```bash
-expo start          # Dev server (or: npm start)
-expo start --ios    # iOS simulator
-expo start --android # Android emulator
-expo start --web    # Web browser
+bun start           # Dev server
+bun run ios         # iOS simulator
+bun run android     # Android emulator
+bun run web         # Web browser
 ```
+
+Package manager: **bun** (not npm/yarn).
 
 No test runner, linter, or type checker is configured.
 
 ## Architecture
 
-**Pure JavaScript, no TypeScript.** Expo 48 managed workflow. React Native 0.64.
+**Pure JavaScript, no TypeScript.** Expo SDK 54 managed workflow. React Native 0.81.
 
 ### Layout
 
@@ -31,7 +33,7 @@ No test runner, linter, or type checker is configured.
 
 ### Navigation
 
-@react-navigation v5 with stack + bottom-tabs. Four tabs: Home (movies), Series, WatchList, Settings. Each tab has its own stack navigator for drill-down screens (Details, PersonDetails, etc.).
+@react-navigation v7 with native-stack + bottom-tabs. Four tabs: Home (movies), Series, WatchList, Settings. Each tab has its own native stack navigator for drill-down screens (Details, PersonDetails, etc.).
 
 ### State & Data
 

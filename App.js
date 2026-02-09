@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, StatusBar, Platform, View, Button, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   BottomTabBar,
   createBottomTabNavigator,
@@ -19,6 +19,7 @@ import {
 } from './colors/colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import Home from './pages/Home';
 import Series from './pages/series';
@@ -51,7 +52,7 @@ i18n.translations = {
 i18n.locale = Localization.getLocales()[0]?.languageTag;
 i18n.fallbacks = true;
 
-const HomeStack = createStackNavigator();
+const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
   const [appearance, setAppearance] = useState();
 
@@ -85,7 +86,7 @@ function HomeStackScreen() {
         component={Home}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
       <HomeStack.Screen
@@ -96,9 +97,8 @@ function HomeStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -110,9 +110,8 @@ function HomeStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -124,9 +123,8 @@ function HomeStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -134,9 +132,9 @@ function HomeStackScreen() {
   );
 }
 
-const seriesStack = createStackNavigator();
+const SeriesStack = createNativeStackNavigator();
 
-function seriesStackScreen() {
+function SeriesStackScreen() {
   const [appearance, setAppearance] = useState();
 
   useEffect(() => {
@@ -163,16 +161,16 @@ function seriesStackScreen() {
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   return (
-    <seriesStack.Navigator>
-      <seriesStack.Screen
+    <SeriesStack.Navigator>
+      <SeriesStack.Screen
         name='series'
         component={Series}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
-      <seriesStack.Screen
+      <SeriesStack.Screen
         name='SeriesDetails'
         component={SeriesDetails}
         options={({ route }) => ({
@@ -180,13 +178,12 @@ function seriesStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <seriesStack.Screen
+      <SeriesStack.Screen
         name='Details'
         component={Details}
         options={({ route }) => ({
@@ -194,13 +191,12 @@ function seriesStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <seriesStack.Screen
+      <SeriesStack.Screen
         name='SeriesSeason'
         component={SeriesSeason}
         options={({ route }) => ({
@@ -208,13 +204,12 @@ function seriesStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <seriesStack.Screen
+      <SeriesStack.Screen
         name='PersonDetails'
         component={PersonDetails}
         options={({ route }) => ({
@@ -222,19 +217,18 @@ function seriesStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-    </seriesStack.Navigator>
+    </SeriesStack.Navigator>
   );
 }
 
-const watchListStack = createStackNavigator();
+const WatchListStack = createNativeStackNavigator();
 
-function watchListStackScreen() {
+function WatchListStackScreen() {
   const [appearance, setAppearance] = useState();
 
   useEffect(() => {
@@ -266,16 +260,16 @@ function watchListStackScreen() {
   const iconColor = colorScheme === 'light' ? 'black' : 'white';
 
   return (
-    <watchListStack.Navigator>
-      <watchListStack.Screen
+    <WatchListStack.Navigator>
+      <WatchListStack.Screen
         name='watchList'
         component={watchList}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
-      <watchListStack.Screen
+      <WatchListStack.Screen
         name='Details'
         component={Details}
         options={({ route }) => ({
@@ -283,13 +277,12 @@ function watchListStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <watchListStack.Screen
+      <WatchListStack.Screen
         name='PersonDetails'
         component={PersonDetails}
         options={({ route }) => ({
@@ -297,13 +290,12 @@ function watchListStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-      <watchListStack.Screen
+      <WatchListStack.Screen
         name='Login'
         component={Login}
         initialParams={{ color: iconColor }}
@@ -312,17 +304,16 @@ function watchListStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
-    </watchListStack.Navigator>
+    </WatchListStack.Navigator>
   );
 }
 
-const SettingsStack = createStackNavigator();
+const SettingsStack = createNativeStackNavigator();
 
 function SettingsStackScreen() {
   const [appearance, setAppearance] = useState();
@@ -362,9 +353,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -376,9 +366,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -391,9 +380,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -405,9 +393,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -419,9 +406,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -433,9 +419,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -447,9 +432,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -461,9 +445,8 @@ function SettingsStackScreen() {
           headerBackTitle: i18n.t('back'),
           headerStyle: {
             backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
           },
-          headerTransparent: false,
+          headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
         })}
       />
@@ -532,7 +515,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <RegionProvider>
           <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
           <NavigationContainer>
@@ -585,7 +568,7 @@ export default function App() {
                 options={{
                   tabBarLabel: i18n.t('series'),
                 }}
-                component={seriesStackScreen}
+                component={SeriesStackScreen}
                 listeners={() => ({
                   tabPress: () => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -597,7 +580,7 @@ export default function App() {
                 options={{
                   tabBarLabel: i18n.t('watchList'),
                 }}
-                component={watchListStackScreen}
+                component={WatchListStackScreen}
                 listeners={() => ({
                   tabPress: () => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -619,7 +602,7 @@ export default function App() {
             </Tab.Navigator>
           </NavigationContainer>
       </RegionProvider>
-    </>
+    </GestureHandlerRootView>
   );
 }
 
