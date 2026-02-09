@@ -13,13 +13,13 @@ import {
   Platform,
   Animated,
   Share,
+  useColorScheme,
 } from 'react-native';
-import { SearchBar } from 'react-native-elements';
+import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import { basePosterUrl, searchMovieUrl } from '../settings/api';
 import Loader from '../components/Loader';
 import i18n from 'i18n-js';
-import { useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -72,7 +72,7 @@ const RenderMovies = ({ baseUrl }) => {
   const getRegion = async () => {
     try {
       const region = await AsyncStorage.getItem('region');
-      const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
+      const defaultRegion = Platform.OS === 'ios' ? Localization.getLocales()[0]?.regionCode : 'NO';
       console.log('region from localstorage ' + region);
       const regionToll = region === 'auto' ? defaultRegion : region;
       if (region !== null) {
@@ -102,15 +102,15 @@ const RenderMovies = ({ baseUrl }) => {
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
-  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Localization.region
+  const defaultRegion = Localization.getLocales()[0]?.regionCode
     ? Platform.OS === 'ios'
-      ? Localization.region
+      ? Localization.getLocales()[0]?.regionCode
       : 'US'
     : 'US';
 

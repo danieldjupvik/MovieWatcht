@@ -7,15 +7,15 @@ import {
   Image,
   Dimensions,
   ActionSheetIOS,
+  useColorScheme,
 } from 'react-native';
 import {
   ScrollView,
   TouchableWithoutFeedback,
   TouchableOpacity,
 } from 'react-native-gesture-handler';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
-import { useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -59,7 +59,7 @@ const Account = ({ navigation }) => {
   const defaultColor = useColorScheme();
   let colorScheme =
     appearance === 'auto' || undefined ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =

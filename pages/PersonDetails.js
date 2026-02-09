@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   ImageBackground,
+  useColorScheme,
 } from 'react-native';
 import {
   baseBackdropUrl,
@@ -16,7 +17,7 @@ import {
   personUrl,
   creditPerson,
 } from '../settings/api';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,7 +25,6 @@ import i18n from 'i18n-js';
 import brandIcon from '../assets/icon.png';
 
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
@@ -65,7 +65,7 @@ const PersonDetails = ({ route, navigation }) => {
 
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =

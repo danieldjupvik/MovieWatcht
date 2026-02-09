@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Modal,
   Pressable,
+  useColorScheme,
 } from 'react-native';
 import {
   detailsMovieUrl,
@@ -19,13 +20,12 @@ import {
   baseBackdropUrl,
   baseProfileUrl,
 } from '../settings/api';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from './Loader';
 import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import i18n from 'i18n-js';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
@@ -93,7 +93,7 @@ const RenderDetails = ({ navigation, id }) => {
 
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =

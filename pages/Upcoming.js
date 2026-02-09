@@ -96,7 +96,7 @@
 //   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
 //   const themeSearchbar = colorScheme === 'light' ? true : false;
 //   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
-//   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+//   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
 //   const themeTextStyle =
 //     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
 //   const themeContainerStyle =

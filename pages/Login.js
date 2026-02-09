@@ -7,6 +7,7 @@ import {
   Dimensions,
   Button,
   Modal,
+  useColorScheme,
 } from 'react-native';
 import {
   detailsMovieUrl,
@@ -18,7 +19,6 @@ import {
   accountUrl,
 } from '../settings/api';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import i18n from 'i18n-js';
 import {
   backgroundColorDark,
@@ -36,7 +36,7 @@ import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import ButtonStyles from '../styles/buttons';
 
 const goToRegister = () => {

@@ -11,14 +11,14 @@ import {
   Image,
   Animated,
   Share,
+  useColorScheme,
 } from 'react-native';
-import { SearchBar } from 'react-native-elements';
+import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import { basePosterUrl, searchMovieUrl, apiKey } from '../settings/api';
 import Loader from '../components/Loader';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
-import { useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -74,7 +74,7 @@ const WatchList = ({ navigation }) => {
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
-  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, StatusBar, Platform, View, Button } from 'react-native';
+import { StyleSheet, StatusBar, Platform, View, Button, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -11,18 +11,17 @@ import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
 import translationsEN from './language/en/translation.json';
 import translationsNB from './language/nb/translation.json';
-import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
 } from './colors/colors';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 
 import Home from './pages/Home';
-import Series from './pages/Series';
+import Series from './pages/series';
 import Details from './pages/Details';
 import SeriesDetails from './pages/SeriesDetails';
 import SeriesSeason from './pages/SeriesSeason';
@@ -36,11 +35,9 @@ import Appearance from './pages/Appearance';
 import ContentSettings from './pages/ContentSettings';
 import Region from './pages/Region';
 import Adult from './pages/Adult';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { enableScreens } from 'react-native-screens';
-enableScreens();
 
 import { RegionProvider } from './components/RegionContext';
 
@@ -51,7 +48,7 @@ i18n.translations = {
   en: translationsEN,
 };
 
-i18n.locale = Localization.locale;
+i18n.locale = Localization.getLocales()[0]?.languageTag;
 i18n.fallbacks = true;
 
 const HomeStack = createStackNavigator();
@@ -356,7 +353,7 @@ function SettingsStackScreen() {
       : styles.darkThemeBox.backgroundColor;
   const iconColor = colorScheme === 'light' ? 'black' : 'white';
   return (
-    <SettingsStack.Navigator screenProps={'black'}>
+    <SettingsStack.Navigator>
       <SettingsStack.Screen
         name='Settings'
         component={Settings}
@@ -537,47 +534,39 @@ export default function App() {
   return (
     <>
       <RegionProvider>
-        <AppearanceProvider>
           <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
           <NavigationContainer>
             <Tab.Navigator
               initialRouteName='Home'
               tabBar={TabBar}
               screenOptions={({ route }) => ({
-                tabBarVisible: true,
+                headerShown: false,
                 tabBarIcon: ({ focused, color, size }) => {
                   let iconName;
 
                   if (route.name === 'Home') {
-                    iconName = focused ? 'ios-film' : 'ios-film-outline';
+                    iconName = focused ? 'film' : 'film-outline';
                   } else if (route.name === 'series') {
-                    iconName = focused ? 'ios-tv' : 'ios-tv-outline';
+                    iconName = focused ? 'tv' : 'tv-outline';
                   } else if (route.name === 'watchList') {
                     iconName = focused
-                      ? 'ios-bookmark'
-                      : 'ios-bookmark-outline';
+                      ? 'bookmark'
+                      : 'bookmark-outline';
                   } else if (route.name === 'settings') {
                     iconName = focused
-                      ? 'ios-settings'
-                      : 'ios-settings-outline';
+                      ? 'settings'
+                      : 'settings-outline';
                   }
 
                   return <Ionicons name={iconName} size={size} color={color} />;
                 },
-              })}
-              tabBarOptions={{
-                headerMode: 'none',
-                tabBarPosition: 'bottom',
-                activeTintColor: 'red',
-                inactiveTintColor: 'gray',
-
-                // showLabel: Platform.OS !== 'android',
-
-                style:
+                tabBarActiveTintColor: 'red',
+                tabBarInactiveTintColor: 'gray',
+                tabBarStyle:
                   Platform.OS === 'ios'
                     ? themeTabBarStyle
                     : themeTabBarStyleAndroid,
-              }}
+              })}
             >
               <Tab.Screen
                 name='Home'
@@ -629,7 +618,6 @@ export default function App() {
               />
             </Tab.Navigator>
           </NavigationContainer>
-        </AppearanceProvider>
       </RegionProvider>
     </>
   );

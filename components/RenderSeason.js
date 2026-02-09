@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  useColorScheme,
 } from 'react-native';
 import {
   detailsSeriesUrl,
@@ -19,7 +20,6 @@ import {
 import Loader from '../components/Loader';
 import i18n from 'i18n-js';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -71,7 +71,7 @@ const RenderSeason = ({ navigation, id, season }) => {
 
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =

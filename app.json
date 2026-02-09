@@ -13,7 +13,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
@@ -33,6 +35,10 @@
       "favicon": "./assets/favicon.png"
     },
     "description": "Search and find movies from THMDb",
-    "githubUrl": "https://github.com/danieldjupvik/MovieWatch-app"
+    "githubUrl": "https://github.com/danieldjupvik/MovieWatch-app",
+    "plugins": [
+      "expo-localization",
+      "expo-web-browser"
+    ]
   }
 }

@@ -7,9 +7,9 @@ import {
   ScrollView,
   Platform,
   Image,
+  useColorScheme,
 } from 'react-native';
 import Constants from 'expo-constants';
-import { useColorScheme } from 'react-native-appearance';
 import i18n from 'i18n-js';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -46,7 +46,7 @@ const About = () => {
 
   const defaultColor = useColorScheme();
   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -100,14 +100,14 @@ const About = () => {
                 <View style={styles.iconElement}>
                   <View>
                     <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('version')} {Constants.manifest.version} (
+                      {i18n.t('version')} {Constants.expoConfig?.version} (
                       {Platform.OS === 'ios'
-                        ? Constants.manifest.ios.buildNumber
-                        : Constants.manifest.android.versionCode}
+                        ? Constants.expoConfig?.ios?.buildNumber
+                        : Constants.expoConfig?.android?.versionCode}
                       )
                     </Text>
                     <Text style={[styles.text, themeTextStyle]}>
-                      Release Channel {Constants.manifest.releaseChannel}
+                      Release Channel {Constants.expoConfig?.extra?.releaseChannel ?? 'default'}
                     </Text>
                   </View>
                 </View>
@@ -128,7 +128,7 @@ const About = () => {
                   <View style={styles.privacyBtn}>
                     <Button
                       onPress={goToAppPrivacy}
-                      title={Constants.manifest.name}
+                      title={Constants.expoConfig?.name}
                     />
                   </View>
                 </View>
