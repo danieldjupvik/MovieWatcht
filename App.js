@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
@@ -260,10 +260,6 @@ function WatchListStackScreen() {
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
-  const themeBoxStyle =
-    colorScheme === 'light'
-      ? styles.lightThemeBox.backgroundColor
-      : styles.darkThemeBox.backgroundColor;
   const iconColor = colorScheme === 'light' ? 'black' : 'white';
 
   return (
@@ -272,9 +268,12 @@ function WatchListStackScreen() {
         name='WatchListScreen'
         component={watchList}
         options={{
-          headerShown: false,
-          animation: 'none',
           title: i18n.t('watchList'),
+          headerLargeTitle: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: themeContainerStyle },
+          headerTintColor: themeHeaderTintColor,
+          animation: 'none',
         }}
       />
       <WatchListStack.Screen
@@ -308,7 +307,7 @@ function WatchListStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -323,11 +322,9 @@ const SettingsStack = createNativeStackNavigator();
 function SettingsStackScreen() {
   const { colorScheme } = useAppearance();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeBoxStyle =
-    colorScheme === 'light'
-      ? styles.lightThemeBox.backgroundColor
-      : styles.darkThemeBox.backgroundColor;
   const iconColor = colorScheme === 'light' ? 'black' : 'white';
+  const themeContainerStyle =
+    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
   return (
     <SettingsStack.Navigator>
       <SettingsStack.Screen
@@ -335,8 +332,9 @@ function SettingsStackScreen() {
         component={Settings}
         options={() => ({
           title: i18n.t('settings'),
+          headerLargeTitle: true,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -348,7 +346,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -361,7 +359,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -373,7 +371,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -385,7 +383,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -397,7 +395,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -409,7 +407,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -421,7 +419,7 @@ function SettingsStackScreen() {
         options={({ route }) => ({
           title: route.params.headerTitle,
           headerStyle: {
-            backgroundColor: themeBoxStyle,
+            backgroundColor: themeContainerStyle,
           },
           headerShadowVisible: false,
           headerTintColor: themeHeaderTintColor,
@@ -545,12 +543,3 @@ export default function App() {
     </AppearanceProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
-  },
-});

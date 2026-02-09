@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   Button,
-  Modal
+  Alert,
 } from 'react-native';
 import {
   detailsMovieUrl,
@@ -29,7 +29,6 @@ import {
 import { borderRadius } from '../styles/globalStyles';
 import { TextInput } from 'react-native';
 import { Image } from 'expo-image';
-import { modal } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
@@ -54,7 +53,6 @@ const Login = ({ navigation, route }) => {
   const [showError, setShowError] = useState(false);
   const [usernameInput, setUsernameInput] = useState();
   const [passwordInput, setPasswordInput] = useState();
-  const [modalVisible, setModalVisible] = useState(false);
   const [loginDisabled, setLoginDisabled] = useState(false);
 
   const { colorScheme } = useAppearance();
@@ -166,7 +164,7 @@ const Login = ({ navigation, route }) => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <TouchableOpacity onPress={() => Alert.alert(i18n.t('loginModalHeading'), i18n.t('loginModalText'), [{ text: i18n.t('close') }])}>
           <FontAwesome5
             name={'question-circle'}
             style={{ color: route.params.color, fontSize: 22, marginRight: 15 }}
@@ -178,41 +176,6 @@ const Login = ({ navigation, route }) => {
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View
-            style={[
-              modal.centeredView,
-              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
-            ]}
-          >
-            <View style={[modal.modalView, themeBoxStyle]}>
-              <Text style={[modal.modalHeading, themeTextStyle]}>
-                {i18n.t('loginModalHeading')}
-              </Text>
-              <Text style={[modal.modalText, themeTextStyle]}>
-                {i18n.t('loginModalText')}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  ButtonStyles.smallButtonStyling,
-                  { backgroundColor: primaryButton },
-                ]}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={modal.textStyle}>{i18n.t('close')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
         <ScrollView style={styles.main}>
           <View style={styles.loginWrap}>
             <Image

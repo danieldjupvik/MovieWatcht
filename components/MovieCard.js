@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Text, View, Pressable, Share, Dimensions, StyleSheet } from 'react-native';
+import { Text, View, Pressable, Share, Dimensions, StyleSheet, Linking, ActionSheetIOS } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { basePosterUrl } from '../settings/api';
@@ -22,18 +22,28 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme }) => {
     ? { uri: `${basePosterUrl}${posterPath}` }
     : noImage;
 
+  const tmdbUrl = `https://www.themoviedb.org/movie/${id}`;
+
   const handlePress = useCallback(() => {
     navigation.navigate('Details', { id, headerTitle: title });
   }, [id, title, navigation]);
 
-  const handleLongPress = useCallback(async () => {
+  const handleLongPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    const url = 'https://www.themoviedb.org/movie/' + id;
-    try {
-      await Share.share({ title, url });
-    } catch (error) {
-      alert(error.message);
-    }
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ['Cancel', 'Share', 'Open on TMDb'],
+        cancelButtonIndex: 0,
+        title,
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 1) {
+          Share.share({ title, url: tmdbUrl });
+        } else if (buttonIndex === 2) {
+          Linking.openURL(tmdbUrl);
+        }
+      }
+    );
   }, [id, title]);
 
   return (

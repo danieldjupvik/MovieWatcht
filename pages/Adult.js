@@ -1,38 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  StyleSheet,
-  Switch
-} from 'react-native';
-import { useAppearance } from '../components/AppearanceContext';
-import {
-  ScrollView,
-  TouchableWithoutFeedback,
-} from 'react-native-gesture-handler';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import i18n from 'i18n-js';
-import {
-  backgroundColorDark,
-  backgroundColorLight,
-  textColorDark,
-  textColorLight,
-} from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ButtonStyles from '../styles/buttons';
-import { borderRadius } from '../styles/globalStyles';
-import { primaryButton, secondaryButton } from '../colors/colors';
+import { useAppearance } from '../components/AppearanceContext';
+import { backgroundColorDark, backgroundColorLight } from '../colors/colors';
+import SettingsSection from '../components/SettingsSection';
+import SettingsRow from '../components/SettingsRow';
 
-const Adult = ({ navigation }) => {
+const Adult = () => {
   const { colorScheme } = useAppearance();
-  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBoxStyle =
-    colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
-
+  const themeContainerStyle = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
   const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
@@ -52,11 +29,9 @@ const Adult = ({ navigation }) => {
     }
   };
 
-  // console.log(isEnabled);
-  const toggleSwitch = (e) => {
-    console.log(e);
-    setIsEnabled((previousState) => !previousState);
-    storeAdult(JSON.stringify(e));
+  const toggleSwitch = (value) => {
+    setIsEnabled(value);
+    storeAdult(JSON.stringify(value));
   };
 
   const storeAdult = async (adultValue) => {
@@ -68,122 +43,33 @@ const Adult = ({ navigation }) => {
   };
 
   return (
-    <>
-      <View style={[styles.container, themeContainerStyle]}>
-        <ScrollView indicatorStyle={scrollBarTheme}>
-          <View style={styles.main}>
-            <View style={styles.listHeadingElement}>
-              <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('adult')}
-              </Text>
-            </View>
-            <TouchableWithoutFeedback style={styles.touchableElem}>
-              <View style={[styles.listElement, themeBoxStyle]}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('adultContent')}
-                    </Text>
-                    <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('adultButtonDescription')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.rightArrow}>
-                  <Switch
-                    trackColor={{ false: '#767577', true: '#81b0ff' }}
-                    thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
-                    ios_backgroundColor='#3e3e3e'
-                    onValueChange={(e) => toggleSwitch(e)}
-                    value={isEnabled}
-                  />
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </ScrollView>
-      </View>
-    </>
+    <View style={[styles.container, { backgroundColor: themeContainerStyle }]}>
+      <ScrollView contentInsetAdjustmentBehavior='automatic'>
+        <View style={styles.content}>
+          <SettingsSection
+            header={i18n.t('adult')}
+            footer={i18n.t('adultButtonDescription')}
+          >
+            <SettingsRow
+              title={i18n.t('adultContent')}
+              accessory='switch'
+              switchValue={isEnabled}
+              onSwitchChange={toggleSwitch}
+            />
+          </SettingsSection>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  main: {
-    width: '100%',
-    paddingLeft: 15,
-    paddingRight: 15,
-  },
-  listElement: {
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: borderRadius,
-    width: '100%',
-  },
-  iconElement: {
-    flexDirection: 'row',
-  },
-  text: {
-    fontSize: 18.5,
-    fontWeight: '400',
-  },
-  logoutButton: {
-    backgroundColor: '#01b4e4',
-  },
-  textDescription: {
-    opacity: 0.7,
-    marginTop: 5,
-    fontSize: 14,
-  },
-  icon: {
-    marginRight: 12,
-  },
-  listHeading: {
-    opacity: 0.7,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  listHeadingElement: {
-    marginTop: 20,
-    paddingBottom: 15,
-  },
-  rightArrow: {
-    paddingRight: 15,
-  },
-  touchableElem: {
-    width: '100%',
-  },
-  buttonWrap: {
-    marginTop: 30,
-    alignSelf: 'center',
-    alignItems: 'center',
-  },
-  saveBtn: {
-    backgroundColor: primaryButton,
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
   },
 });
 

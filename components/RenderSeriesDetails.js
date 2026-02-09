@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Modal,
+  Alert,
   Pressable
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -62,7 +62,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [videos, setVideos] = useState([]);
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
-  const [modalVisible, setModalVisible] = useState(false);
   const [stateFinish, setStateFinish] = useState(true);
   const [digitalRelease, setDigitalRelease] = useState();
   const [releaseNote, setReleaseNote] = useState();
@@ -274,40 +273,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
-      <View style={modal.centeredView}>
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View
-            style={[
-              modal.centeredView,
-              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
-            ]}
-          >
-            <View style={[modal.modalView, themeBoxStyle]}>
-              <Text style={[modal.modalText, themeTextStyle]}>
-                {i18n.t('watchlistModalTex')}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  ButtonStyles.smallButtonStyling,
-                  { backgroundColor: primaryButton },
-                ]}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={modal.textStyle}>{i18n.t('close')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
       ) : (
@@ -1178,48 +1143,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export const modal = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: borderRadius,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  openButton: {
-    backgroundColor: '#F194FF',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  textStyle: {
-    color: 'black',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 25,
-    textAlign: 'left',
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  modalHeading: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginBottom: 25,
-  },
-});
 export default RenderSeriesDetails;

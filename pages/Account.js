@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Text,
   View,
+  ScrollView,
   StyleSheet,
   Dimensions,
-  ActionSheetIOS
+  ActionSheetIOS,
 } from 'react-native';
 import { Image } from 'expo-image';
-import {
-  ScrollView,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
-} from 'react-native-gesture-handler';
-import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from 'i18n-js';
 import {
   backgroundColorDark,
   backgroundColorLight,
-  textColorDark,
-  textColorLight,
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppearance } from '../components/AppearanceContext';
@@ -27,9 +19,8 @@ import axios from 'axios';
 import { apiKey } from '../settings/api';
 import noAvatar from '../assets/no-avatar.jpg';
 import Loader from '../components/Loader';
-import ButtonStyles from '../styles/buttons';
-import { borderRadius } from '../styles/globalStyles';
-import { primaryButton, secondaryButton } from '../colors/colors';
+import SettingsSection from '../components/SettingsSection';
+import SettingsRow from '../components/SettingsRow';
 
 const Account = ({ navigation }) => {
   const [accountInfo, setAccountInfo] = useState();
@@ -37,13 +28,7 @@ const Account = ({ navigation }) => {
   const [loader, setLoader] = useState(true);
 
   const { colorScheme } = useAppearance();
-  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBoxStyle =
-    colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
+  const containerBg = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   useEffect(() => {
     let isCancelled = false;
@@ -54,8 +39,6 @@ const Account = ({ navigation }) => {
           `${accountUrl + `&session_id=${sessionId}`}`
         );
         setAccountInfo(response.data);
-        console.log(response.data);
-        console.log(sessionId);
         setSessionId(sessionId);
       } catch (e) {
         alert('error reading login credentials');
@@ -77,7 +60,6 @@ const Account = ({ navigation }) => {
     } catch (e) {
       console.log(e);
     }
-    console.log('Done.');
   };
 
   const openActionSheet = () =>
@@ -89,18 +71,15 @@ const Account = ({ navigation }) => {
         title: i18n.t('areYouSure'),
       },
       (buttonIndex) => {
-        if (buttonIndex === 0) {
-          // cancel action
-        } else if (buttonIndex === 1) {
+        if (buttonIndex === 1) {
           logout();
         }
       }
     );
 
   const deleteSession = async () => {
-    console.log('logged out');
     try {
-      const response = await axios({
+      await axios({
         method: 'DELETE',
         url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
         headers: {},
@@ -108,10 +87,8 @@ const Account = ({ navigation }) => {
           session_id: sessionId,
         },
       });
-      console.log(response.data);
     } catch (e) {
       console.log(e);
-    } finally {
     }
   };
 
@@ -119,163 +96,70 @@ const Account = ({ navigation }) => {
     uri: `${baseProfileUrl + accountInfo?.avatar.tmdb.avatar_path}`,
   };
 
+  const deviceHeight = Dimensions.get('window').height;
+
   return (
-    <>
-      <View style={[styles.container, themeContainerStyle]}>
-        {loader ? (
-          <Loader loadingStyle={styles.loaderStyle} />
-        ) : (
-          <ScrollView indicatorStyle={scrollBarTheme}>
-            <View style={styles.main}>
+    <View style={[styles.container, { backgroundColor: containerBg }]}>
+      {loader ? (
+        <Loader loadingStyle={{ marginTop: deviceHeight / 2.5 }} />
+      ) : (
+        <ScrollView contentInsetAdjustmentBehavior='automatic'>
+          <View style={styles.content}>
+            <View style={styles.avatarContainer}>
               <Image
                 source={
                   accountInfo?.avatar.tmdb.avatar_path
                     ? profilePicture
                     : noAvatar
                 }
-                contentFit='contain'
-                style={[
-                  {
-                    width: 150,
-                    height: 150,
-                  },
-                  styles.profileImage,
-                ]}
+                contentFit='cover'
+                style={styles.profileImage}
               />
             </View>
-            <View style={styles.headingElement}>
-              <Text style={[styles.headingText, themeTextStyle]}>
-                {i18n.t('accountInfo')}
-              </Text>
-            </View>
-            <View style={[styles.userInfoWrap, themeBoxStyle]}>
-              <View style={[styles.userInfoDiv]}>
-                <View style={styles.usernameInfo}>
-                  <View style={styles.topElem}>
-                    <Text style={[styles.topElemText, themeTextStyle]}>
-                      {i18n.t('username')}
-                    </Text>
-                  </View>
-                  <View style={styles.bottomElem}>
-                    <Text style={[styles.bottomElemText, themeTextStyle]}>
-                      {accountInfo?.username}
-                    </Text>
-                  </View>
-                </View>
 
-                <View style={styles.nameInfo}>
-                  <View style={styles.topElem}>
-                    <Text style={[styles.topElemText, themeTextStyle]}>
-                      {i18n.t('name')}
-                    </Text>
-                  </View>
-                  <View style={styles.bottomElem}>
-                    <Text style={[styles.bottomElemText, themeTextStyle]}>
-                      {accountInfo?.name ? accountInfo?.name : i18n.t('noName')}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.buttonWrap}>
-              <TouchableOpacity
-                style={[ButtonStyles.mediumButtonStyling, styles.logoutBtn]}
+            <SettingsSection header={i18n.t('accountInfo')}>
+              <SettingsRow
+                title={i18n.t('username')}
+                rightText={accountInfo?.username}
+              />
+              <SettingsRow
+                title={i18n.t('name')}
+                rightText={accountInfo?.name ? accountInfo?.name : i18n.t('noName')}
+              />
+            </SettingsSection>
+
+            <SettingsSection>
+              <SettingsRow
+                icon='rectangle.portrait.and.arrow.right.fill'
+                iconColor='#FF3B30'
+                title={i18n.t('logout')}
                 onPress={openActionSheet}
-              >
-                <Text style={[ButtonStyles.buttonText]}>
-                  {i18n.t('logout')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        )}
-      </View>
-    </>
+              />
+            </SettingsSection>
+          </View>
+        </ScrollView>
+      )}
+    </View>
   );
 };
-
-const globalFontsize = 17;
-const globalPadding = 5;
-const normalFontWeight = '400';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  main: {
-    width: '100%',
-    marginTop: 40,
-    paddingLeft: 15,
-    paddingRight: 15,
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+  avatarContainer: {
     alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 8,
   },
   profileImage: {
-    borderRadius: 150,
-    marginBottom: 40,
-  },
-  headingText: {
-    opacity: 0.7,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headingElement: {
-    paddingBottom: 25,
-    alignSelf: 'center',
-  },
-  userInfoWrap: {
-    alignSelf: 'center',
-    flex: 1,
-    padding: 50,
-    borderRadius: borderRadius,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: deviceWidth - 70,
-  },
-  userInfoDiv: {},
-  usernameInfo: {
-    marginBottom: 15,
-  },
-  topElem: {},
-  bottomElem: { marginTop: 5 },
-  topElemText: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  bottomElemText: {
-    fontSize: 17,
-    fontWeight: '400',
-  },
-  buttonWrap: {
-    marginTop: 60,
-    alignSelf: 'center',
-    alignItems: 'center',
-  },
-  logoutBtn: {
-    backgroundColor: primaryButton,
-  },
-
-  loaderStyle: {
-    marginTop: deviceHeight / 2.5,
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
 });
 
