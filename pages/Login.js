@@ -7,7 +7,6 @@ import {
   Button,
   Modal
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   detailsMovieUrl,
   apiKey,
@@ -178,7 +177,7 @@ const Login = ({ navigation, route }) => {
   }, [navigation]);
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         <Modal
           animationType='fade'
           transparent={true}
@@ -317,7 +316,7 @@ const Login = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

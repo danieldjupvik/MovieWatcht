@@ -8,7 +8,6 @@ import {
   Modal,
   Pressable
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
 import {
@@ -274,7 +273,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, themeContainerStyle]}>
       <View style={modal.centeredView}>
         <Modal
           animationType='fade'
@@ -805,7 +804,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

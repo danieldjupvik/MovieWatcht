@@ -6,7 +6,6 @@ import {
   Dimensions,
   ActionSheetIOS
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import {
   ScrollView,
@@ -122,7 +121,7 @@ const Account = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         {loader ? (
           <Loader loadingStyle={styles.loaderStyle} />
         ) : (
@@ -190,7 +189,7 @@ const Account = ({ navigation }) => {
             </View>
           </ScrollView>
         )}
-      </SafeAreaView>
+      </View>
     </>
   );
 };

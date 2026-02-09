@@ -6,7 +6,6 @@ import {
   ScrollView,
   Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
 import {
@@ -87,7 +86,7 @@ const RenderSeason = ({ navigation, id, season }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
       ) : (
@@ -148,7 +147,7 @@ const RenderSeason = ({ navigation, id, season }) => {
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

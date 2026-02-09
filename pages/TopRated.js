@@ -7,7 +7,6 @@ import {
   RefreshControl,
   Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
@@ -231,7 +230,7 @@ const TopRated = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         <SearchBar
           placeholder={i18n.t('search')}
           onChangeText={(text) => handleSearch(text)}
@@ -257,7 +256,7 @@ const TopRated = ({ navigation }) => {
         <Text style={[styles.description, themeTextStyle]}>
           {i18n.t('topRatedDescription')} {regionsText}
         </Text>
-        <SafeAreaView style={styles.container}></SafeAreaView>
+        <View style={styles.container}></View>
         <ScrollView
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
@@ -332,7 +331,7 @@ const TopRated = ({ navigation }) => {
           ) : null}
           <View style={styles.view}></View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

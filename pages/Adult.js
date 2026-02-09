@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Switch
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppearance } from '../components/AppearanceContext';
 import {
   ScrollView,
@@ -70,7 +69,7 @@ const Adult = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
@@ -104,7 +103,7 @@ const Adult = ({ navigation }) => {
             </TouchableWithoutFeedback>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

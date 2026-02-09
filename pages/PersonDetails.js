@@ -7,7 +7,6 @@ import {
   Dimensions,
   Pressable
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import {
   baseBackdropUrl,
@@ -112,7 +111,7 @@ const PersonDetails = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader />
       ) : (
@@ -319,7 +318,7 @@ const PersonDetails = ({ route, navigation }) => {
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

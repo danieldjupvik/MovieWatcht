@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppearance } from '../components/AppearanceContext';
 import {
   ScrollView,
@@ -88,7 +87,7 @@ const ContentSettings = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
@@ -162,7 +161,7 @@ const ContentSettings = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

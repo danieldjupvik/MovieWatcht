@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ActionSheetIOS
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ScrollView,
   TouchableWithoutFeedback,
@@ -129,7 +128,7 @@ const Settings = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
+      <View style={[styles.container, themeContainerStyle]}>
         <ScrollView indicatorStyle={scrollBarTheme}>
           <View style={styles.main}>
             <View style={styles.listHeadingElement}>
@@ -310,7 +309,7 @@ const Settings = ({ navigation }) => {
             )}
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

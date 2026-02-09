@@ -6,7 +6,6 @@ import {
   ScrollView,
   Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import Constants from 'expo-constants';
 import i18n from 'i18n-js';
@@ -50,7 +49,7 @@ const About = () => {
   let year = d.getFullYear();
   return (
     <>
-      <SafeAreaView
+      <View
         style={[styles.container, themeContainerStyle]}
         indicatorStyle={scrollBarTheme}
       >
@@ -153,7 +152,7 @@ const About = () => {
             </View>
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     </>
   );
 };
