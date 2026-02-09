@@ -9,10 +9,9 @@ import {
 } from 'react-native';
 import { useAppearance } from './AppearanceContext';
 import axios from 'axios';
-import { searchMovieUrl } from '../settings/api';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -25,7 +24,6 @@ import { useNavigation } from '@react-navigation/native';
 
 const RenderMovies = ({ baseUrl }) => {
   const [movies, setMovies] = useState([]);
-  const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,13 +47,14 @@ const RenderMovies = ({ baseUrl }) => {
         return;
       }
       setRegionFinal(region === 'auto' ? defaultRegion : region);
-    } catch (e) {
+    } catch (_e) {
       alert('error reading region value');
     }
   };
 
   useEffect(() => {
     getRegion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -64,6 +63,7 @@ const RenderMovies = ({ baseUrl }) => {
     });
 
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation]);
 
   const themeTextStyle =
@@ -92,6 +92,7 @@ const RenderMovies = ({ baseUrl }) => {
       }
     };
     getMovies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [regionFinal]);
 
   useEffect(() => {
@@ -112,6 +113,7 @@ const RenderMovies = ({ baseUrl }) => {
       }
     };
     onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshIndicator]);
 
   const onBottomLoad = useCallback(async () => {
@@ -153,31 +155,6 @@ const RenderMovies = ({ baseUrl }) => {
     setRefreshIndicator(!refreshIndicator);
     setPageNumber(2);
     isBottomLoadingRef.current = false;
-  }
-
-  const getSearch = async (title) => {
-    setLoader(true);
-    try {
-      const response = await axios.get(`${searchMovieUrl + `&query=${title}`}`);
-      setMovies(response.data.results);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoader(false);
-    }
-  };
-
-  function handleSearch(inputValue) {
-    setSearch(inputValue);
-    setLoader(true);
-    var title = inputValue.replaceAll(' ', '%').trim();
-    console.log(title);
-    if (title.length >= 1) {
-      getSearch(title);
-    } else {
-      setRefreshIndicator(!refreshIndicator);
-      setLoader(false);
-    }
   }
 
   const keyExtractor = useCallback((item) => item.id.toString(), []);

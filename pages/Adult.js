@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppearance } from '../components/AppearanceContext';
 import { backgroundColorDark, backgroundColorLight } from '../colors/colors';

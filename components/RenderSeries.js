@@ -11,7 +11,7 @@ import { useAppearance } from './AppearanceContext';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import SeriesCard from '../components/SeriesCard';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -53,6 +53,7 @@ const RenderSeries = ({ baseUrl }) => {
       }
     };
     getSeries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ const RenderSeries = ({ baseUrl }) => {
       }
     };
     onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshIndicator]);
 
   const onBottomLoad = useCallback(async () => {

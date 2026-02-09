@@ -13,7 +13,7 @@ import { apiKey } from '../settings/api';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
 import { FontAwesome5 } from '@expo/vector-icons';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import logoTransparent from '../assets/icon-transparent.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sharedStyles as styles } from '../styles/sharedStyles';

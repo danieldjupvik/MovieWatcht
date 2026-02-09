@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
 
 const RegionContext = React.createContext();
 

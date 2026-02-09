@@ -17,7 +17,7 @@ import {
 } from '../settings/api';
 import Loader from '../components/Loader';
 import { FontAwesome5 } from '@expo/vector-icons';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import { sharedStyles as styles } from '../styles/sharedStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import AsyncStorage from '@react-native-async-storage/async-storage';

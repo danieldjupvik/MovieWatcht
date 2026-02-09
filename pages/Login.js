@@ -17,7 +17,7 @@ import {
   accountUrl,
 } from '../settings/api';
 import axios from 'axios';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,

@@ -7,7 +7,7 @@ import {
   ActionSheetIOS,
 } from 'react-native';
 import { Image } from 'expo-image';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,

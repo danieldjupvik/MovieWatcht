@@ -5,8 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Alert,
-  Pressable
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
@@ -18,10 +16,8 @@ import {
   baseBackdropPlaceholderUrl,
   baseProfileUrl,
 } from '../settings/api';
-import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
-import * as WebBrowser from 'expo-web-browser';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import axios from 'axios';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
@@ -29,13 +25,10 @@ import {
   backgroundColorLight,
   textColorDark,
   textColorLight,
-  primaryButton,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import ButtonStyles from '../styles/buttons';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
@@ -60,15 +53,9 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [series, setSeries] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [movieExist, setMovieExist] = useState();
-  const [sessionId, setSessionId] = useState();
-  const [stateFinish, setStateFinish] = useState(true);
-  const [digitalRelease, setDigitalRelease] = useState();
-  const [releaseNote, setReleaseNote] = useState();
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
-  const [lastEpisodeShow, setLastEpisodeShow] = useState(true);
 
   const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
@@ -80,15 +67,12 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
   useEffect(() => {
-    let isCancelled = false;
-    setStateFinish(false);
     const getSeries = async () => {
       try {
         const videos = await axios.get(
           `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US'
           }`
         );
-        const sessionId = await AsyncStorage.getItem('sessionId');
         const response = await axios.get(
           `${
             detailsSeriesUrl +
@@ -100,19 +84,13 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setVideos(videos.data.results);
         getOmdbInfo(response.data.external_ids.imdb_id);
         setSeries(response.data);
-        setSessionId(sessionId);
-        // {
-        //   sessionId ? getMovieState(sessionId) : null;
-        // }
       } catch (e) {
         console.log(e);
       } finally {
       }
     };
     getSeries();
-    return () => {
-      isCancelled = true;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getOmdbInfo = async (imdbId) => {
@@ -139,126 +117,48 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     }
   };
 
-  // const getMovieState = async (session) => {
-  //   try {
-  //     const response = await axios.get(
-  //       `https://api.themoviedb.org/3/movie/${id}/account_states${apiKey}&session_id=${session}`
-  //     );
-  //     console.log(response.data.watchlist);
-  //     setMovieExist(response.data.watchlist);
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setStateFinish(true);
-  //   }
-  // };
-
-  // const watchListFunction = () => {
-  //   if (sessionId) {
-  //     setMovieExist(!movieExist);
-  //     if (movieExist) {
-  //       removeMovieToWatchlist();
-  //       console.log('movie was removed');
-  //     } else {
-  //       setMovieToWatchlist();
-  //       console.log('movie was added');
-  //     }
-  //   } else {
-  //     setModalVisible(true);
-  //   }
-  // };
-
-  // const setMovieToWatchlist = async () => {
-  //   try {
-  //     const response = await axios({
-  //       method: 'POST',
-  //       url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
-  //       headers: {
-  //         'Content-Type': 'application/json;charset=utf-8',
-  //       },
-  //       data: {
-  //         media_type: 'movie',
-  //         media_id: series.id,
-  //         watchlist: true,
-  //       },
-  //     });
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //   }
-  //   return response;
-  // };
-
-  // const removeMovieToWatchlist = async () => {
-  //   try {
-  //     const response = await axios({
-  //       method: 'POST',
-  //       url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
-  //       headers: {
-  //         'Content-Type': 'application/json;charset=utf-8',
-  //       },
-  //       data: {
-  //         media_type: 'movie',
-  //         media_id: series.id,
-  //         watchlist: false,
-  //       },
-  //     });
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //   }
-  //   return response;
-  // };
-
   // premiere
-  var d = new Date(series.first_air_date);
+  let d = new Date(series.first_air_date);
 
-  var year = d.getFullYear();
-  var month = monthNames[d.getMonth()];
-  var day = d.getDate();
-  var releaseDate = `${day}. ${month} ${year}`;
+  let year = d.getFullYear();
+  let month = monthNames[d.getMonth()];
+  let day = d.getDate();
+  let releaseDate = `${day}. ${month} ${year}`;
 
   // Next episode
 
   const nextEpisode = (date) => {
-    var newDate = new Date(date);
-    var nextYear = newDate.getFullYear();
-    var nextMonth = monthNames[newDate.getMonth()];
-    var nextDay = newDate.getDate();
-    var nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
+    let newDate = new Date(date);
+    let nextYear = newDate.getFullYear();
+    let nextMonth = monthNames[newDate.getMonth()];
+    let nextDay = newDate.getDate();
+    let nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
     return nextReleaseDate;
   };
 
   const nextAirCountdown = (date) => {
-    var cleanDate = date.replaceAll('-', '/');
-    var dates = `${cleanDate} 00:00 AM`;
-    var end = new Date(dates);
-    var _second = 1000;
-    var _minute = _second * 60;
-    var _hour = _minute * 60;
-    var _day = _hour * 24;
+    let cleanDate = date.replaceAll('-', '/');
+    let dates = `${cleanDate} 00:00 AM`;
+    let end = new Date(dates);
+    let _second = 1000;
+    let _minute = _second * 60;
+    let _hour = _minute * 60;
+    let _day = _hour * 24;
 
-    var now = new Date();
-    var distance = end - now;
+    let now = new Date();
+    let distance = end - now;
 
-    var days = Math.floor(distance / _day);
-    var hours = Math.floor((distance % _day) / _hour);
-    var dayString = days > 1 ? i18n.t('days') : i18n.t('day');
-    var hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
-    var timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
+    let days = Math.floor(distance / _day);
+    let hours = Math.floor((distance % _day) / _hour);
+    let dayString = days > 1 ? i18n.t('days') : i18n.t('day');
+    let hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
+    let timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
 
     if (distance < 0) {
       return false;
     }
 
     return timeUntilAir;
-  };
-
-  const goToWebsite = () => {
-    WebBrowser.openBrowserAsync(series.homepage);
   };
 
   const numFormatter = (num) => {
@@ -575,7 +475,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                         type.type === 'Trailer' && type.site === 'YouTube'
                     )
                     .map((video, idx) => {
-                      var maxLimit = 32;
+                      let maxLimit = 32;
                       return (
                         <View style={styles.videoDiv} key={idx}>
                           <View style={boxShadow}>

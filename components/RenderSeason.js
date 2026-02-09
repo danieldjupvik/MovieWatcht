@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -12,24 +12,18 @@ import {
   detailsSeriesUrl,
   apiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseProfileUrl,
   baseStillImageUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
-import i18n from 'i18n-js';
 import axios from 'axios';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
-  primaryButton,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import ButtonStyles from '../styles/buttons';
 import { imageBlurhash } from '../settings/imagePlaceholder';
-import noImage from '../assets/no-image.jpg';
 
 export const monthNames = [
   'Jan',
@@ -56,7 +50,6 @@ const RenderSeason = ({ navigation, id, season }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
-    let isCancelled = false;
     const getSeason = async () => {
       try {
         const response = await axios.get(
@@ -70,20 +63,8 @@ const RenderSeason = ({ navigation, id, season }) => {
       }
     };
     getSeason();
-    return () => {
-      isCancelled = true;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const numFormatter = (num) => {
-    if (num > 999 && num < 1000000) {
-      return (num / 1000).toFixed() + 'k';
-    } else if (num > 1000000) {
-      return (num / 1000000).toFixed(1) + 'm';
-    } else if (num < 900) {
-      return num;
-    }
-  };
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
@@ -105,12 +86,12 @@ const RenderSeason = ({ navigation, id, season }) => {
               </View>
               <View style={styles.cardsDiv}>
                 {episodes.episodes.map((episode, idx) => {
-                  var d = new Date(episode.air_date);
+                  let d = new Date(episode.air_date);
 
-                  var year = d.getFullYear();
-                  var month = monthNames[d.getMonth()];
-                  var day = d.getDate();
-                  var releaseDate = `${day}. ${month} ${year}`;
+                  let year = d.getFullYear();
+                  let month = monthNames[d.getMonth()];
+                  let day = d.getDate();
+                  let releaseDate = `${day}. ${month} ${year}`;
                   return (
                     <View key={idx} style={styles.cards}>
                       <View style={styles.stillImgDiv}>
@@ -151,13 +132,8 @@ const RenderSeason = ({ navigation, id, season }) => {
   );
 };
 
-const globalFontsize = 17;
-const globalPadding = 5;
-const normalFontWeight = '300';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-
-console.log(deviceWidth);
 
 const styles = StyleSheet.create({
   container: {

@@ -8,7 +8,7 @@ import {
   nowPlayingUrl,
   trendingMovieUrl,
 } from '../settings/api';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import { useAppearance } from '../components/AppearanceContext';
 import RenderMovies from '../components/RenderMovies';
 import { TabView, TabBar } from 'react-native-tab-view';

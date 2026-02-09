@@ -44,7 +44,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme }) => {
         }
       }
     );
-  }, [id, title]);
+  }, [title, tmdbUrl]);
 
   return (
     <Pressable onPress={handlePress} onLongPress={handleLongPress}>

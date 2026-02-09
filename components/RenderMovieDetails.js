@@ -20,19 +20,16 @@ import {
 } from '../settings/api';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from './Loader';
-import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import axios from 'axios';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
-  primaryButton,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import ButtonStyles from '../styles/buttons';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -75,11 +72,7 @@ const RenderDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBoxStyle =
-    colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
-
   useEffect(() => {
-    let isCancelled = false;
     setStateFinish(false);
     const getMovie = async () => {
       try {
@@ -100,26 +93,16 @@ const RenderDetails = ({ navigation, id }) => {
         getOmdbInfo(response.data.imdb_id);
         setMovie(response.data);
         setSessionId(sessionId);
-        {
-          response.data.release_dates.results
-            .filter((region) => region.iso_3166_1 === 'US')[0]
-            .release_dates.filter((type) => type.type === 4)[0]
-            ? (setDigitalRelease(
-                response.data.release_dates.results
-                  .filter((region) => region.iso_3166_1 === 'US')[0]
-                  .release_dates.filter((type) => type.type === 4)[0]
-                  .release_date
-              ),
-              setReleaseNote(
-                response.data.release_dates.results
-                  .filter((region) => region.iso_3166_1 === 'US')[0]
-                  .release_dates.filter((type) => type.type === 4)[0].note
-              ))
-            : null;
+        const usRelease = response.data.release_dates.results
+          .filter((region) => region.iso_3166_1 === 'US')[0]
+          ?.release_dates.filter((type) => type.type === 4)[0];
+        if (usRelease) {
+          setDigitalRelease(usRelease.release_date);
+          setReleaseNote(usRelease.note);
         }
 
-        {
-          sessionId ? getMovieState(sessionId) : null;
+        if (sessionId) {
+          getMovieState(sessionId);
         }
       } catch (e) {
         console.log(e);
@@ -127,9 +110,7 @@ const RenderDetails = ({ navigation, id }) => {
       }
     };
     getMovie();
-    return () => {
-      isCancelled = true;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getOmdbInfo = async (imdbId) => {
@@ -205,9 +186,7 @@ const RenderDetails = ({ navigation, id }) => {
       return response;
     } catch (e) {
       console.log(e);
-    } finally {
     }
-    return response;
   };
 
   const removeMovieToWatchlist = async () => {
@@ -227,50 +206,36 @@ const RenderDetails = ({ navigation, id }) => {
       return response;
     } catch (e) {
       console.log(e);
-    } finally {
     }
-    return response;
   };
 
   // premiere
-  var d = new Date(movie.release_date);
+  let d = new Date(movie.release_date);
 
-  var year = d.getFullYear();
-  var month = monthNames[d.getMonth()];
-  var day = d.getDate();
-  var releaseDate = `${day}. ${month} ${year}`;
+  let year = d.getFullYear();
+  let month = monthNames[d.getMonth()];
+  let day = d.getDate();
+  let releaseDate = `${day}. ${month} ${year}`;
 
-  var dd = new Date(digitalRelease);
-  var yearDigital = dd.getFullYear();
-  var monthDigital = monthNames[dd.getMonth()];
-  var dayDigital = dd.getDate();
-  var digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+  let dd = new Date(digitalRelease);
+  let yearDigital = dd.getFullYear();
+  let monthDigital = monthNames[dd.getMonth()];
+  let dayDigital = dd.getDate();
+  let digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
 
   // Runtime
   let runtime = timeConvert(movie.runtime);
   function timeConvert(num) {
-    var hours = num / 60;
-    var rhours = Math.floor(hours);
-    var minutes = (hours - rhours) * 60;
-    var rminutes = Math.round(minutes);
+    let hours = num / 60;
+    let rhours = Math.floor(hours);
+    let minutes = (hours - rhours) * 60;
+    let rminutes = Math.round(minutes);
     let hourNaming = i18n.t('hour');
     if (rhours > 1) {
       hourNaming = i18n.t('hours');
     }
     return rhours + hourNaming + rminutes + ' min';
   }
-
-  const iconStar = (
-    <FontAwesome5
-      name={'star'}
-      solid
-      style={{ color: 'red', fontSize: globalFontsize }}
-    />
-  );
-
-  const goToWebsite = () => {
-    WebBrowser.openBrowserAsync(movie.homepage);
-  };
 
   const numFormatter = (num) => {
     if (num > 999 && num < 1000000) {
@@ -493,7 +458,7 @@ const RenderDetails = ({ navigation, id }) => {
                         type.type === 'Trailer' && type.site === 'YouTube'
                     )
                     .map((video, idx) => {
-                      var maxLimit = 32;
+                      let maxLimit = 32;
                       return (
                         <View style={styles.videoDiv} key={idx}>
                           <View style={boxShadow}>

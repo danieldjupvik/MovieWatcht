@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ActionSheetIOS,
 } from 'react-native';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import axios from 'axios';
 import { apiKey } from '../settings/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -18,7 +18,7 @@ import {
 } from '../settings/api';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import { useAppearance } from '../components/AppearanceContext';
 
 import axios from 'axios';

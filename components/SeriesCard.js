@@ -44,7 +44,7 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
         }
       }
     );
-  }, [id, name]);
+  }, [name, tmdbUrl]);
 
   return (
     <Pressable onPress={handlePress} onLongPress={handleLongPress}>

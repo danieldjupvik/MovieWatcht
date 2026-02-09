@@ -12,7 +12,7 @@ import {
   airingTodaySeriesUrl,
   trendingSeriesUrl,
 } from '../settings/api';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,

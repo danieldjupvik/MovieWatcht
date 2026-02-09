@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import Constants from 'expo-constants';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import * as WebBrowser from 'expo-web-browser';
 import {
   backgroundColorDark,

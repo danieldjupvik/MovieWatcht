@@ -4,10 +4,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import * as Haptics from 'expo-haptics';
-import * as Localization from 'expo-localization';
-import i18n from 'i18n-js';
-import translationsEN from './language/en/translation.json';
-import translationsNB from './language/nb/translation.json';
+import i18n from './language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -35,14 +32,6 @@ import { RegionProvider } from './components/RegionContext';
 import { AppearanceProvider, useAppearance } from './components/AppearanceContext';
 
 const Tab = createNativeBottomTabNavigator();
-
-i18n.translations = {
-  nb: translationsNB,
-  en: translationsEN,
-};
-
-i18n.locale = Localization.getLocales()[0]?.languageTag;
-i18n.fallbacks = true;
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import { useAppearance } from '../components/AppearanceContext';
 import { backgroundColorDark, backgroundColorLight } from '../colors/colors';
 import SettingsSection from '../components/SettingsSection';
