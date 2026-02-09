@@ -1,8 +1,8 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
+  FlatList,
   Pressable,
-  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -28,6 +28,57 @@ import {
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
+
+const SearchResultItem = React.memo(({ item, colorScheme, onPress, onLongPress }) => {
+  const themeTextStyle =
+    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
+  const themeContainerStyle =
+    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
+  const posterImage = item.poster_path
+    ? { uri: `${baseSearchPosterUrl + item.poster_path}` }
+    : noImage;
+  const title = item.original_title || item.original_name || item.title || item.name;
+  const releaseDate = item.release_date || item.first_air_date || '';
+  const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
+  const mediaLabel = item.media_type === 'tv' ? i18n.t('series') : i18n.t('movies');
+
+  return (
+    <Pressable
+      style={[styles.cards, themeContainerStyle]}
+      onLongPress={() => onLongPress(item)}
+      onPress={() => onPress(item)}
+    >
+      <View>
+        <Image
+          source={posterImage}
+          style={styles.image}
+          placeholder={imageBlurhash}
+          placeholderContentFit='cover'
+          transition={300}
+        />
+      </View>
+      <View style={styles.infoDiv}>
+        <View style={styles.titleDiv}>
+          <Text style={[styles.title, themeTextStyle]}>
+            {title} {year ? `(${year})` : ''}
+          </Text>
+          <Text style={[styles.mediaType, themeTextStyle]}>{mediaLabel}</Text>
+        </View>
+        <View style={styles.ratingDiv}>
+          <Image
+            source={tmdbLogo}
+            style={styles.tmdbLogo}
+            contentFit='contain'
+          />
+          <Text style={[styles.rating, themeTextStyle]}>
+            {Math.floor((item.vote_average * 100) / 10)}%
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+});
 
 const Search = ({ navigation }) => {
   const { colorScheme } = useAppearance();
@@ -84,16 +135,16 @@ const Search = ({ navigation }) => {
     }
   };
 
-  const openItem = (item) => {
+  const openItem = useCallback((item) => {
     const isSeries = item.media_type === 'tv';
     const headerTitle = item.title || item.name || '';
     navigation.navigate(isSeries ? 'SeriesDetails' : 'Details', {
       id: item.id,
       headerTitle,
     });
-  };
+  }, [navigation]);
 
-  const onShare = async (item) => {
+  const onShare = useCallback(async (item) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const isSeries = item.media_type === 'tv';
     const title = item.title || item.name || '';
@@ -103,13 +154,29 @@ const Search = ({ navigation }) => {
     } catch (error) {
       alert(error.message);
     }
-  };
+  }, []);
 
-  const renderState = () => {
+  const keyExtractor = useCallback(
+    (item) => `${item.media_type}-${item.id}`,
+    []
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <SearchResultItem
+        item={item}
+        colorScheme={colorScheme}
+        onPress={openItem}
+        onLongPress={onShare}
+      />
+    ),
+    [colorScheme, openItem, onShare]
+  );
+
+  const listEmptyComponent = useMemo(() => {
     if (loader) {
       return <Loader loadingStyle={styles.loaderStyle} />;
     }
-
     if (query.length < 1) {
       return (
         <View style={styles.emptyState}>
@@ -117,78 +184,26 @@ const Search = ({ navigation }) => {
         </View>
       );
     }
-
-    if (results.length < 1) {
-      return (
-        <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, themeTextStyle]}>{i18n.t('noResults')}</Text>
-        </View>
-      );
-    }
-
     return (
-      <View style={styles.main}>
-        {results.map((item) => {
-          const posterImage = item.poster_path
-            ? { uri: `${baseSearchPosterUrl + item.poster_path}` }
-            : noImage;
-          const title = item.original_title || item.original_name || item.title || item.name;
-          const releaseDate = item.release_date || item.first_air_date || '';
-          const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
-          const mediaLabel = item.media_type === 'tv' ? i18n.t('series') : i18n.t('movies');
-
-          return (
-            <Pressable
-              key={`${item.media_type}-${item.id}`}
-              style={[styles.cards, themeContainerStyle]}
-              onLongPress={() => onShare(item)}
-              onPress={() => openItem(item)}
-            >
-              <View>
-                <Image
-                  source={posterImage}
-                  style={styles.image}
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  transition={300}
-                />
-              </View>
-              <View style={styles.infoDiv}>
-                <View style={styles.titleDiv}>
-                  <Text style={[styles.title, themeTextStyle]}>
-                    {title} {year ? `(${year})` : ''}
-                  </Text>
-                  <Text style={[styles.mediaType, themeTextStyle]}>{mediaLabel}</Text>
-                </View>
-                <View style={styles.ratingDiv}>
-                  <Image
-                    source={tmdbLogo}
-                    style={styles.tmdbLogo}
-                    contentFit='contain'
-                  />
-                  <Text style={[styles.rating, themeTextStyle]}>
-                    {Math.floor((item.vote_average * 100) / 10)}%
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          );
-        })}
+      <View style={styles.emptyState}>
+        <Text style={[styles.emptyText, themeTextStyle]}>{i18n.t('noResults')}</Text>
       </View>
     );
-  };
+  }, [loader, query, themeTextStyle]);
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
-      <ScrollView
-        style={[styles.scrollView, themeContainerStyle]}
+      <FlatList
+        data={results}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        style={[styles.listStyle, themeContainerStyle]}
+        contentContainerStyle={styles.listContent}
         contentInsetAdjustmentBehavior='automatic'
         keyboardDismissMode='on-drag'
         indicatorStyle={themeTabBar}
-      >
-        <View style={styles.mainParent}>{renderState()}</View>
-        <View style={styles.view} />
-      </ScrollView>
+        ListEmptyComponent={listEmptyComponent}
+      />
     </View>
   );
 };
@@ -203,21 +218,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: deviceWidth,
   },
-  view: {
-    height: 75,
-  },
-  scrollView: {
-    height: '100%',
+  listStyle: {
     width: '100%',
+  },
+  listContent: {
     paddingTop: 5,
-  },
-  main: {
-    flex: 1,
-    flexDirection: 'column',
-    width: '100%',
-  },
-  mainParent: {
-    flex: 1,
+    paddingBottom: 75,
+    flexGrow: 1,
   },
   image: {
     width: deviceWidth / 4.3,
