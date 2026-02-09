@@ -16,8 +16,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
-      "buildNumber": "1.2.1",
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.danieldjupvik.MovieWatcht",
