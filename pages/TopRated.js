@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   ScrollView,
@@ -6,11 +6,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   RefreshControl,
-  Animated,
   Share,
-  Image,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import {
@@ -28,6 +26,7 @@ import * as Haptics from 'expo-haptics';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Localization from 'expo-localization';
+import { useAppearance } from '../components/AppearanceContext';
 
 const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
@@ -40,27 +39,8 @@ const TopRated = ({ navigation }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
-  const [appearance, setAppearance] = useState();
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
 
   const getRegion = async () => {
     try {
@@ -91,8 +71,7 @@ const TopRated = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
@@ -198,15 +177,6 @@ const TopRated = ({ navigation }) => {
       setLoader(false);
     }
   }
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
 
   const isCloseToBottom = ({
     layoutMeasurement,
@@ -324,25 +294,18 @@ const TopRated = ({ navigation }) => {
                       }
                     >
                       <View style={styles.imageDiv}>
-                        <Animated.Image
+                        <Image
                           source={movie.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='cover'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
+                          style={styles.image}
+                          placeholder={posterLoader}
+                          transition={300}
                         />
                       </View>
                       <View style={styles.ratingDiv}>
                         <Image
                           source={tmdbLogo}
                           style={styles.tmdbLogo}
-                          resizeMode='contain'
+                          contentFit='contain'
                         />
                         <Text style={[styles.rating, themeTextStyle]}>
                           {Math.floor((movie.vote_average * 100) / 10)}%

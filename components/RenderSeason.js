@@ -5,10 +5,10 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Image,
   Dimensions,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
@@ -31,7 +31,6 @@ import { borderRadius, boxShadow } from '../styles/globalStyles';
 import ButtonStyles from '../styles/buttons';
 import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const monthNames = [
   'Jan',
@@ -50,27 +49,7 @@ export const monthNames = [
 const RenderSeason = ({ navigation, id, season }) => {
   const [loader, setLoader] = useState(true);
   const [episodes, setEpisodes] = useState([]);
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -120,8 +99,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                   source={{
                     uri: `${basePosterUrl + episodes.poster_path}`,
                   }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  placeholder={posterLoader}
                   style={styles.posterImg}
                 />
               </View>
@@ -140,10 +118,10 @@ const RenderSeason = ({ navigation, id, season }) => {
                           source={{
                             uri: `${baseStillImageUrl + episode.still_path}`,
                           }}
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
+                          placeholder={posterLoader}
                           style={styles.stillImg}
-                          resizeMode='cover'
+
+
                         />
                       </View>
                       <View style={styles.infoDiv}>

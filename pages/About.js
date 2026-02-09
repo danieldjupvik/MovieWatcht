@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Text,
   View,
@@ -6,9 +6,8 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
-  Image,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
 import Constants from 'expo-constants';
 import i18n from 'i18n-js';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,32 +19,11 @@ import {
 } from './../colors/colors';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { Button } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { color } from 'react-native-reanimated';
+import { useAppearance } from '../components/AppearanceContext';
 
 const About = () => {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -141,8 +119,8 @@ const About = () => {
                 </Text>
                 <Image
                   source={tmdbLogo}
+                  contentFit='contain'
                   style={{
-                    resizeMode: 'contain',
                     width: 100,
                     height: 100,
                     marginLeft: 2,

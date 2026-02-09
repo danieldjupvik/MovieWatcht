@@ -7,7 +7,6 @@ import {
   Dimensions,
   Button,
   Modal,
-  useColorScheme,
 } from 'react-native';
 import {
   detailsMovieUrl,
@@ -30,7 +29,7 @@ import {
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
 import { TextInput } from 'react-native';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { modal } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
@@ -38,6 +37,7 @@ import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
 import ButtonStyles from '../styles/buttons';
+import { useAppearance } from '../components/AppearanceContext';
 
 const goToRegister = () => {
   WebBrowser.openBrowserAsync('https://www.themoviedb.org/signup');
@@ -55,30 +55,10 @@ const Login = ({ navigation, route }) => {
   const [showError, setShowError] = useState(false);
   const [usernameInput, setUsernameInput] = useState();
   const [passwordInput, setPasswordInput] = useState();
-  const [appearance, setAppearance] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [loginDisabled, setLoginDisabled] = useState(false);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -238,9 +218,10 @@ const Login = ({ navigation, route }) => {
           <View style={styles.loginWrap}>
             <Image
               source={tmdbLogo}
+              contentFit='contain'
               style={{
-                resizeMode: 'contain',
                 width: 150,
+                height: 50,
               }}
             />
             <View style={[styles.loginBox, themeBoxStyle]}>

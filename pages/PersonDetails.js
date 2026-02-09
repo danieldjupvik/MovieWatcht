@@ -5,11 +5,9 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Image,
   Dimensions,
-  ImageBackground,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
 import {
   baseBackdropUrl,
   apiKey,
@@ -20,8 +18,8 @@ import {
 import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18n-js';
+import { useAppearance } from '../components/AppearanceContext';
 import brandIcon from '../assets/icon.png';
 
 import axios from 'axios';
@@ -44,27 +42,8 @@ const PersonDetails = ({ route, navigation }) => {
   const [loader, setLoader] = useState(true);
   const [person, setPerson] = useState([]);
   const [personCredit, setPersonCredit] = useState([]);
-  const [appearance, setAppearance] = useState();
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -130,23 +109,23 @@ const PersonDetails = ({ route, navigation }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <ImageBackground
-                source={{
-                  uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
-                }}
-                style={styles.backdrop}
-                defaultSource={posterLoader}
-                ImageCacheEnum={'force-cache'}
-              >
+              <View style={styles.backdrop}>
+                <Image
+                  source={{
+                    uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
+                  }}
+                  style={StyleSheet.absoluteFill}
+                  placeholder={posterLoader}
+                  contentFit='cover'
+                />
                 <View style={styles.child} />
-              </ImageBackground>
+              </View>
               <View style={boxShadow}>
                 <Image
                   source={{
                     uri: `${basePosterUrl + person.profile_path}`,
                   }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  placeholder={posterLoader}
                   style={styles.posterImg}
                 />
               </View>
@@ -230,14 +209,15 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-                              ImageCacheEnum={'force-cache'}
+
+
                             />
                           </View>
                           <View style={styles.ratingDiv}>
                             <Image
                               source={tmdbLogo}
                               style={styles.tmdbLogo}
-                              resizeMode='contain'
+                              contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
                               {Math.floor((movie.vote_average * 100) / 10)}%
@@ -282,14 +262,15 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-                              ImageCacheEnum={'force-cache'}
+
+
                             />
                           </View>
                           <View style={styles.ratingDiv}>
                             <Image
                               source={tmdbLogo}
                               style={styles.tmdbLogo}
-                              resizeMode='contain'
+                              contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
                               {Math.floor((movie.vote_average * 100) / 10)}%

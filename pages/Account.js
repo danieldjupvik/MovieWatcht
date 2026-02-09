@@ -4,11 +4,10 @@ import {
   View,
   StyleSheet,
   SafeAreaView,
-  Image,
   Dimensions,
   ActionSheetIOS,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
 import {
   ScrollView,
   TouchableWithoutFeedback,
@@ -23,6 +22,7 @@ import {
   textColorLight,
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppearance } from '../components/AppearanceContext';
 import { accountUrl, baseProfileUrl } from './../settings/api';
 import axios from 'axios';
 import { apiKey } from '../settings/api';
@@ -35,30 +35,9 @@ import { primaryButton, secondaryButton } from '../colors/colors';
 const Account = ({ navigation }) => {
   const [accountInfo, setAccountInfo] = useState();
   const [sessionId, setSessionId] = useState();
-  const [appearance, setAppearance] = useState();
   const [loader, setLoader] = useState(true);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme =
-    appearance === 'auto' || undefined ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -155,10 +134,9 @@ const Account = ({ navigation }) => {
                     ? profilePicture
                     : noAvatar
                 }
-                ImageCacheEnum={'force-cache'}
+                contentFit='contain'
                 style={[
                   {
-                    resizeMode: 'contain',
                     width: 150,
                     height: 150,
                   },

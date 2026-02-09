@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import {
   StyleSheet,
   SafeAreaView,
   Dimensions,
   Platform,
   useWindowDimensions,
-  useColorScheme,
 } from 'react-native';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
@@ -25,8 +24,8 @@ import {
   textColorLight,
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { primaryButton, secondaryButton } from '../colors/colors';
+import { useAppearance } from '../components/AppearanceContext';
 import RenderSeries from '../components/RenderSeries';
 import SeriesSearchResults from '../components/SeriesSearchResults';
 
@@ -36,30 +35,10 @@ const Series = ({ navigation }) => {
   const [series, setSeries] = useState();
   const [search, setSearch] = useState();
   const [loader, setLoader] = useState(true);
-  const [appearance, setAppearance] = useState();
   const [showSearch, setShowSearch] = useState(false);
   const [showCancel, setShowCancel] = useState(true);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';

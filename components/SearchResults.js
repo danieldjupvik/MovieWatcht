@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,11 @@ import {
   SafeAreaView,
   RefreshControl,
   Dimensions,
-  Image,
   Platform,
-  Animated,
   Share,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useAppearance } from './AppearanceContext';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import { baseSearchPosterUrl, searchMovieUrl } from '../settings/api';
@@ -29,7 +28,6 @@ import { borderRadius } from '../styles/globalStyles';
 import posterLoader from '../assets/poster-loader.jpg';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { primaryButton, secondaryButton } from '../colors/colors';
 import * as Localization from 'expo-localization';
@@ -42,31 +40,11 @@ const SearchResults = ({ movies, loader }) => {
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
-  const [appearance, setAppearance] = useState();
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
@@ -74,15 +52,6 @@ const SearchResults = ({ movies, loader }) => {
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
 
   const onShare = async (title, id) => {
     async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
@@ -186,18 +155,11 @@ const SearchResults = ({ movies, loader }) => {
                       }
                     >
                       <View style={styles.imageDiv}>
-                        <Animated.Image
+                        <Image
                           source={movie.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='cover'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
+                          style={styles.image}
+                          placeholder={posterLoader}
+                          transition={300}
                         />
                       </View>
                       <View style={styles.infoDiv}>
@@ -210,7 +172,7 @@ const SearchResults = ({ movies, loader }) => {
                           <Image
                             source={tmdbLogo}
                             style={styles.tmdbLogo}
-                            resizeMode='contain'
+                            contentFit='contain'
                           />
                           <Text style={[styles.rating, themeTextStyle]}>
                             {Math.floor((movie.vote_average * 100) / 10)}%

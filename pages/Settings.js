@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ActionSheetIOS,
-  useColorScheme,
 } from 'react-native';
 import {
   ScrollView,
@@ -26,31 +25,12 @@ import axios from 'axios';
 import { apiKey } from '../settings/api';
 import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppearance } from '../components/AppearanceContext';
 
 const Settings = ({ navigation }) => {
   const [sessionId, setSessionId] = useState();
-  const [appearance, setAppearance] = useState();
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;

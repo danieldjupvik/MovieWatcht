@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, StatusBar, Platform, View, Button, useColorScheme } from 'react-native';
+import React from 'react';
+import { StyleSheet, StatusBar, Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
@@ -14,10 +14,7 @@ import translationsNB from './language/nb/translation.json';
 import {
   backgroundColorDark,
   backgroundColorLight,
-  textColorDark,
-  textColorLight,
 } from './colors/colors';
-import { FontAwesome5 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -38,9 +35,8 @@ import Region from './pages/Region';
 import Adult from './pages/Adult';
 import { Ionicons } from '@expo/vector-icons';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { RegionProvider } from './components/RegionContext';
+import { AppearanceProvider, useAppearance } from './components/AppearanceContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -54,27 +50,7 @@ i18n.fallbacks = true;
 
 const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -135,27 +111,7 @@ function HomeStackScreen() {
 const SeriesStack = createNativeStackNavigator();
 
 function SeriesStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -229,27 +185,7 @@ function SeriesStackScreen() {
 const WatchListStack = createNativeStackNavigator();
 
 function WatchListStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
@@ -316,27 +252,7 @@ function WatchListStackScreen() {
 const SettingsStack = createNativeStackNavigator();
 
 function SettingsStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
   const themeBoxStyle =
     colorScheme === 'light'
@@ -454,34 +370,11 @@ function SettingsStackScreen() {
   );
 }
 
-export default function App() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+function AppContent() {
+  const { colorScheme } = useAppearance();
   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
   const themeStatusBarStyle =
     colorScheme === 'light' ? 'dark-content' : 'light-content';
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
   const themeTabBarStyle =
     colorScheme === 'light' ? styles.tabBarStyleLight : styles.tabBarStyleDark;
   const themeTabBarStyleAndroid =
@@ -606,23 +499,24 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <AppearanceProvider>
+      <AppContent />
+    </AppearanceProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    // justifyContent: 'center',
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,
   },
   darkContainer: {
     backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
   },
   androidNavBar: {
     position: 'absolute',

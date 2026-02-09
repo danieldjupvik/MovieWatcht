@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,11 @@ import {
   SafeAreaView,
   RefreshControl,
   Dimensions,
-  Image,
-  Animated,
   Share,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
+import { useAppearance } from '../components/AppearanceContext';
 import axios from 'axios';
 import { basePosterUrl, searchMovieUrl, apiKey } from '../settings/api';
 import Loader from '../components/Loader';
@@ -48,30 +47,10 @@ const WatchList = ({ navigation }) => {
   const [showWatchList, setShowWatchList] = useState(false);
   const [pageNumber, setPageNumber] = useState(2);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
-  const [appearance, setAppearance] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
   const [showCancel, setShowCancel] = useState(true);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
@@ -224,15 +203,6 @@ const WatchList = ({ navigation }) => {
     }
   }
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
-
   const isCloseToBottom = ({
     layoutMeasurement,
     contentOffset,
@@ -362,27 +332,20 @@ const WatchList = ({ navigation }) => {
                               }
                             >
                               <View style={styles.imageDiv}>
-                                <Animated.Image
+                                <Image
                                   source={
                                     movie.poster_path ? posterImage : noImage
                                   }
-                                  style={[
-                                    styles.image,
-                                    {
-                                      opacity: fadeAnim,
-                                    },
-                                  ]}
-                                  resizeMode='cover'
-                                  defaultSource={posterLoader}
-                                  ImageCacheEnum={'force-cache'}
-                                  onLoad={fadeIn}
+                                  style={styles.image}
+                                  placeholder={posterLoader}
+                                  transition={300}
                                 />
                               </View>
                               <View style={styles.ratingDiv}>
                                 <Image
                                   source={tmdbLogo}
                                   style={styles.tmdbLogo}
-                                  resizeMode='contain'
+                                  contentFit='contain'
                                 />
                                 <Text style={[styles.rating, themeTextStyle]}>
                                   {Math.floor((movie.vote_average * 100) / 10)}%

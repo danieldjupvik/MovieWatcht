@@ -5,14 +5,13 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Image,
   Dimensions,
-  ImageBackground,
   TouchableWithoutFeedback,
   Modal,
   Pressable,
-  useColorScheme,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
@@ -62,7 +61,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [series, setSeries] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [appearance, setAppearance] = useState();
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
   const [modalVisible, setModalVisible] = useState(false);
@@ -74,25 +72,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [imdbVotes, setImdbVotes] = useState();
   const [lastEpisodeShow, setLastEpisodeShow] = useState(true);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -335,23 +315,23 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <ImageBackground
-                source={{
-                  uri: `${baseBackdropUrl + series.backdrop_path}`,
-                }}
-                style={styles.backdrop}
-                defaultSource={posterLoader}
-                ImageCacheEnum={'force-cache'}
-              >
+              <View style={styles.backdrop}>
+                <Image
+                  source={{
+                    uri: `${baseBackdropUrl + series.backdrop_path}`,
+                  }}
+                  style={StyleSheet.absoluteFill}
+                  placeholder={posterLoader}
+                  contentFit='cover'
+                />
                 <View style={styles.child} />
-              </ImageBackground>
+              </View>
               <View style={[styles.imageDiv, boxShadow]}>
                 <Image
                   source={{
                     uri: `${basePosterUrl + series.poster_path}`,
                   }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  placeholder={posterLoader}
                   style={styles.posterImg}
                 />
                 {/* {!stateFinish && sessionId ? (
@@ -438,7 +418,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <Image
                     source={tmdbLogo}
                     style={styles.tmdbLogo}
-                    resizeMode='contain'
+                    contentFit='contain'
                   />
                   <View style={styles.ratingElem}>
                     <Text style={[themeTextStyle]}>
@@ -454,7 +434,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     <Image
                       source={imdbLogo}
                       style={styles.imdbLogo}
-                      resizeMode='contain'
+                      contentFit='contain'
                     />
                     <View style={styles.ratingElem}>
                       <Text style={[themeTextStyle]}>
@@ -472,7 +452,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     <Image
                       source={rottenTomato > 60 ? freshPositive : freshNegative}
                       style={styles.rottenLogo}
-                      resizeMode='cover'
+
+
                     />
                     <View style={styles.ratingElem}>
                       <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
@@ -579,7 +560,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 source={{
                                   uri: `${basePosterUrl + serie.poster_path}`,
                                 }}
-                                ImageCacheEnum={'force-cache'}
+                
+
                               />
                             </View>
                             <Text style={[styles.textName, themeTextStyle]}>
@@ -676,7 +658,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
-                              ImageCacheEnum={'force-cache'}
+              
+
                             />
                           </View>
                           <Text style={[styles.textName, themeTextStyle]}>
@@ -728,14 +711,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                       basePosterUrl + series.poster_path
                                     }`,
                                   }}
-                                  ImageCacheEnum={'force-cache'}
+                  
+
                                 />
                               </View>
                               <View style={styles.ratingDivRec}>
                                 <Image
                                   source={tmdbLogo}
                                   style={styles.tmdbLogoRec}
-                                  resizeMode='contain'
+                                  contentFit='contain'
                                 />
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
@@ -781,14 +765,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 source={{
                                   uri: `${basePosterUrl + series.poster_path}`,
                                 }}
-                                ImageCacheEnum={'force-cache'}
+                
+
                               />
                             </View>
                             <View style={styles.ratingDivRec}>
                               <Image
                                 source={tmdbLogo}
                                 style={styles.tmdbLogoRec}
-                                resizeMode='contain'
+                                contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
                                 {Math.floor((series.vote_average * 100) / 10)}%
