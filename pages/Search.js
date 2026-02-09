@@ -11,69 +11,89 @@ import {
 import axios from 'axios';
 import i18n from 'i18n-js';
 import { Image } from 'expo-image';
+import { FontAwesome5 } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useAppearance } from '../components/AppearanceContext';
 import Loader from '../components/Loader';
 import {
   backgroundColorDark,
   backgroundColorLight,
-  textColorDark,
-  textColorLight,
+  primaryButton,
+  secondaryButton,
 } from '../colors/colors';
-import { borderRadius } from '../styles/globalStyles';
-import {
-  baseSearchPosterUrl,
-  searchMultiUrl,
-} from '../settings/api';
+import { basePosterUrl, searchMultiUrl } from '../settings/api';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
-import tmdbLogo from '../assets/tmdb-logo-small.png';
+
+const POSTER_WIDTH = 85;
+const POSTER_HEIGHT = 128;
+const CARD_RADIUS = 14;
+
+const getScoreColor = (score) => {
+  if (score >= 70) return '#34C759';
+  if (score >= 40) return '#FF9F0A';
+  return '#FF453A';
+};
 
 const SearchResultItem = React.memo(({ item, colorScheme, onPress, onLongPress }) => {
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+  const isDark = colorScheme === 'dark';
+  const textStyle = { color: isDark ? '#FFFFFF' : '#000000' };
+  const mutedStyle = { color: isDark ? '#98989F' : '#8E8E93' };
+  const cardBg = { backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF' };
 
   const posterImage = item.poster_path
-    ? { uri: `${baseSearchPosterUrl + item.poster_path}` }
+    ? { uri: `${basePosterUrl}${item.poster_path}` }
     : noImage;
-  const title = item.original_title || item.original_name || item.title || item.name;
+  const title = item.title || item.name || item.original_title || item.original_name;
   const releaseDate = item.release_date || item.first_air_date || '';
   const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
-  const mediaLabel = item.media_type === 'tv' ? i18n.t('series') : i18n.t('movies');
+  const isSeries = item.media_type === 'tv';
+  const mediaLabel = isSeries ? i18n.t('series') : i18n.t('movies');
+  const score = Math.floor((item.vote_average * 100) / 10);
+  const scoreColor = getScoreColor(score);
+  const badgeColor = isSeries ? secondaryButton : primaryButton;
+  const badgeTextColor = isSeries ? '#1a3a24' : '#FFFFFF';
 
   return (
     <Pressable
-      style={[styles.cards, themeContainerStyle]}
+      style={({ pressed }) => [
+        styles.card,
+        cardBg,
+        pressed && styles.cardPressed,
+      ]}
       onLongPress={() => onLongPress(item)}
       onPress={() => onPress(item)}
     >
-      <View>
-        <Image
-          source={posterImage}
-          style={styles.image}
-          placeholder={imageBlurhash}
-          placeholderContentFit='cover'
-          transition={300}
-        />
-      </View>
-      <View style={styles.infoDiv}>
-        <View style={styles.titleDiv}>
-          <Text style={[styles.title, themeTextStyle]}>
-            {title} {year ? `(${year})` : ''}
+      <Image
+        source={posterImage}
+        style={styles.poster}
+        placeholder={imageBlurhash}
+        placeholderContentFit='cover'
+        transition={200}
+      />
+      <View style={styles.cardContent}>
+        <View style={styles.cardHeader}>
+          <Text style={[styles.title, textStyle]} numberOfLines={2}>
+            {title}
           </Text>
-          <Text style={[styles.mediaType, themeTextStyle]}>{mediaLabel}</Text>
+          {year ? (
+            <Text style={[styles.year, mutedStyle]}>{year}</Text>
+          ) : null}
         </View>
-        <View style={styles.ratingDiv}>
-          <Image
-            source={tmdbLogo}
-            style={styles.tmdbLogo}
-            contentFit='contain'
-          />
-          <Text style={[styles.rating, themeTextStyle]}>
-            {Math.floor((item.vote_average * 100) / 10)}%
-          </Text>
+        <View style={styles.cardFooter}>
+          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
+            <Text style={[styles.badgeText, { color: badgeTextColor }]}>
+              {mediaLabel}
+            </Text>
+          </View>
+          {score > 0 ? (
+            <View style={styles.scoreContainer}>
+              <View style={[styles.scoreDot, { backgroundColor: scoreColor }]} />
+              <Text style={[styles.score, { color: scoreColor }]}>
+                {score}%
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
     </Pressable>
@@ -82,11 +102,11 @@ const SearchResultItem = React.memo(({ item, colorScheme, onPress, onLongPress }
 
 const Search = ({ navigation }) => {
   const { colorScheme } = useAppearance();
-  const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+  const isDark = colorScheme === 'dark';
+  const themeTabBar = isDark ? 'white' : 'black';
+  const containerBg = {
+    backgroundColor: isDark ? backgroundColorDark : backgroundColorLight,
+  };
 
   const [results, setResults] = useState([]);
   const [loader, setLoader] = useState(false);
@@ -174,133 +194,153 @@ const Search = ({ navigation }) => {
   );
 
   const listEmptyComponent = useMemo(() => {
+    const iconColor = isDark ? '#48484A' : '#C7C7CC';
+    const textColor = { color: isDark ? '#98989F' : '#8E8E93' };
+
     if (loader) {
       return <Loader loadingStyle={styles.loaderStyle} />;
     }
     if (query.length < 1) {
       return (
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, themeTextStyle]}>{i18n.t('searchAll')}</Text>
+          <FontAwesome5 name='film' size={56} color={iconColor} />
+          <Text style={[styles.emptyTitle, textColor]}>
+            {i18n.t('searchAll')}
+          </Text>
+          <Text style={[styles.emptySubtitle, textColor]}>
+            {i18n.t('movies')} & {i18n.t('series')}
+          </Text>
         </View>
       );
     }
     return (
       <View style={styles.emptyState}>
-        <Text style={[styles.emptyText, themeTextStyle]}>{i18n.t('noResults')}</Text>
+        <FontAwesome5 name='search' size={48} color={iconColor} />
+        <Text style={[styles.emptyTitle, textColor]}>
+          {i18n.t('noResults')}
+        </Text>
       </View>
     );
-  }, [loader, query, themeTextStyle]);
+  }, [loader, query, isDark]);
 
   return (
-    <View style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, containerBg]}>
       <FlatList
         data={results}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        style={[styles.listStyle, themeContainerStyle]}
+        style={styles.list}
         contentContainerStyle={styles.listContent}
         contentInsetAdjustmentBehavior='automatic'
         keyboardDismissMode='on-drag'
         indicatorStyle={themeTabBar}
+        scrollEnabled={results.length > 0}
         ListEmptyComponent={listEmptyComponent}
       />
     </View>
   );
 };
 
-const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: deviceWidth,
   },
-  listStyle: {
-    width: '100%',
+  list: {
+    flex: 1,
   },
   listContent: {
-    paddingTop: 5,
-    paddingBottom: 75,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 100,
+    gap: 12,
     flexGrow: 1,
   },
-  image: {
-    width: deviceWidth / 4.3,
-    height: deviceWidth / 3.24,
-    backgroundColor: 'grey',
-    borderTopLeftRadius: borderRadius,
-    borderBottomLeftRadius: borderRadius,
-  },
-  cards: {
-    alignItems: 'center',
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 20,
+  card: {
     flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: borderRadius,
+    borderRadius: CARD_RADIUS,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.55,
-    shadowRadius: 3.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  infoDiv: {
+  cardPressed: {
+    opacity: 0.7,
+  },
+  poster: {
+    width: POSTER_WIDTH,
+    height: POSTER_HEIGHT,
+    backgroundColor: '#2C2C2E',
+  },
+  cardContent: {
     flex: 1,
-    flexDirection: 'column',
-    height: '50%',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    justifyContent: 'space-between',
   },
-  titleDiv: {
-    marginLeft: 15,
+  cardHeader: {
+    gap: 4,
   },
   title: {
-    fontSize: 17,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
-  mediaType: {
-    marginTop: 2,
-    fontSize: 12,
-    opacity: 0.75,
+  year: {
+    fontSize: 14,
+    fontWeight: '400',
   },
-  rating: {
-    marginLeft: 6,
-  },
-  ratingDiv: {
-    flex: 1,
+  cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 15,
+    justifyContent: 'space-between',
   },
-  tmdbLogo: {
-    width: 25,
-    height: 12,
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderCurve: 'continuous',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  scoreDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  score: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   loaderStyle: {
-    paddingTop: deviceHeight / 4.5,
-    paddingBottom: deviceHeight / 3,
+    paddingTop: deviceHeight / 3.5,
   },
   emptyState: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: deviceHeight / 6,
+    gap: 12,
   },
-  emptyText: {
-    fontSize: 18,
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: -0.3,
   },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
+  emptySubtitle: {
+    fontSize: 15,
+    fontWeight: '400',
   },
 });
 
