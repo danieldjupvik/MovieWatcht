@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
   ScrollView,
   View,
   TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
   Dimensions,
   Share,
+  Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
 import { useAppearance } from '../components/AppearanceContext';
@@ -49,6 +50,7 @@ const WatchList = ({ navigation }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
   const [showCancel, setShowCancel] = useState(true);
+  const isBottomLoadingRef = useRef(false);
 
   const { colorScheme } = useAppearance();
   const themeSearchbar = colorScheme === 'light' ? true : false;
@@ -122,12 +124,14 @@ const WatchList = ({ navigation }) => {
 
   const getWatchListMovies = async (accountIdParam, sessionIdParam) => {
     setLoader(true);
+    isBottomLoadingRef.current = false;
     try {
       const response = await axios.get(
         `https://api.themoviedb.org/3/account/${accountIdParam}/watchlist/movies${apiKey}&session_id=${sessionIdParam}&sort_by=created_at.desc&page=1`
       );
       setMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
+      setPageNumber(2);
       setRefreshing(false);
       setLoader(false);
       console.log('Fetched Watchlist movies');
@@ -139,31 +143,48 @@ const WatchList = ({ navigation }) => {
   };
 
   const onBottomLoad = async () => {
-    if (pageNumber <= totalPageNumberFromApi) {
-      setBottomLoader(true);
-      setPageNumber(pageNumber + 1);
-      try {
-        const response = await axios.get(
-          `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=${pageNumber}`
+    if (
+      isBottomLoadingRef.current ||
+      !totalPageNumberFromApi ||
+      pageNumber > totalPageNumberFromApi
+    ) {
+      return;
+    }
+
+    isBottomLoadingRef.current = true;
+    setBottomLoader(true);
+    const nextPage = pageNumber;
+    try {
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=${nextPage}`
+      );
+      setMovies((currentMovies) => {
+        const currentIds = new Set(currentMovies.map((movie) => movie.id));
+        const uniqueNewMovies = response.data.results.filter(
+          (movie) => !currentIds.has(movie.id)
         );
-        setMovies((movies) => [...movies, ...response.data.results]);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        console.log('loaded new page');
-        setBottomLoader(false);
-      }
+        return [...currentMovies, ...uniqueNewMovies];
+      });
+      setPageNumber((currentPage) => currentPage + 1);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      console.log('loaded new page');
+      isBottomLoadingRef.current = false;
+      setBottomLoader(false);
     }
   };
 
   // on refresh
   const refreshFetch = async () => {
+    isBottomLoadingRef.current = false;
     try {
       const response = await axios.get(
         `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=1`
       );
       setMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
+      setPageNumber(2);
       setRefreshing(false);
       console.log('Fetched Watchlist movies');
     } catch (e) {
@@ -178,6 +199,7 @@ const WatchList = ({ navigation }) => {
     refreshFetch();
     setWhileLoading(true);
     setPageNumber(2);
+    isBottomLoadingRef.current = false;
   }
 
   const getSearch = async (title) => {

@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, SafeAreaView, Switch } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  Switch
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppearance } from '../components/AppearanceContext';
 import {
   ScrollView,

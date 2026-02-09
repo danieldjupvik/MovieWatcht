@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   ScrollView,
   View,
   TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
   Share,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
@@ -41,19 +41,18 @@ const TopRated = ({ navigation }) => {
   const [pageNumber, setPageNumber] = useState(2);
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
+  const isBottomLoadingRef = useRef(false);
+  const defaultRegion = Localization.getLocales()[0]?.regionCode || 'US';
 
   const getRegion = async () => {
     try {
       const region = await AsyncStorage.getItem('region');
-      const defaultRegion = Platform.OS === 'ios' ? Localization.getLocales()[0]?.regionCode : 'NO';
-      console.log('region from localstorage ' + region);
-      const regionToll = region === 'auto' ? defaultRegion : region;
-      if (region !== null) {
-        setRegionFinal(regionToll);
-      } else {
+      if (!region) {
         setRegionFinal(defaultRegion);
-        console.log('there is no region set');
+        await AsyncStorage.setItem('region', 'auto');
+        return;
       }
+      setRegionFinal(region === 'auto' ? defaultRegion : region);
     } catch (e) {
       alert('error reading region value');
     }
@@ -80,16 +79,11 @@ const TopRated = ({ navigation }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Localization.getLocales()[0]?.regionCode
-    ? Platform.OS === 'ios'
-      ? Localization.getLocales()[0]?.regionCode
-      : 'US'
-    : 'US';
-
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
     setRegionsText(theShit);
     setLoader(true);
+    isBottomLoadingRef.current = false;
     const getMovies = async () => {
       try {
         const response = await axios.get(
@@ -97,8 +91,8 @@ const TopRated = ({ navigation }) => {
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        setPageNumber(2);
         setRefreshing(false);
-        console.log('fresh update');
         setLoader(false);
       } catch (e) {
         console.log(e);
@@ -110,7 +104,7 @@ const TopRated = ({ navigation }) => {
 
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
-    console.log(theShit);
+    isBottomLoadingRef.current = false;
     const onRefresh = async () => {
       try {
         const response = await axios.get(
@@ -118,7 +112,7 @@ const TopRated = ({ navigation }) => {
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
-        console.log('fresh update');
+        setPageNumber(2);
       } catch (e) {
         console.log(e);
       } finally {
@@ -130,21 +124,35 @@ const TopRated = ({ navigation }) => {
 
   const onBottomLoad = async () => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
-    console.log(theShit);
 
-    if (pageNumber <= totalPageNumberFromApi) {
-      setBottomLoader(true);
-      setPageNumber(pageNumber + 1);
-      try {
-        const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=${pageNumber}`}`
+    if (
+      isBottomLoadingRef.current ||
+      !totalPageNumberFromApi ||
+      pageNumber > totalPageNumberFromApi
+    ) {
+      return;
+    }
+
+    isBottomLoadingRef.current = true;
+    setBottomLoader(true);
+    const nextPage = pageNumber;
+    try {
+      const response = await axios.get(
+        `${topRatedMovieUrl + `&region=${theShit}&page=${nextPage}`}`
+      );
+      setMovies((currentMovies) => {
+        const currentIds = new Set(currentMovies.map((movie) => movie.id));
+        const uniqueNewMovies = response.data.results.filter(
+          (movie) => !currentIds.has(movie.id)
         );
-        setMovies((movies) => [...movies, ...response.data.results]);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setBottomLoader(false);
-      }
+        return [...currentMovies, ...uniqueNewMovies];
+      });
+      setPageNumber((currentPage) => currentPage + 1);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      isBottomLoadingRef.current = false;
+      setBottomLoader(false);
     }
   };
 
@@ -152,6 +160,7 @@ const TopRated = ({ navigation }) => {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
     setPageNumber(2);
+    isBottomLoadingRef.current = false;
   }
 
   const getSearch = async (title) => {

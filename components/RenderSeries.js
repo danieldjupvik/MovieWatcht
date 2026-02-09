@@ -1,14 +1,11 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
   ScrollView,
   View,
-  TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
   Dimensions,
-  Platform,
   Share,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -29,7 +26,6 @@ import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Haptics from 'expo-haptics';
 import { primaryButton, secondaryButton } from '../colors/colors';
-import * as Localization from 'expo-localization';
 import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 
@@ -42,13 +38,10 @@ const RenderSeries = ({ baseUrl }) => {
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
-  const [regionsText, setRegionsText] = useState();
-  const [regionFinal, setRegionFinal] = useState();
+  const isBottomLoadingRef = useRef(false);
   const navigation = useNavigation();
 
   const { colorScheme } = useAppearance();
-  const themeSearchbar = colorScheme === 'light' ? true : false;
-  const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -57,11 +50,13 @@ const RenderSeries = ({ baseUrl }) => {
 
   useEffect(() => {
     setLoader(true);
+    isBottomLoadingRef.current = false;
     const getSeries = async () => {
       try {
         const response = await axios.get(`${baseUrl + '&page=1'}`);
         setSeries(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        setPageNumber(2);
         setLoader(false);
         console.log('fresh update');
       } catch (e) {
@@ -74,11 +69,13 @@ const RenderSeries = ({ baseUrl }) => {
   }, []);
 
   useEffect(() => {
+    isBottomLoadingRef.current = false;
     const onRefresh = async () => {
       try {
         const response = await axios.get(`${baseUrl + `&page=1`}`);
         setSeries(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        setPageNumber(2);
         console.log('fresh update');
       } catch (e) {
         console.log(e);
@@ -90,17 +87,32 @@ const RenderSeries = ({ baseUrl }) => {
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
-    if (pageNumber <= totalPageNumberFromApi) {
-      setBottomLoader(true);
-      setPageNumber(pageNumber + 1);
-      try {
-        const response = await axios.get(`${baseUrl + `&page=${pageNumber}`}`);
-        setSeries((series) => [...series, ...response.data.results]);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setBottomLoader(false);
-      }
+    if (
+      isBottomLoadingRef.current ||
+      !totalPageNumberFromApi ||
+      pageNumber > totalPageNumberFromApi
+    ) {
+      return;
+    }
+
+    isBottomLoadingRef.current = true;
+    setBottomLoader(true);
+    const nextPage = pageNumber;
+    try {
+      const response = await axios.get(`${baseUrl + `&page=${nextPage}`}`);
+      setSeries((currentSeries) => {
+        const currentIds = new Set(currentSeries.map((item) => item.id));
+        const uniqueNewSeries = response.data.results.filter(
+          (item) => !currentIds.has(item.id)
+        );
+        return [...currentSeries, ...uniqueNewSeries];
+      });
+      setPageNumber((currentPage) => currentPage + 1);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      isBottomLoadingRef.current = false;
+      setBottomLoader(false);
     }
   };
 
@@ -108,6 +120,7 @@ const RenderSeries = ({ baseUrl }) => {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
     setPageNumber(2);
+    isBottomLoadingRef.current = false;
   }
 
   const isCloseToBottom = ({

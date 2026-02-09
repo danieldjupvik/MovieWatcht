@@ -58,7 +58,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen
-        name='Home'
+        name='HomeScreen'
         component={Home}
         options={{
           headerShown: false,
@@ -119,7 +119,7 @@ function SeriesStackScreen() {
   return (
     <SeriesStack.Navigator>
       <SeriesStack.Screen
-        name='series'
+        name='SeriesScreen'
         component={Series}
         options={{
           headerShown: false,
@@ -198,7 +198,7 @@ function WatchListStackScreen() {
   return (
     <WatchListStack.Navigator>
       <WatchListStack.Screen
-        name='watchList'
+        name='WatchListScreen'
         component={watchList}
         options={{
           headerShown: false,

@@ -3,9 +3,9 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
-  ActionSheetIOS,
+  ActionSheetIOS
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ScrollView,
   TouchableWithoutFeedback,

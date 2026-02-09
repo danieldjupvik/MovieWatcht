@@ -3,10 +3,10 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
-  ActionSheetIOS,
+  ActionSheetIOS
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import {
   ScrollView,

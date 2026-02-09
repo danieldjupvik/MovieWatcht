@@ -3,10 +3,10 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  Platform,
+  Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import Constants from 'expo-constants';
 import i18n from 'i18n-js';

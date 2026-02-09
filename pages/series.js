@@ -1,11 +1,11 @@
 import React, { useState, useRef, useContext } from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
   Dimensions,
   Platform,
-  useWindowDimensions,
+  useWindowDimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import {

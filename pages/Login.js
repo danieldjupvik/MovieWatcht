@@ -3,11 +3,11 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
   Button,
-  Modal,
+  Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   detailsMovieUrl,
   apiKey,
