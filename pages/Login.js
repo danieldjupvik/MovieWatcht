@@ -3,23 +3,17 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
-  Button,
-  Modal,
+  Alert,
+  TextInput,
 } from 'react-native';
 import {
-  detailsMovieUrl,
   apiKey,
-  basePosterUrl,
   getTokenUrl,
-  loginUrl,
-  getSessionUrl,
   accountUrl,
 } from '../settings/api';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -29,15 +23,14 @@ import {
   secondaryButton,
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import { TextInput } from 'react-native';
-import { Image } from 'react-native';
-import { modal } from '../components/RenderMovieDetails';
+import { Image } from 'expo-image';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5 } from '@expo/vector-icons';
 import ButtonStyles from '../styles/buttons';
+import { useAppearance } from '../components/AppearanceContext';
 
 const goToRegister = () => {
   WebBrowser.openBrowserAsync('https://www.themoviedb.org/signup');
@@ -55,30 +48,9 @@ const Login = ({ navigation, route }) => {
   const [showError, setShowError] = useState(false);
   const [usernameInput, setUsernameInput] = useState();
   const [passwordInput, setPasswordInput] = useState();
-  const [appearance, setAppearance] = useState();
-  const [modalVisible, setModalVisible] = useState(false);
   const [loginDisabled, setLoginDisabled] = useState(false);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
+  const { colorScheme } = useAppearance();
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -103,7 +75,7 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: 'https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: `https://api.themoviedb.org/3/authentication/token/validate_with_login${apiKey}`,
         headers: {},
         data: {
           username: username,
@@ -112,7 +84,7 @@ const Login = ({ navigation, route }) => {
         },
       });
       getSessionId(response.data.request_token);
-    } catch (e) {
+    } catch (_e) {
       setShowError(true);
       usernameInput.clear();
       passwordInput.clear();
@@ -125,14 +97,13 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: 'https://api.themoviedb.org/3/authentication/session/new?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: `https://api.themoviedb.org/3/authentication/session/new${apiKey}`,
         headers: {},
         data: {
           request_token: authorizedToken,
         },
       });
       storeSessionId(response.data.session_id);
-      console.log(response.data.session_id);
       getAccount(response.data.session_id);
       testVariable = false;
       navigation.goBack();
@@ -151,7 +122,6 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${accountUrl + `&session_id=${id}`}`);
       storeAccountId(JSON.stringify(response.data.id));
-      console.log(response.data.id);
     } catch (e) {
       console.log(e);
     } finally {
@@ -161,7 +131,7 @@ const Login = ({ navigation, route }) => {
   const storeAccountId = async (accountID) => {
     try {
       await AsyncStorage.setItem('accountId', accountID);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving login session, contact developer');
     }
   };
@@ -169,7 +139,7 @@ const Login = ({ navigation, route }) => {
   const storeSessionId = async (value) => {
     try {
       await AsyncStorage.setItem('sessionId', value);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving login session, contact developer');
     }
   };
@@ -182,12 +152,10 @@ const Login = ({ navigation, route }) => {
     setShowError(false);
     setPassword(password);
   };
-  console.log(route.params);
-
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <TouchableOpacity onPress={() => Alert.alert(i18n.t('loginModalHeading'), i18n.t('loginModalText'), [{ text: i18n.t('close') }])}>
           <FontAwesome5
             name={'question-circle'}
             style={{ color: route.params.color, fontSize: 22, marginRight: 15 }}
@@ -195,52 +163,18 @@ const Login = ({ navigation, route }) => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation]);
+  }, [navigation, route.params.color]);
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View
-            style={[
-              modal.centeredView,
-              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
-            ]}
-          >
-            <View style={[modal.modalView, themeBoxStyle]}>
-              <Text style={[modal.modalHeading, themeTextStyle]}>
-                {i18n.t('loginModalHeading')}
-              </Text>
-              <Text style={[modal.modalText, themeTextStyle]}>
-                {i18n.t('loginModalText')}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  ButtonStyles.smallButtonStyling,
-                  { backgroundColor: primaryButton },
-                ]}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={modal.textStyle}>{i18n.t('close')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+      <View style={[styles.container, themeContainerStyle]}>
         <ScrollView style={styles.main}>
           <View style={styles.loginWrap}>
             <Image
               source={tmdbLogo}
+              contentFit='contain'
               style={{
-                resizeMode: 'contain',
                 width: 150,
+                height: 50,
               }}
             />
             <View style={[styles.loginBox, themeBoxStyle]}>
@@ -265,7 +199,7 @@ const Login = ({ navigation, route }) => {
                     passwordInput.focus();
                   }}
                   blurOnSubmit={false}
-                  autoCompleteType={'username'}
+                  autoComplete='username'
                   autoCorrect={false}
                   autoCapitalize={'none'}
                   enablesReturnKeyAutomatically={true}
@@ -289,7 +223,7 @@ const Login = ({ navigation, route }) => {
                     setPasswordInput(input);
                   }}
                   returnKeyType={'go'}
-                  autoCompleteType={'password'}
+                  autoComplete='current-password'
                   onSubmitEditing={getToken}
                 />
               </View>
@@ -336,12 +270,11 @@ const Login = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };
 const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     flex: 1,

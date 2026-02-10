@@ -1,83 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Text,
+  Alert,
+  Platform,
   View,
+  ScrollView,
   StyleSheet,
-  SafeAreaView,
   ActionSheetIOS,
 } from 'react-native';
-import {
-  ScrollView,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
-} from 'react-native-gesture-handler';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import i18n from 'i18n-js';
-import { useColorScheme } from 'react-native-appearance';
-import {
-  backgroundColorDark,
-  backgroundColorLight,
-  textColorDark,
-  textColorLight,
-  primaryButton,
-  secondaryButton,
-} from '../colors/colors';
+import i18n from '../language/i18n';
 import axios from 'axios';
 import { apiKey } from '../settings/api';
-import { borderRadius } from '../styles/globalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppearance } from '../components/AppearanceContext';
+import { backgroundColorDark, backgroundColorLight, primaryButton } from '../colors/colors';
+import SettingsSection from '../components/SettingsSection';
+import SettingsRow from '../components/SettingsRow';
 
 const Settings = ({ navigation }) => {
   const [sessionId, setSessionId] = useState();
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
-  const themeTextStyle =
-    colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeBoxStyle =
-    colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
-  const themeButtonStyle =
-    colorScheme === 'light' ? styles.darkThemeBox : styles.lightThemeBox;
-  const themeButtonTextStyle =
-    colorScheme === 'light' ? styles.darkThemeText : styles.lightThemeText;
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const value = await AsyncStorage.getItem('sessionId');
-        if (value !== null) {
-          setSessionId(value);
-        } else {
-          console.log('there is no login credit');
-        }
-      } catch (e) {
-        alert('error reading value');
-      }
-    };
-    getData();
-  }, []);
+  const { colorScheme } = useAppearance();
+  const themeContainerStyle = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   const getData = async () => {
     try {
@@ -86,327 +28,160 @@ const Settings = ({ navigation }) => {
         setSessionId(value);
       } else {
         setSessionId('');
-        console.log('there is no login credit');
       }
-    } catch (e) {
+    } catch (_e) {
       alert('error reading value');
     }
   };
 
-  const logout = async () => {
-    try {
-      await AsyncStorage.removeItem('sessionId');
-      setSessionId('');
-      deleteSession();
-    } catch (e) {
-      // remove error
-    }
-    console.log('Done.');
-  };
+  useEffect(() => {
+    getData();
+  }, []);
 
-  const openActionSheet = () =>
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: [i18n.t('cancel'), i18n.t('logout')],
-        destructiveButtonIndex: 1,
-        cancelButtonIndex: 0,
-        title: i18n.t('areYouSure'),
-      },
-      (buttonIndex) => {
-        if (buttonIndex === 0) {
-          // cancel action
-        } else if (buttonIndex === 1) {
-          logout();
-        }
-      }
-    );
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getData();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
-  const deleteSession = async () => {
-    console.log('logged out');
+  const deleteSession = async (sessionIdToDelete) => {
     try {
-      const response = await axios({
+      await axios({
         method: 'DELETE',
         url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
         headers: {},
         data: {
-          session_id: sessionId,
+          session_id: sessionIdToDelete,
         },
       });
-      console.log(response.data);
     } catch (e) {
       console.log(e);
-    } finally {
     }
   };
 
-  useEffect(() => {
-    const subscribed = navigation.addListener('focus', () => {
-      console.log(sessionId);
-      getData();
-      return subscribed;
-    });
-  }, [sessionId]);
+  const logout = async () => {
+    const currentSessionId = sessionId;
+    try {
+      await AsyncStorage.removeItem('sessionId');
+      setSessionId('');
+      await deleteSession(currentSessionId);
+    } catch (_e) {
+      // remove error
+    }
+  };
+
+  const openActionSheet = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [i18n.t('cancel'), i18n.t('logout')],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 0,
+          title: i18n.t('areYouSure'),
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            logout();
+          }
+        }
+      );
+    } else {
+      Alert.alert(i18n.t('areYouSure'), '', [
+        { text: i18n.t('cancel'), style: 'cancel' },
+        { text: i18n.t('logout'), style: 'destructive', onPress: logout },
+      ]);
+    }
+  };
 
   return (
-    <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
-        <ScrollView indicatorStyle={scrollBarTheme}>
-          <View style={styles.main}>
-            <View style={styles.listHeadingElement}>
-              <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('mainSettings')}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.touchableElem}
+    <View style={[styles.container, { backgroundColor: themeContainerStyle }]}>
+      <ScrollView contentInsetAdjustmentBehavior='automatic'>
+        <View style={styles.content}>
+          <SettingsSection header={i18n.t('mainSettings')}>
+            <SettingsRow
+              icon='info.circle.fill'
+              iconColor='#007AFF'
+              title={i18n.t('about')}
+              accessory='chevron'
               onPress={() =>
                 navigation.navigate('About', {
                   headerTitle: i18n.t('about'),
                 })
               }
-            >
-              <View style={[styles.listElement, themeBoxStyle]}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('about')}
-                    </Text>
-                    <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('aboutDescription')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.rightArrow}>
-                  <FontAwesome5
-                    name={'question-circle'}
-                    solid
-                    style={[themeTextStyle, { fontSize: iconSize }]}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.touchableElem}
+            />
+            <SettingsRow
+              icon='paintbrush.fill'
+              iconColor='#AF52DE'
+              title={i18n.t('appearance')}
+              accessory='chevron'
               onPress={() =>
                 navigation.navigate('Appearance', {
                   headerTitle: i18n.t('appearance'),
                 })
               }
-            >
-              <View style={[styles.listElement, themeBoxStyle]}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('appearance')}
-                    </Text>
-                    <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('appearanceDescription')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.rightArrow}>
-                  <FontAwesome5
-                    name={'paint-brush'}
-                    solid
-                    style={[themeTextStyle, { fontSize: iconSize }]}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.touchableElem}
+            />
+            <SettingsRow
+              icon='globe'
+              iconColor='#30B0C7'
+              title={i18n.t('contentSettings')}
+              accessory='chevron'
               onPress={() =>
                 navigation.navigate('ContentSettings', {
                   headerTitle: i18n.t('contentSettings'),
                 })
               }
-            >
-              <View style={[styles.listElement, themeBoxStyle]}>
-                <View style={styles.iconElement}>
-                  <View>
-                    <Text style={[styles.text, themeTextStyle]}>
-                      {i18n.t('contentSettings')}
-                    </Text>
-                    <Text style={[styles.textDescription, themeTextStyle]}>
-                      {i18n.t('contentDescription')}
-                    </Text>
-                  </View>
-                </View>
+            />
+          </SettingsSection>
 
-                <View style={styles.rightArrow}>
-                  <FontAwesome5
-                    name={'globe'}
-                    solid
-                    style={[themeTextStyle, { fontSize: iconSize }]}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.listHeadingElement}>
-              <Text style={[styles.listHeading, themeTextStyle]}>
-                {i18n.t('accountSettings')}
-              </Text>
-            </View>
-
+          <SettingsSection header={i18n.t('accountSettings')}>
             {sessionId ? (
-              <TouchableOpacity
-                style={styles.touchableElem}
+              <SettingsRow
+                icon='person.crop.circle.fill'
+                iconColor='#34C759'
+                title={i18n.t('account')}
+                accessory='chevron'
                 onPress={() =>
                   navigation.navigate('Account', {
                     headerTitle: i18n.t('account'),
                   })
                 }
-              >
-                <View style={[styles.listElement, themeBoxStyle]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text, themeTextStyle]}>
-                        {i18n.t('account')}
-                      </Text>
-                      <Text style={[styles.textDescription, themeTextStyle]}>
-                        {i18n.t('accountDescription')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'user-circle'}
-                      solid
-                      style={[themeTextStyle, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
+              />
             ) : null}
-
             {sessionId ? (
-              <TouchableOpacity onPress={openActionSheet}>
-                <View style={[styles.listElement, styles.logoutButton]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text]}>{i18n.t('logout')}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'sign-in-alt'}
-                      solid
-                      style={[{ color: 'black' }, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
+              <SettingsRow
+                icon='rectangle.portrait.and.arrow.right.fill'
+                iconColor='#FF3B30'
+                title={i18n.t('logout')}
+                onPress={openActionSheet}
+              />
             ) : (
-              <TouchableOpacity
+              <SettingsRow
+                icon='person.crop.circle.badge.plus'
+                iconColor={primaryButton}
+                title={i18n.t('login')}
+                accessory='chevron'
                 onPress={() =>
                   navigation.navigate('Login', {
                     headerTitle: i18n.t('login'),
                   })
                 }
-              >
-                <View style={[styles.listElement, styles.logoutButton]}>
-                  <View style={styles.iconElement}>
-                    <View>
-                      <Text style={[styles.text]}>{i18n.t('login')}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.rightArrow}>
-                    <FontAwesome5
-                      name={'sign-in-alt'}
-                      solid
-                      style={[{ color: 'black' }, { fontSize: iconSize }]}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
+              />
             )}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+          </SettingsSection>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
-
-const iconSize = 21;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  main: {
-    width: '100%',
-    paddingLeft: 15,
-    paddingRight: 15,
-  },
-  listElement: {
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: borderRadius,
-    width: '100%',
-  },
-  iconElement: {
-    flexDirection: 'row',
-  },
-  text: {
-    fontSize: 18.5,
-    fontWeight: '400',
-  },
-  textDescription: {
-    opacity: 0.7,
-    marginTop: 5,
-    fontSize: 14,
-  },
-  logoutButton: {
-    backgroundColor: primaryButton,
-  },
-
-  icon: {
-    marginRight: 12,
-  },
-  listHeading: {
-    opacity: 0.7,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  listHeadingElement: {
-    marginTop: 20,
-    paddingBottom: 15,
-  },
-  rightArrow: {
-    paddingRight: 15,
-  },
-  touchableElem: {
-    width: '100%',
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
   },
 });
 

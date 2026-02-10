@@ -1,16 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Text,
   ScrollView,
   View,
   TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
-  Animated,
   Share,
-  Image,
+  TextInput,
 } from 'react-native';
-import { SearchBar } from 'react-native-elements';
+import { Image } from 'expo-image';
 import axios from 'axios';
 import {
   basePosterUrl,
@@ -18,18 +16,15 @@ import {
   topRatedMovieUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import i18n from 'i18n-js';
-import { useColorScheme } from 'react-native-appearance';
-import { styles } from './Home';
-import posterLoader from '../assets/poster-loader.jpg';
+import i18n from '../language/i18n';
+import { sharedStyles as styles } from '../styles/sharedStyles';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Localization from 'expo-localization';
-
-const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
+import { useAppearance } from '../components/AppearanceContext';
 
 const TopRated = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
@@ -40,48 +35,28 @@ const TopRated = ({ navigation }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [pageNumber, setPageNumber] = useState(2);
-  const [appearance, setAppearance] = useState();
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
+  const isBottomLoadingRef = useRef(false);
+  const defaultRegion = Localization.getLocales()[0]?.regionCode || 'US';
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          console.log(value);
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const getRegion = async () => {
+  const getRegion = useCallback(async () => {
     try {
       const region = await AsyncStorage.getItem('region');
-      const defaultRegion = Platform.OS === 'ios' ? Localization.region : 'NO';
-      console.log('region from localstorage ' + region);
-      const regionToll = region === 'auto' ? defaultRegion : region;
-      if (region !== null) {
-        setRegionFinal(regionToll);
-      } else {
+      if (!region) {
         setRegionFinal(defaultRegion);
-        console.log('there is no region set');
+        await AsyncStorage.setItem('region', 'auto');
+        return;
       }
-    } catch (e) {
+      setRegionFinal(region === 'auto' ? defaultRegion : region);
+    } catch (_e) {
       alert('error reading region value');
     }
-  };
+  }, [defaultRegion]);
 
   useEffect(() => {
     getRegion();
-  }, []);
+  }, [getRegion]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -89,57 +64,49 @@ const TopRated = ({ navigation }) => {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, getRegion]);
 
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeSearchbar = colorScheme === 'light' ? true : false;
+  const { colorScheme } = useAppearance();
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
-  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+  const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const defaultRegion = Localization.region
-    ? Platform.OS === 'ios'
-      ? Localization.region
-      : 'US'
-    : 'US';
-
   useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    setRegionsText(theShit);
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
+    setRegionsText(activeRegion);
     setLoader(true);
+    isBottomLoadingRef.current = false;
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
+          `${topRatedMovieUrl + `&region=${activeRegion}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
+        setPageNumber(2);
         setRefreshing(false);
-        console.log('fresh update');
         setLoader(false);
       } catch (e) {
         console.log(e);
-      } finally {
       }
     };
     getMovies();
-  }, [regionFinal]);
+  }, [regionFinal, defaultRegion]);
 
   useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    console.log(theShit);
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
+    isBottomLoadingRef.current = false;
     const onRefresh = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
+          `${topRatedMovieUrl + `&region=${activeRegion}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
-        console.log('fresh update');
+        setPageNumber(2);
       } catch (e) {
         console.log(e);
       } finally {
@@ -147,25 +114,40 @@ const TopRated = ({ navigation }) => {
       }
     };
     onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    console.log(theShit);
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
 
-    if (pageNumber <= totalPageNumberFromApi) {
-      setBottomLoader(true);
-      setPageNumber(pageNumber + 1);
-      try {
-        const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=${pageNumber}`}`
+    if (
+      isBottomLoadingRef.current ||
+      !totalPageNumberFromApi ||
+      pageNumber > totalPageNumberFromApi
+    ) {
+      return;
+    }
+
+    isBottomLoadingRef.current = true;
+    setBottomLoader(true);
+    const nextPage = pageNumber;
+    try {
+      const response = await axios.get(
+        `${topRatedMovieUrl + `&region=${activeRegion}&page=${nextPage}`}`
+      );
+      setMovies((currentMovies) => {
+        const currentIds = new Set(currentMovies.map((movie) => movie.id));
+        const uniqueNewMovies = response.data.results.filter(
+          (movie) => !currentIds.has(movie.id)
         );
-        setMovies((movies) => [...movies, ...response.data.results]);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setBottomLoader(false);
-      }
+        return [...currentMovies, ...uniqueNewMovies];
+      });
+      setPageNumber((currentPage) => currentPage + 1);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      isBottomLoadingRef.current = false;
+      setBottomLoader(false);
     }
   };
 
@@ -173,6 +155,7 @@ const TopRated = ({ navigation }) => {
     setRefreshing(true);
     setRefreshIndicator(!refreshIndicator);
     setPageNumber(2);
+    isBottomLoadingRef.current = false;
   }
 
   const getSearch = async (title) => {
@@ -190,7 +173,7 @@ const TopRated = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replaceAll(' ', '%').trim();
+    let title = encodeURIComponent(inputValue.trim());
     if (title.length >= 1) {
       getSearch(title);
     } else {
@@ -198,15 +181,6 @@ const TopRated = ({ navigation }) => {
       setLoader(false);
     }
   }
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
 
   const isCloseToBottom = ({
     layoutMeasurement,
@@ -221,13 +195,7 @@ const TopRated = ({ navigation }) => {
   };
 
   const onShare = async (title, id) => {
-    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
-      if (!Haptics.impactAsync) {
-        throw new UnavailabilityError('Haptic', 'impactAsync');
-      }
-      await Haptics.impactAsync(style);
-    }
-    impactAsync();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const url = 'https://www.themoviedb.org/movie/' + id;
 
@@ -252,40 +220,36 @@ const TopRated = ({ navigation }) => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, themeContainerStyle]}>
-        <SearchBar
-          placeholder={i18n.t('search')}
-          onChangeText={(text) => handleSearch(text)}
-          lightTheme={themeSearchbar}
-          containerStyle={{
-            backgroundColor: 'transparent',
-            paddingLeft: 0,
-            paddingRight: 0,
-            width: '90%',
-            paddingBottom: 30,
-            borderTopColor: 'transparent',
-            borderBottomColor: 'transparent',
-          }}
-          searchIcon={{ size: 25, color: searchBarTheme }}
-          placeholderTextColor={searchBarTheme}
-          inputStyle={{ color: searchBarTheme }}
-          round
-          value={search}
-        />
+      <View style={[styles.container, themeContainerStyle]}>
+        <View style={{ width: '90%', paddingBottom: 30 }}>
+          <TextInput
+            placeholder={i18n.t('search')}
+            onChangeText={(text) => handleSearch(text)}
+            placeholderTextColor={searchBarTheme}
+            style={{
+              color: searchBarTheme,
+              backgroundColor: colorScheme === 'light' ? '#E8E8E8' : '#3A3A3C',
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              fontSize: 16,
+            }}
+            clearButtonMode='while-editing'
+            value={search}
+          />
+        </View>
         <Text style={[styles.heading, themeTextStyle]}>
           {i18n.t('topRated')}
         </Text>
         <Text style={[styles.description, themeTextStyle]}>
           {i18n.t('topRatedDescription')} {regionsText}
         </Text>
-        <SafeAreaView style={styles.container}></SafeAreaView>
         <ScrollView
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
           indicatorStyle={themeTabBar}
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
-              console.log('load bottom');
               if (movies.length >= 1) {
                 onBottomLoad();
               }
@@ -324,25 +288,19 @@ const TopRated = ({ navigation }) => {
                       }
                     >
                       <View style={styles.imageDiv}>
-                        <Animated.Image
+                        <Image
                           source={movie.poster_path ? posterImage : noImage}
-                          style={[
-                            styles.image,
-                            {
-                              opacity: fadeAnim,
-                            },
-                          ]}
-                          resizeMode='cover'
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
-                          onLoad={fadeIn}
+                          style={styles.image}
+                          placeholder={imageBlurhash}
+                          placeholderContentFit='cover'
+                          transition={300}
                         />
                       </View>
                       <View style={styles.ratingDiv}>
                         <Image
                           source={tmdbLogo}
                           style={styles.tmdbLogo}
-                          resizeMode='contain'
+                          contentFit='contain'
                         />
                         <Text style={[styles.rating, themeTextStyle]}>
                           {Math.floor((movie.vote_average * 100) / 10)}%
@@ -359,7 +317,7 @@ const TopRated = ({ navigation }) => {
           ) : null}
           <View style={styles.view}></View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

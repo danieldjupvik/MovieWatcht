@@ -1,37 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  Image,
-  Dimensions,
+  Dimensions
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseProfileUrl,
   baseStillImageUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
-import i18n from 'i18n-js';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
-  primaryButton,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import ButtonStyles from '../styles/buttons';
-import posterLoader from '../assets/poster-loader.jpg';
-import noImage from '../assets/no-image.jpg';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 
 export const monthNames = [
   'Jan',
@@ -50,35 +42,14 @@ export const monthNames = [
 const RenderSeason = ({ navigation, id, season }) => {
   const [loader, setLoader] = useState(true);
   const [episodes, setEpisodes] = useState([]);
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const { colorScheme } = useAppearance();
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
-    let isCancelled = false;
     const getSeason = async () => {
       try {
         const response = await axios.get(
@@ -92,23 +63,10 @@ const RenderSeason = ({ navigation, id, season }) => {
       }
     };
     getSeason();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
-
-  const numFormatter = (num) => {
-    if (num > 999 && num < 1000000) {
-      return (num / 1000).toFixed() + 'k';
-    } else if (num > 1000000) {
-      return (num / 1000000).toFixed(1) + 'm';
-    } else if (num < 900) {
-      return num;
-    }
-  };
+  }, [id, season]);
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
       ) : (
@@ -118,32 +76,35 @@ const RenderSeason = ({ navigation, id, season }) => {
               <View style={[styles.imageDiv, boxShadow]}>
                 <Image
                   source={{
-                    uri: `${basePosterUrl + episodes.poster_path}`,
+                    uri: `${basePosterUrl + (episodes?.poster_path ?? '')}`,
                   }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  placeholder={imageBlurhash}
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
               <View style={styles.cardsDiv}>
-                {episodes.episodes.map((episode, idx) => {
-                  var d = new Date(episode.air_date);
-
-                  var year = d.getFullYear();
-                  var month = monthNames[d.getMonth()];
-                  var day = d.getDate();
-                  var releaseDate = `${day}. ${month} ${year}`;
+                {(episodes?.episodes ?? []).map((episode, idx) => {
+                  let releaseDate = '';
+                  if (episode.air_date) {
+                    let d = new Date(episode.air_date);
+                    let year = d.getFullYear();
+                    let month = monthNames[d.getMonth()];
+                    let day = d.getDate();
+                    releaseDate = `${day}. ${month} ${year}`;
+                  }
                   return (
                     <View key={idx} style={styles.cards}>
                       <View style={styles.stillImgDiv}>
                         <Image
                           source={{
-                            uri: `${baseStillImageUrl + episode.still_path}`,
+                            uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
                           }}
-                          defaultSource={posterLoader}
-                          ImageCacheEnum={'force-cache'}
+                          placeholder={imageBlurhash}
+                          placeholderContentFit='cover'
                           style={styles.stillImg}
-                          resizeMode='cover'
+
+
                         />
                       </View>
                       <View style={styles.infoDiv}>
@@ -168,17 +129,12 @@ const RenderSeason = ({ navigation, id, season }) => {
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
-const globalFontsize = 17;
-const globalPadding = 5;
-const normalFontWeight = '300';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-
-console.log(deviceWidth);
 
 const styles = StyleSheet.create({
   container: {

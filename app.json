@@ -2,7 +2,7 @@
   "expo": {
     "name": "MovieWatcht",
     "slug": "MovieWatcht",
-    "version": "1.2.7",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -10,15 +10,16 @@
       "resizeMode": "cover",
       "backgroundColor": "#1D1D1C"
     },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.danieldjupvik.MovieWatcht",
-      "buildNumber": "1.2.1",
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.danieldjupvik.MovieWatcht",
@@ -33,6 +34,21 @@
       "favicon": "./assets/favicon.png"
     },
     "description": "Search and find movies from THMDb",
-    "githubUrl": "https://github.com/danieldjupvik/MovieWatch-app"
+    "githubUrl": "https://github.com/danieldjupvik/MovieWatch-app",
+    "experiments": {
+      "reactCompiler": true
+    },
+    "plugins": [
+      "expo-localization",
+      "expo-web-browser",
+      "expo-image",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a574474b-ca75-4d67-ae5d-a73b04e9b00b"
+      }
+    },
+    "owner": "danieldjupvik"
   }
 }

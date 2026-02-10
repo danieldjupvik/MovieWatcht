@@ -1,31 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  Image,
   Dimensions,
-  ImageBackground,
+  Pressable
 } from 'react-native';
+import { Image } from 'expo-image';
 import {
   baseBackdropUrl,
+  baseBackdropPlaceholderUrl,
   apiKey,
   basePosterUrl,
   personUrl,
   creditPerson,
 } from '../settings/api';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from 'i18n-js';
-import brandIcon from '../assets/icon.png';
+import i18n from '../language/i18n';
+import { useAppearance } from '../components/AppearanceContext';
 
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -33,39 +29,22 @@ import {
   textColorLight,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import { monthNames } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
+import noImage from '../assets/no-image.jpg';
 
 const PersonDetails = ({ route, navigation }) => {
   const { id } = route.params;
   const { creditId } = route.params;
 
   const [loader, setLoader] = useState(true);
-  const [person, setPerson] = useState([]);
-  const [personCredit, setPersonCredit] = useState([]);
-  const [appearance, setAppearance] = useState();
+  const [person, setPerson] = useState({});
+  const [personCredit, setPersonCredit] = useState({});
+  const pendingRequests = useRef(0);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const { colorScheme } = useAppearance();
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -76,6 +55,9 @@ const PersonDetails = ({ route, navigation }) => {
       : styles.darkThemeBtnBackground;
 
   useEffect(() => {
+    pendingRequests.current = creditId ? 2 : 1;
+    setLoader(true);
+
     const getPerson = async () => {
       try {
         const response = await axios.get(
@@ -85,68 +67,93 @@ const PersonDetails = ({ route, navigation }) => {
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
+        pendingRequests.current -= 1;
+        if (pendingRequests.current <= 0) setLoader(false);
       }
     };
-    getPerson();
-  }, []);
 
-  useEffect(() => {
     const getCreditPerson = async () => {
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
-        console.log(response.data.media);
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
+        pendingRequests.current -= 1;
+        if (pendingRequests.current <= 0) setLoader(false);
       }
     };
-    getCreditPerson();
-  }, []);
 
-  var dBirthday = new Date(person.birthday);
-  var year = dBirthday.getFullYear();
-  var month = monthNames[dBirthday.getMonth()];
-  var day = dBirthday.getDate();
-  var birthday = `${day}. ${month} ${year}`;
+    getPerson();
+    if (creditId) getCreditPerson();
+  }, [id, creditId]);
 
-  var dDeathday = new Date(person.birthday);
-  var year = dDeathday.getFullYear();
-  var month = monthNames[dDeathday.getMonth()];
-  var day = dDeathday.getDate();
-  var deathday = `${day}. ${month} ${year}`;
+  let birthday = '';
+  if (person.birthday) {
+    const dBirthday = new Date(person.birthday);
+    birthday = `${dBirthday.getDate()}. ${monthNames[dBirthday.getMonth()]} ${dBirthday.getFullYear()}`;
+  }
+
+  let deathday = '';
+  if (person.deathday) {
+    const dDeathday = new Date(person.deathday);
+    deathday = `${dDeathday.getDate()}. ${monthNames[dDeathday.getMonth()]} ${dDeathday.getFullYear()}`;
+  }
+
+  const knownForItems = (person.combined_credits?.cast || [])
+    .slice()
+    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    .slice(0, 20);
+
+  const appearsInItems = person.combined_credits?.cast || [];
 
   const goToWebsite = () => {
     WebBrowser.openBrowserAsync(person.homepage);
   };
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
+    <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader />
       ) : (
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <ImageBackground
-                source={{
-                  uri: `${baseBackdropUrl + personCredit.media?.backdrop_path}`,
-                }}
-                style={styles.backdrop}
-                defaultSource={posterLoader}
-                ImageCacheEnum={'force-cache'}
-              >
+              <View style={styles.backdrop}>
+                <Image
+                  source={
+                    personCredit.media?.backdrop_path
+                      ? {
+                          uri: `${baseBackdropUrl + personCredit.media.backdrop_path}`,
+                        }
+                      : noImage
+                  }
+                  style={StyleSheet.absoluteFill}
+                  placeholder={
+                    personCredit.media?.backdrop_path
+                      ? {
+                          uri: `${
+                            baseBackdropPlaceholderUrl +
+                            personCredit.media.backdrop_path
+                          }`,
+                        }
+                      : imageBlurhash
+                  }
+                  placeholderContentFit='cover'
+                  transition={350}
+                  contentFit='cover'
+                />
                 <View style={styles.child} />
-              </ImageBackground>
+              </View>
               <View style={boxShadow}>
                 <Image
-                  source={{
-                    uri: `${basePosterUrl + person.profile_path}`,
-                  }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  source={
+                    person.profile_path
+                      ? { uri: `${basePosterUrl + person.profile_path}` }
+                      : noImage
+                  }
+                  placeholder={imageBlurhash}
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
@@ -168,7 +175,13 @@ const PersonDetails = ({ route, navigation }) => {
 
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
-                {person.gender === 1 ? i18n.t('female') : i18n.t('male')}
+                {person.gender === 1
+                  ? i18n.t('female')
+                  : person.gender === 2
+                    ? i18n.t('male')
+                    : person.gender === 3
+                      ? i18n.t('nonBinary')
+                      : ''}
               </Text>
 
               <Text style={[styles.genre, themeTextStyle]}>
@@ -178,7 +191,7 @@ const PersonDetails = ({ route, navigation }) => {
 
               {person.homepage ? (
                 <View style={styles.homepageButtonMain}>
-                  <TouchableOpacity
+                  <Pressable
                     style={styles.homepageButtonDiv}
                     onPress={goToWebsite}
                   >
@@ -191,7 +204,7 @@ const PersonDetails = ({ route, navigation }) => {
                     >
                       {i18n.t('homepage')}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               ) : null}
               <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
@@ -205,22 +218,19 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {personCredit.person?.known_for.map((movie, idx) => {
-                    if (movie.poster_path !== null) {
-                      let mediaType;
-                      if (movie.media_type === 'movie') {
-                        mediaType = 'Details';
-                      } else {
-                        mediaType = 'SeriesDetails';
-                      }
+                  {knownForItems
+                    .filter((movie) => movie.poster_path !== null)
+                    .map((movie) => {
+                      const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
-                        <TouchableOpacity
+                        <Pressable
                           style={styles.moviesCard}
-                          key={idx}
+                          key={movie.credit_id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
-                              headerTitle: movie.title,
+                              headerTitle:
+                                movie.title || movie.name || movie.original_name,
                             })
                           }
                         >
@@ -230,23 +240,21 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-                              ImageCacheEnum={'force-cache'}
                             />
                           </View>
                           <View style={styles.ratingDiv}>
                             <Image
                               source={tmdbLogo}
                               style={styles.tmdbLogo}
-                              resizeMode='contain'
+                              contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
                               {Math.floor((movie.vote_average * 100) / 10)}%
                             </Text>
                           </View>
-                        </TouchableOpacity>
+                        </Pressable>
                       );
-                    }
-                  })}
+                    })}
                 </View>
               </ScrollView>
             </View>
@@ -257,22 +265,19 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {person.combined_credits?.cast.map((movie, idx) => {
-                    if (movie.poster_path !== null) {
-                      let mediaType;
-                      if (movie.media_type === 'movie') {
-                        mediaType = 'Details';
-                      } else {
-                        mediaType = 'SeriesDetails';
-                      }
+                  {appearsInItems
+                    .filter((movie) => movie.poster_path !== null)
+                    .map((movie) => {
+                      const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
-                        <TouchableOpacity
+                        <Pressable
                           style={styles.moviesCard}
-                          key={idx}
+                          key={movie.credit_id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
-                              headerTitle: movie.title,
+                              headerTitle:
+                                movie.title || movie.name || movie.original_name,
                             })
                           }
                         >
@@ -282,14 +287,13 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-                              ImageCacheEnum={'force-cache'}
                             />
                           </View>
                           <View style={styles.ratingDiv}>
                             <Image
                               source={tmdbLogo}
                               style={styles.tmdbLogo}
-                              resizeMode='contain'
+                              contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
                               {Math.floor((movie.vote_average * 100) / 10)}%
@@ -300,17 +304,16 @@ const PersonDetails = ({ route, navigation }) => {
                               {movie.media_type === 'movie' ? 'Movie' : 'TV'}
                             </Text>
                           </View>
-                        </TouchableOpacity>
+                        </Pressable>
                       );
-                    }
-                  })}
+                    })}
                 </View>
               </ScrollView>
             </View>
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -453,9 +456,6 @@ const styles = StyleSheet.create({
     width: deviceWidth / 4.5,
     height: deviceWidth / 3,
     marginBottom: 13,
-  },
-  rating: {
-    marginLeft: 6,
   },
   ratingDiv: {
     marginTop: 10,

@@ -1,43 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  Image,
   Dimensions,
-  ImageBackground,
-  TouchableWithoutFeedback,
-  Modal,
-  Pressable,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
   basePosterUrl,
   baseBackdropUrl,
+  baseBackdropPlaceholderUrl,
   baseProfileUrl,
 } from '../settings/api';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Loader from '../components/Loader';
-import * as WebBrowser from 'expo-web-browser';
-import i18n from 'i18n-js';
+import i18n from '../language/i18n';
 import axios from 'axios';
-import { useColorScheme } from 'react-native-appearance';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
   backgroundColorLight,
   textColorDark,
   textColorLight,
-  primaryButton,
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
-import ButtonStyles from '../styles/buttons';
-import posterLoader from '../assets/poster-loader.jpg';
+import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
@@ -60,40 +51,14 @@ export const monthNames = [
 ];
 const RenderSeriesDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
-  const [series, setSeries] = useState([]);
+  const [series, setSeries] = useState({});
   const [videos, setVideos] = useState([]);
-  const [appearance, setAppearance] = useState();
-  const [movieExist, setMovieExist] = useState();
-  const [sessionId, setSessionId] = useState();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [stateFinish, setStateFinish] = useState(true);
-  const [digitalRelease, setDigitalRelease] = useState();
-  const [releaseNote, setReleaseNote] = useState();
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
-  const [lastEpisodeShow, setLastEpisodeShow] = useState(true);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const scrollBarTheme = colorScheme === 'light' ? 'light' : 'dark';
+  const { colorScheme } = useAppearance();
+  const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -102,15 +67,11 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
   useEffect(() => {
-    let isCancelled = false;
-    setStateFinish(false);
     const getSeries = async () => {
       try {
         const videos = await axios.get(
-          `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US'
-          }`
+          `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US`
         );
-        const sessionId = await AsyncStorage.getItem('sessionId');
         const response = await axios.get(
           `${
             detailsSeriesUrl +
@@ -122,19 +83,13 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setVideos(videos.data.results);
         getOmdbInfo(response.data.external_ids.imdb_id);
         setSeries(response.data);
-        setSessionId(sessionId);
-        // {
-        //   sessionId ? getMovieState(sessionId) : null;
-        // }
       } catch (e) {
         console.log(e);
-      } finally {
+        setLoader(false);
       }
     };
     getSeries();
-    return () => {
-      isCancelled = true;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getOmdbInfo = async (imdbId) => {
@@ -143,16 +98,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
       );
       setOmdb(response.data);
-      setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
-      setRottenTomato(
-        JSON.parse(
-          response.data.Ratings.filter(
-            (source) => source.Source === 'Rotten Tomatoes'
-          )
-            .map((type) => type.Value)[0]
-            .replace('%', '')
-        )
+      if (response.data.imdbVotes && response.data.imdbVotes !== 'N/A') {
+        setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
+      }
+      const rtRating = response.data.Ratings?.find(
+        (source) => source.Source === 'Rotten Tomatoes'
       );
+      if (rtRating) {
+        setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
+      }
       return response;
     } catch (e) {
       console.log(e);
@@ -161,116 +115,45 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     }
   };
 
-  // const getMovieState = async (session) => {
-  //   try {
-  //     const response = await axios.get(
-  //       `https://api.themoviedb.org/3/movie/${id}/account_states${apiKey}&session_id=${session}`
-  //     );
-  //     console.log(response.data.watchlist);
-  //     setMovieExist(response.data.watchlist);
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setStateFinish(true);
-  //   }
-  // };
-
-  // const watchListFunction = () => {
-  //   if (sessionId) {
-  //     setMovieExist(!movieExist);
-  //     if (movieExist) {
-  //       removeMovieToWatchlist();
-  //       console.log('movie was removed');
-  //     } else {
-  //       setMovieToWatchlist();
-  //       console.log('movie was added');
-  //     }
-  //   } else {
-  //     setModalVisible(true);
-  //   }
-  // };
-
-  // const setMovieToWatchlist = async () => {
-  //   try {
-  //     const response = await axios({
-  //       method: 'POST',
-  //       url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
-  //       headers: {
-  //         'Content-Type': 'application/json;charset=utf-8',
-  //       },
-  //       data: {
-  //         media_type: 'movie',
-  //         media_id: series.id,
-  //         watchlist: true,
-  //       },
-  //     });
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //   }
-  //   return response;
-  // };
-
-  // const removeMovieToWatchlist = async () => {
-  //   try {
-  //     const response = await axios({
-  //       method: 'POST',
-  //       url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
-  //       headers: {
-  //         'Content-Type': 'application/json;charset=utf-8',
-  //       },
-  //       data: {
-  //         media_type: 'movie',
-  //         media_id: series.id,
-  //         watchlist: false,
-  //       },
-  //     });
-  //     return response;
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //   }
-  //   return response;
-  // };
-
   // premiere
-  var d = new Date(series.first_air_date);
-
-  var year = d.getFullYear();
-  var month = monthNames[d.getMonth()];
-  var day = d.getDate();
-  var releaseDate = `${day}. ${month} ${year}`;
+  let year = '';
+  let releaseDate = '';
+  if (series.first_air_date) {
+    let d = new Date(series.first_air_date);
+    year = d.getFullYear();
+    let month = monthNames[d.getMonth()];
+    let day = d.getDate();
+    releaseDate = `${day}. ${month} ${year}`;
+  }
 
   // Next episode
 
   const nextEpisode = (date) => {
-    var newDate = new Date(date);
-    var nextYear = newDate.getFullYear();
-    var nextMonth = monthNames[newDate.getMonth()];
-    var nextDay = newDate.getDate();
-    var nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
+    let newDate = new Date(date);
+    let nextYear = newDate.getFullYear();
+    let nextMonth = monthNames[newDate.getMonth()];
+    let nextDay = newDate.getDate();
+    let nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
     return nextReleaseDate;
   };
 
   const nextAirCountdown = (date) => {
-    var cleanDate = date.replaceAll('-', '/');
-    var dates = `${cleanDate} 00:00 AM`;
-    var end = new Date(dates);
-    var _second = 1000;
-    var _minute = _second * 60;
-    var _hour = _minute * 60;
-    var _day = _hour * 24;
+    let cleanDate = date.replaceAll('-', '/');
+    let dates = `${cleanDate} 00:00 AM`;
+    let end = new Date(dates);
+    let _second = 1000;
+    let _minute = _second * 60;
+    let _hour = _minute * 60;
+    let _day = _hour * 24;
 
-    var now = new Date();
-    var distance = end - now;
+    let now = new Date();
+    let distance = end - now;
 
-    var days = Math.floor(distance / _day);
-    var hours = Math.floor((distance % _day) / _hour);
-    var dayString = days > 1 ? i18n.t('days') : i18n.t('day');
-    var hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
-    var timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
+    let days = Math.floor(distance / _day);
+    let hours = Math.floor((distance % _day) / _hour);
+    let dayString = days > 1 ? i18n.t('days') : i18n.t('day');
+    let hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
+    let timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
 
     if (distance < 0) {
       return false;
@@ -279,101 +162,58 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     return timeUntilAir;
   };
 
-  const goToWebsite = () => {
-    WebBrowser.openBrowserAsync(series.homepage);
-  };
-
   const numFormatter = (num) => {
-    if (num > 999 && num < 1000000) {
-      return (num / 1000).toFixed() + 'k';
-    } else if (num > 1000000) {
+    if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'm';
-    } else if (num < 900) {
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed() + 'k';
+    } else {
       return num;
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, themeContainerStyle]}>
-      <View style={modal.centeredView}>
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View
-            style={[
-              modal.centeredView,
-              modalVisible ? { backgroundColor: 'rgba(0,0,0,0.5)' } : '',
-            ]}
-          >
-            <View style={[modal.modalView, themeBoxStyle]}>
-              <Text style={[modal.modalText, themeTextStyle]}>
-                {i18n.t('watchlistModalTex')}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  ButtonStyles.smallButtonStyling,
-                  { backgroundColor: primaryButton },
-                ]}
-                onPress={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <Text style={modal.textStyle}>{i18n.t('close')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
+    <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
       ) : (
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <ImageBackground
-                source={{
-                  uri: `${baseBackdropUrl + series.backdrop_path}`,
-                }}
-                style={styles.backdrop}
-                defaultSource={posterLoader}
-                ImageCacheEnum={'force-cache'}
-              >
+              <View style={styles.backdrop}>
+                <Image
+                  source={
+                    series.backdrop_path
+                      ? {
+                          uri: `${baseBackdropUrl + series.backdrop_path}`,
+                        }
+                      : noImage
+                  }
+                  style={StyleSheet.absoluteFill}
+                  placeholder={
+                    series.backdrop_path
+                      ? {
+                          uri: `${
+                            baseBackdropPlaceholderUrl + series.backdrop_path
+                          }`,
+                        }
+                      : imageBlurhash
+                  }
+                  placeholderContentFit='cover'
+                  transition={350}
+                  contentFit='cover'
+                />
                 <View style={styles.child} />
-              </ImageBackground>
+              </View>
               <View style={[styles.imageDiv, boxShadow]}>
                 <Image
                   source={{
                     uri: `${basePosterUrl + series.poster_path}`,
                   }}
-                  defaultSource={posterLoader}
-                  ImageCacheEnum={'force-cache'}
+                  placeholder={imageBlurhash}
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
-                {/* {!stateFinish && sessionId ? (
-                  <Loader
-                    loadingStyle={styles.watchListLoader}
-                    color={'white'}
-                    size={'small'}
-                  />
-                ) : (
-                  <Pressable onPress={watchListFunction}>
-                    <View style={styles.watchListDiv}>
-                      <FontAwesome5
-                        name={'bookmark'}
-                        solid={movieExist}
-                        style={{ color: 'red', fontSize: 25 }}
-                      />
-                      <Text style={styles.watchListText}>
-                        {i18n.t('watchlistBtn')}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )} */}
               </View>
               <Text style={[styles.title, themeTextStyle]} selectable>
                 {series.original_name}
@@ -387,7 +227,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 <Text style={[styles.separators, themeTextStyle]}>•</Text>
                 <View style={styles.underTitleElem}>
                   <Text style={[styles.underTitle, themeTextStyle]}>
-                    {series.episode_run_time[0]} min
+                    {series.episode_run_time?.[0] ? `${series.episode_run_time[0]} min` : ''}
                   </Text>
                 </View>
                 <Text style={[styles.separators, themeTextStyle]}>•</Text>
@@ -438,7 +278,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <Image
                     source={tmdbLogo}
                     style={styles.tmdbLogo}
-                    resizeMode='contain'
+                    contentFit='contain'
                   />
                   <View style={styles.ratingElem}>
                     <Text style={[themeTextStyle]}>
@@ -449,12 +289,12 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     </Text>
                   </View>
                 </View>
-                {omdb.imdbRating !== 'N/A' ? (
+                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
                   <View style={[styles.ratingWrapper]}>
                     <Image
                       source={imdbLogo}
                       style={styles.imdbLogo}
-                      resizeMode='contain'
+                      contentFit='contain'
                     />
                     <View style={styles.ratingElem}>
                       <Text style={[themeTextStyle]}>
@@ -472,7 +312,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     <Image
                       source={rottenTomato > 60 ? freshPositive : freshNegative}
                       style={styles.rottenLogo}
-                      resizeMode='cover'
+
+
                     />
                     <View style={styles.ratingElem}>
                       <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
@@ -579,7 +420,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 source={{
                                   uri: `${basePosterUrl + serie.poster_path}`,
                                 }}
-                                ImageCacheEnum={'force-cache'}
+                
+
                               />
                             </View>
                             <Text style={[styles.textName, themeTextStyle]}>
@@ -614,7 +456,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                         type.type === 'Trailer' && type.site === 'YouTube'
                     )
                     .map((video, idx) => {
-                      var maxLimit = 32;
+                      let maxLimit = 32;
                       return (
                         <View style={styles.videoDiv} key={idx}>
                           <View style={boxShadow}>
@@ -676,7 +518,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
-                              ImageCacheEnum={'force-cache'}
+              
+
                             />
                           </View>
                           <Text style={[styles.textName, themeTextStyle]}>
@@ -728,14 +571,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                       basePosterUrl + series.poster_path
                                     }`,
                                   }}
-                                  ImageCacheEnum={'force-cache'}
+                  
+
                                 />
                               </View>
                               <View style={styles.ratingDivRec}>
                                 <Image
                                   source={tmdbLogo}
                                   style={styles.tmdbLogoRec}
-                                  resizeMode='contain'
+                                  contentFit='contain'
                                 />
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
@@ -781,14 +625,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 source={{
                                   uri: `${basePosterUrl + series.poster_path}`,
                                 }}
-                                ImageCacheEnum={'force-cache'}
+                
+
                               />
                             </View>
                             <View style={styles.ratingDivRec}>
                               <Image
                                 source={tmdbLogo}
                                 style={styles.tmdbLogoRec}
-                                resizeMode='contain'
+                                contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
                                 {Math.floor((series.vote_average * 100) / 10)}%
@@ -805,7 +650,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1179,48 +1024,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export const modal = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: borderRadius,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  openButton: {
-    backgroundColor: '#F194FF',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  textStyle: {
-    color: 'black',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 25,
-    textAlign: 'left',
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  modalHeading: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginBottom: 25,
-  },
-});
 export default RenderSeriesDetails;

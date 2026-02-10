@@ -1,14 +1,15 @@
 // import React, { useEffect, useState, useRef } from 'react';
 // import {
-//   Text,
-//   ScrollView,
-//   View,
-//   TouchableOpacity,
-//   SafeAreaView,
-//   RefreshControl,
-//   Animated,
-//   Share,
-//   Image,
+  //   Text,
+  //   ScrollView,
+  //   View,
+  //   TouchableOpacity,
+  //   SafeAreaView,
+  //   RefreshControl,
+  //   Animated,
+  //   Share,
+  //   Image,
+  //
 // } from 'react-native';
 // import { SearchBar } from 'react-native-elements';
 // import axios from 'axios';
@@ -96,7 +97,7 @@
 //   let colorScheme = appearance === 'auto' ? defaultColor : appearance;
 //   const themeSearchbar = colorScheme === 'light' ? true : false;
 //   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
-//   const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+//   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
 //   const themeTextStyle =
 //     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
 //   const themeContainerStyle =

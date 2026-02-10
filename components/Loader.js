@@ -1,7 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View, Dimensions } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-const deviceHeight = Dimensions.get('window').height;
 const Loader = ({ loadingStyle, color, size }) => {
   return (
     <View style={loadingStyle ? loadingStyle : null}>

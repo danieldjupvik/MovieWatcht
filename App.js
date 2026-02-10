@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, StatusBar, Platform, View, Button } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import {
-  BottomTabBar,
-  createBottomTabNavigator,
-} from '@react-navigation/bottom-tabs';
+import React from 'react';
+import { StatusBar } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import * as Haptics from 'expo-haptics';
-import * as Localization from 'expo-localization';
-import i18n from 'i18n-js';
-import translationsEN from './language/en/translation.json';
-import translationsNB from './language/nb/translation.json';
-import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
+import i18n from './language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
-  textColorDark,
-  textColorLight,
 } from './colors/colors';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { BlurView } from 'expo-blur';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import Home from './pages/Home';
-import Series from './pages/Series';
+import Series from './pages/series';
+import Search from './pages/Search';
 import Details from './pages/Details';
 import SeriesDetails from './pages/SeriesDetails';
 import SeriesSeason from './pages/SeriesSeason';
@@ -31,557 +22,206 @@ import Login from './pages/Login';
 import About from './pages/About';
 import PersonDetails from './pages/PersonDetails';
 import Account from './pages/Account';
-import watchList from './pages/WatchList';
+import WatchList from './pages/WatchList';
 import Appearance from './pages/Appearance';
 import ContentSettings from './pages/ContentSettings';
 import Region from './pages/Region';
 import Adult from './pages/Adult';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { enableScreens } from 'react-native-screens';
-enableScreens();
 
 import { RegionProvider } from './components/RegionContext';
+import { AppearanceProvider, useAppearance } from './components/AppearanceContext';
 
-const Tab = createBottomTabNavigator();
+const Tab = createNativeBottomTabNavigator();
 
-i18n.translations = {
-  nb: translationsNB,
-  en: translationsEN,
-};
+function useHeaderTheme() {
+  const { colorScheme } = useAppearance();
+  const headerTintColor = colorScheme === 'light' ? 'black' : 'white';
+  const headerBg = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+  return { headerTintColor, headerBg };
+}
 
-i18n.locale = Localization.locale;
-i18n.fallbacks = true;
+function themedScreenOptions(headerBg, headerTintColor) {
+  return {
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: headerBg },
+    headerTintColor,
+  };
+}
 
-const HomeStack = createStackNavigator();
+function themedRouteOptions(headerBg, headerTintColor) {
+  return ({ route }) => ({
+    title: route.params.headerTitle,
+    ...themedScreenOptions(headerBg, headerTintColor),
+  });
+}
+
+const HomeStack = createNativeStackNavigator();
 function HomeStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeContainerStyle =
-    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+  const { headerTintColor, headerBg } = useHeaderTheme();
+  const baseOptions = themedScreenOptions(headerBg, headerTintColor);
+  const routeOptions = themedRouteOptions(headerBg, headerTintColor);
 
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen
-        name='Home'
+        name='HomeScreen'
         component={Home}
-        options={{
-          headerShown: false,
-          animationEnabled: false,
-        }}
+        options={{ title: i18n.t('movies'), headerTitleAlign: 'left', ...baseOptions, animation: 'none' }}
       />
-      <HomeStack.Screen
-        name='Details'
-        component={Details}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <HomeStack.Screen
-        name='SeriesDetails'
-        component={SeriesDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <HomeStack.Screen
-        name='PersonDetails'
-        component={PersonDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
+      <HomeStack.Screen name='Details' component={Details} options={routeOptions} />
+      <HomeStack.Screen name='SeriesDetails' component={SeriesDetails} options={routeOptions} />
+      <HomeStack.Screen name='PersonDetails' component={PersonDetails} options={routeOptions} />
     </HomeStack.Navigator>
   );
 }
 
-const seriesStack = createStackNavigator();
+const SeriesStack = createNativeStackNavigator();
 
-function seriesStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeContainerStyle =
-    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+function SeriesStackScreen() {
+  const { headerTintColor, headerBg } = useHeaderTheme();
+  const baseOptions = themedScreenOptions(headerBg, headerTintColor);
+  const routeOptions = themedRouteOptions(headerBg, headerTintColor);
 
   return (
-    <seriesStack.Navigator>
-      <seriesStack.Screen
-        name='series'
+    <SeriesStack.Navigator>
+      <SeriesStack.Screen
+        name='SeriesScreen'
         component={Series}
-        options={{
-          headerShown: false,
-          animationEnabled: false,
-        }}
+        options={{ title: i18n.t('series'), headerTitleAlign: 'left', ...baseOptions, animation: 'none' }}
       />
-      <seriesStack.Screen
-        name='SeriesDetails'
-        component={SeriesDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <seriesStack.Screen
-        name='Details'
-        component={Details}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <seriesStack.Screen
-        name='SeriesSeason'
-        component={SeriesSeason}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <seriesStack.Screen
-        name='PersonDetails'
-        component={PersonDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-    </seriesStack.Navigator>
+      <SeriesStack.Screen name='SeriesDetails' component={SeriesDetails} options={routeOptions} />
+      <SeriesStack.Screen name='Details' component={Details} options={routeOptions} />
+      <SeriesStack.Screen name='SeriesSeason' component={SeriesSeason} options={routeOptions} />
+      <SeriesStack.Screen name='PersonDetails' component={PersonDetails} options={routeOptions} />
+    </SeriesStack.Navigator>
   );
 }
 
-const watchListStack = createStackNavigator();
+const SearchStack = createNativeStackNavigator();
 
-function watchListStackScreen() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeContainerStyle =
-    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
-  const themeBoxStyle =
-    colorScheme === 'light'
-      ? styles.lightThemeBox.backgroundColor
-      : styles.darkThemeBox.backgroundColor;
-  const iconColor = colorScheme === 'light' ? 'black' : 'white';
+function SearchStackScreen() {
+  const { headerTintColor, headerBg } = useHeaderTheme();
+  const baseOptions = themedScreenOptions(headerBg, headerTintColor);
+  const routeOptions = themedRouteOptions(headerBg, headerTintColor);
 
   return (
-    <watchListStack.Navigator>
-      <watchListStack.Screen
-        name='watchList'
-        component={watchList}
+    <SearchStack.Navigator>
+      <SearchStack.Screen
+        name='SearchScreen'
+        component={Search}
         options={{
-          headerShown: false,
-          animationEnabled: false,
+          title: '',
+          headerLargeTitle: false,
+          headerSearchBarOptions: {
+            placeholder: i18n.t('searchAll'),
+            placement: 'automatic',
+            allowToolbarIntegration: true,
+          },
+          ...baseOptions,
+          animation: 'none',
         }}
       />
-      <watchListStack.Screen
-        name='Details'
-        component={Details}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
+      <SearchStack.Screen name='Details' component={Details} options={routeOptions} />
+      <SearchStack.Screen name='SeriesDetails' component={SeriesDetails} options={routeOptions} />
+      <SearchStack.Screen name='SeriesSeason' component={SeriesSeason} options={routeOptions} />
+      <SearchStack.Screen name='PersonDetails' component={PersonDetails} options={routeOptions} />
+    </SearchStack.Navigator>
+  );
+}
+
+const WatchListStack = createNativeStackNavigator();
+
+function WatchListStackScreen() {
+  const { headerTintColor, headerBg } = useHeaderTheme();
+  const baseOptions = themedScreenOptions(headerBg, headerTintColor);
+  const routeOptions = themedRouteOptions(headerBg, headerTintColor);
+
+  return (
+    <WatchListStack.Navigator>
+      <WatchListStack.Screen
+        name='WatchListScreen'
+        component={WatchList}
+        options={{ title: i18n.t('watchList'), headerLargeTitle: true, ...baseOptions, animation: 'none' }}
       />
-      <watchListStack.Screen
-        name='PersonDetails'
-        component={PersonDetails}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeContainerStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <watchListStack.Screen
+      <WatchListStack.Screen name='Details' component={Details} options={routeOptions} />
+      <WatchListStack.Screen name='PersonDetails' component={PersonDetails} options={routeOptions} />
+      <WatchListStack.Screen
         name='Login'
         component={Login}
-        initialParams={{ color: iconColor }}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
+        initialParams={{ color: headerTintColor }}
+        options={routeOptions}
       />
-    </watchListStack.Navigator>
+    </WatchListStack.Navigator>
   );
 }
 
-const SettingsStack = createStackNavigator();
+const SettingsStack = createNativeStackNavigator();
 
 function SettingsStackScreen() {
-  const [appearance, setAppearance] = useState();
+  const { headerTintColor, headerBg } = useHeaderTheme();
+  const baseOptions = themedScreenOptions(headerBg, headerTintColor);
+  const routeOptions = themedRouteOptions(headerBg, headerTintColor);
 
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeHeaderTintColor = colorScheme === 'light' ? 'black' : 'white';
-  const themeBoxStyle =
-    colorScheme === 'light'
-      ? styles.lightThemeBox.backgroundColor
-      : styles.darkThemeBox.backgroundColor;
-  const iconColor = colorScheme === 'light' ? 'black' : 'white';
   return (
-    <SettingsStack.Navigator screenProps={'black'}>
+    <SettingsStack.Navigator>
       <SettingsStack.Screen
         name='Settings'
         component={Settings}
-        options={() => ({
-          title: i18n.t('settings'),
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
+        options={{ title: i18n.t('settings'), headerLargeTitle: true, ...baseOptions }}
       />
-      <SettingsStack.Screen
-        name='About'
-        component={About}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
+      <SettingsStack.Screen name='About' component={About} options={routeOptions} />
       <SettingsStack.Screen
         name='Login'
         component={Login}
-        initialParams={{ color: iconColor }}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
+        initialParams={{ color: headerTintColor }}
+        options={routeOptions}
       />
-      <SettingsStack.Screen
-        name='Account'
-        component={Account}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <SettingsStack.Screen
-        name='Appearance'
-        component={Appearance}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <SettingsStack.Screen
-        name='ContentSettings'
-        component={ContentSettings}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <SettingsStack.Screen
-        name='Region'
-        component={Region}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
-      <SettingsStack.Screen
-        name='Adult'
-        component={Adult}
-        options={({ route }) => ({
-          title: route.params.headerTitle,
-          headerBackTitle: i18n.t('back'),
-          headerStyle: {
-            backgroundColor: themeBoxStyle,
-            shadowColor: 'transparent',
-          },
-          headerTransparent: false,
-          headerTintColor: themeHeaderTintColor,
-        })}
-      />
+      <SettingsStack.Screen name='Account' component={Account} options={routeOptions} />
+      <SettingsStack.Screen name='Appearance' component={Appearance} options={routeOptions} />
+      <SettingsStack.Screen name='ContentSettings' component={ContentSettings} options={routeOptions} />
+      <SettingsStack.Screen name='Region' component={Region} options={routeOptions} />
+      <SettingsStack.Screen name='Adult' component={Adult} options={routeOptions} />
     </SettingsStack.Navigator>
   );
 }
 
-export default function App() {
-  const [appearance, setAppearance] = useState();
-
-  useEffect(() => {
-    const getAppearance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('appearance');
-        if (value !== null) {
-          setAppearance(value);
-        } else {
-          setAppearance('auto');
-          console.log('there is no appearance set');
-        }
-      } catch (e) {
-        alert('error reading home value');
-      }
-    };
-    getAppearance();
-  }, []);
-
-  const defaultColor = useColorScheme();
-
-  let colorScheme = appearance === 'auto' ? defaultColor : appearance;
-  const themeTabBar = colorScheme === 'light' ? 'light' : 'dark';
+function AppContent() {
+  const { colorScheme } = useAppearance();
   const themeStatusBarStyle =
     colorScheme === 'light' ? 'dark-content' : 'light-content';
-  const themeContainerStyle =
-    colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
-  const themeTabBarStyle =
-    colorScheme === 'light' ? styles.tabBarStyleLight : styles.tabBarStyleDark;
-  const themeTabBarStyleAndroid =
-    colorScheme === 'light'
-      ? styles.tabBarStyleLightAndroid
-      : styles.tabBarStyleDarkAndroid;
 
-  const TabBar = (props) => {
-    if (Platform.OS === 'ios') {
-      return (
-        <BlurView
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-          }}
-          tint={themeTabBar}
-          intensity={100}
-        >
-          <BottomTabBar {...props} />
-        </BlurView>
-      );
-    } else {
-      return (
-        <View style={styles.androidNavBar}>
-          <BottomTabBar {...props} />
-        </View>
-      );
-    }
+  const isDark = colorScheme === 'dark';
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      background: isDark ? backgroundColorDark : backgroundColorLight,
+      card: isDark ? backgroundColorDark : backgroundColorLight,
+    },
   };
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <RegionProvider>
-        <AppearanceProvider>
           <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
-          <NavigationContainer>
+          <NavigationContainer theme={navTheme}>
             <Tab.Navigator
               initialRouteName='Home'
-              tabBar={TabBar}
-              screenOptions={({ route }) => ({
-                tabBarVisible: true,
-                tabBarIcon: ({ focused, color, size }) => {
-                  let iconName;
-
-                  if (route.name === 'Home') {
-                    iconName = focused ? 'ios-film' : 'ios-film-outline';
-                  } else if (route.name === 'series') {
-                    iconName = focused ? 'ios-tv' : 'ios-tv-outline';
-                  } else if (route.name === 'watchList') {
-                    iconName = focused
-                      ? 'ios-bookmark'
-                      : 'ios-bookmark-outline';
-                  } else if (route.name === 'settings') {
-                    iconName = focused
-                      ? 'ios-settings'
-                      : 'ios-settings-outline';
-                  }
-
-                  return <Ionicons name={iconName} size={size} color={color} />;
-                },
-              })}
-              tabBarOptions={{
-                headerMode: 'none',
-                tabBarPosition: 'bottom',
-                activeTintColor: 'red',
-                inactiveTintColor: 'gray',
-
-                // showLabel: Platform.OS !== 'android',
-
-                style:
-                  Platform.OS === 'ios'
-                    ? themeTabBarStyle
-                    : themeTabBarStyleAndroid,
+              screenOptions={{
+                headerShown: false,
+                tabBarActiveTintColor: 'red',
+                tabBarInactiveTintColor: 'gray',
+                tabBarMinimizeBehavior: 'onScrollDown',
               }}
             >
               <Tab.Screen
                 name='Home'
                 options={{
+                  tabBarIcon: ({ focused }) => ({
+                    type: 'sfSymbol',
+                    name: focused ? 'movieclapper.fill' : 'movieclapper',
+                  }),
                   tabBarLabel: i18n.t('movies'),
                 }}
                 component={HomeStackScreen}
@@ -594,9 +234,25 @@ export default function App() {
               <Tab.Screen
                 name='series'
                 options={{
+                  tabBarIcon: ({ focused }) => ({
+                    type: 'sfSymbol',
+                    name: focused ? 'tv.fill' : 'tv',
+                  }),
                   tabBarLabel: i18n.t('series'),
                 }}
-                component={seriesStackScreen}
+                component={SeriesStackScreen}
+                listeners={() => ({
+                  tabPress: () => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  },
+                })}
+              />
+              <Tab.Screen
+                name='search'
+                options={{
+                  tabBarSystemItem: 'search',
+                }}
+                component={SearchStackScreen}
                 listeners={() => ({
                   tabPress: () => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -606,9 +262,10 @@ export default function App() {
               <Tab.Screen
                 name='watchList'
                 options={{
+                  tabBarSystemItem: 'bookmarks',
                   tabBarLabel: i18n.t('watchList'),
                 }}
-                component={watchListStackScreen}
+                component={WatchListStackScreen}
                 listeners={() => ({
                   tabPress: () => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -618,6 +275,7 @@ export default function App() {
               <Tab.Screen
                 name='settings'
                 options={{
+                  tabBarSystemItem: 'more',
                   tabBarLabel: i18n.t('settings'),
                 }}
                 component={SettingsStackScreen}
@@ -629,58 +287,15 @@ export default function App() {
               />
             </Tab.Navigator>
           </NavigationContainer>
-        </AppearanceProvider>
       </RegionProvider>
-    </>
+    </GestureHandlerRootView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    // justifyContent: 'center',
-  },
-  lightContainer: {
-    backgroundColor: backgroundColorLight,
-  },
-  darkContainer: {
-    backgroundColor: backgroundColorDark,
-  },
-  lightThemeText: {
-    color: textColorLight,
-  },
-  darkThemeText: {
-    color: textColorDark,
-  },
-  androidNavBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  darkThemeBox: {
-    backgroundColor: '#313337',
-  },
-  lightThemeBox: {
-    backgroundColor: '#bfc5ce',
-  },
-  tabBarStyleLight: {
-    borderTopColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  tabBarStyleDark: {
-    borderTopColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  tabBarStyleLightAndroid: {
-    borderTopColor: 'transparent',
-    backgroundColor: backgroundColorLight,
-  },
-  tabBarStyleDarkAndroid: {
-    borderTopColor: 'transparent',
-    backgroundColor: backgroundColorDark,
-    height: 55,
-    paddingBottom: 5,
-  },
-});
+export default function App() {
+  return (
+    <AppearanceProvider>
+      <AppContent />
+    </AppearanceProvider>
+  );
+}
