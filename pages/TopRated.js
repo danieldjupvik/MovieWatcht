@@ -114,7 +114,8 @@ const TopRated = ({ navigation }) => {
       }
     };
     onRefresh();
-  }, [refreshIndicator, defaultRegion, regionFinal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshIndicator]);
 
   const onBottomLoad = async () => {
     const activeRegion = regionFinal ? regionFinal : defaultRegion;

@@ -97,7 +97,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                       <View style={styles.stillImgDiv}>
                         <Image
                           source={{
-                            uri: `${baseStillImageUrl + episode.still_path}`,
+                            uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
                           }}
                           placeholder={imageBlurhash}
                           placeholderContentFit='cover'

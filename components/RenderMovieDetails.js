@@ -55,7 +55,7 @@ export const monthNames = [
 ];
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
-  const [movie, setMovie] = useState([]);
+  const [movie, setMovie] = useState({});
   const [videos, setVideos] = useState([]);
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
@@ -209,18 +209,24 @@ const RenderDetails = ({ navigation, id }) => {
   };
 
   // premiere
-  let d = new Date(movie.release_date);
+  let year = '';
+  let releaseDate = '';
+  if (movie.release_date) {
+    let d = new Date(movie.release_date);
+    year = d.getFullYear();
+    let month = monthNames[d.getMonth()];
+    let day = d.getDate();
+    releaseDate = `${day}. ${month} ${year}`;
+  }
 
-  let year = d.getFullYear();
-  let month = monthNames[d.getMonth()];
-  let day = d.getDate();
-  let releaseDate = `${day}. ${month} ${year}`;
-
-  let dd = new Date(digitalRelease);
-  let yearDigital = dd.getFullYear();
-  let monthDigital = monthNames[dd.getMonth()];
-  let dayDigital = dd.getDate();
-  let digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+  let digitalReleaseDate = '';
+  if (digitalRelease) {
+    let dd = new Date(digitalRelease);
+    let yearDigital = dd.getFullYear();
+    let monthDigital = monthNames[dd.getMonth()];
+    let dayDigital = dd.getDate();
+    digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+  }
 
   // Runtime
   let runtime = timeConvert(movie.runtime);
@@ -237,11 +243,11 @@ const RenderDetails = ({ navigation, id }) => {
   }
 
   const numFormatter = (num) => {
-    if (num > 999 && num < 1000000) {
-      return (num / 1000).toFixed() + 'k';
-    } else if (num > 1000000) {
+    if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'm';
-    } else if (num < 900) {
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed() + 'k';
+    } else {
       return num;
     }
   };
@@ -406,7 +412,7 @@ const RenderDetails = ({ navigation, id }) => {
                   </View>
                 ) : null}
 
-                {omdb.imdbRating !== 'N/A' ? (
+                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
                   <View style={[styles.ratingWrapper]}>
                     <Image
                       source={imdbLogo}

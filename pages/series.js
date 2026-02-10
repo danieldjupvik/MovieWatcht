@@ -35,9 +35,9 @@ const Series = () => {
     { key: 'first', title: i18n.t('trending') },
     { key: 'second', title: i18n.t('popular') },
     { key: 'third', title: i18n.t('airingToday') },
-    { key: 'forth', title: i18n.t('airingNow') },
+    { key: 'fourth', title: i18n.t('airingNow') },
     { key: 'fifth', title: i18n.t('topRated') },
-  ], []);
+  ], [i18n.locale]);
 
   const renderScene = React.useCallback(({ route }) => {
     switch (route.key) {
@@ -47,7 +47,7 @@ const Series = () => {
         return <RenderSeries baseUrl={popularSeriesUrl} />;
       case 'third':
         return <RenderSeries baseUrl={airingTodaySeriesUrl} />;
-      case 'forth':
+      case 'fourth':
         return <RenderSeries baseUrl={onTheAirSeriesUrl} />;
       case 'fifth':
         return <RenderSeries baseUrl={topRatedSeriesUrl} />;

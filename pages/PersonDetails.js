@@ -86,17 +86,17 @@ const PersonDetails = ({ route, navigation }) => {
     getCreditPerson();
   }, [creditId]);
 
-  const dBirthday = new Date(person.birthday);
-  const year = dBirthday.getFullYear();
-  const month = monthNames[dBirthday.getMonth()];
-  const day = dBirthday.getDate();
-  const birthday = `${day}. ${month} ${year}`;
+  let birthday = '';
+  if (person.birthday) {
+    const dBirthday = new Date(person.birthday);
+    birthday = `${dBirthday.getDate()}. ${monthNames[dBirthday.getMonth()]} ${dBirthday.getFullYear()}`;
+  }
 
-  const dDeathday = new Date(person.deathday);
-  const deathYear = dDeathday.getFullYear();
-  const deathMonth = monthNames[dDeathday.getMonth()];
-  const deathDay = dDeathday.getDate();
-  const deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
+  let deathday = '';
+  if (person.deathday) {
+    const dDeathday = new Date(person.deathday);
+    deathday = `${dDeathday.getDate()}. ${monthNames[dDeathday.getMonth()]} ${dDeathday.getFullYear()}`;
+  }
 
   const knownForItems = (person.combined_credits?.cast || [])
     .slice()
@@ -210,12 +210,12 @@ const PersonDetails = ({ route, navigation }) => {
                 <View style={styles.moviesDiv}>
                   {knownForItems
                     .filter((movie) => movie.poster_path !== null)
-                    .map((movie, idx) => {
+                    .map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
                           style={styles.moviesCard}
-                          key={idx}
+                          key={movie.id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
@@ -257,12 +257,12 @@ const PersonDetails = ({ route, navigation }) => {
                 <View style={styles.moviesDiv}>
                   {appearsInItems
                     .filter((movie) => movie.poster_path !== null)
-                    .map((movie, idx) => {
+                    .map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
                           style={styles.moviesCard}
-                          key={idx}
+                          key={movie.id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,

@@ -41,6 +41,10 @@ const WatchList = ({ navigation }) => {
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
+  const handleSearch = useCallback((inputValue) => {
+    setSearchQuery(inputValue);
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerSearchBarOptions: showWatchList
@@ -74,12 +78,9 @@ const WatchList = ({ navigation }) => {
     const accountId = fromLocalStorage[0][1];
     const sessionId = fromLocalStorage[1][1];
 
-    if (sessionId) {
-      getWatchListMovies(accountId, sessionId);
-    }
     setAccountId(accountId);
     setSessionId(sessionId);
-  }, [getWatchListMovies]);
+  }, []);
 
   const checkIfLoggedIn = useCallback(async () => {
     let fromLocalStorage;
@@ -189,10 +190,6 @@ const WatchList = ({ navigation }) => {
     setPageNumber(2);
     isBottomLoadingRef.current = false;
   }
-
-  const handleSearch = useCallback((inputValue) => {
-    setSearchQuery(inputValue);
-  }, []);
 
   const filteredMovies = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();

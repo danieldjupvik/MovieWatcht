@@ -51,7 +51,7 @@ export const monthNames = [
 ];
 const RenderSeriesDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
-  const [series, setSeries] = useState([]);
+  const [series, setSeries] = useState({});
   const [videos, setVideos] = useState([]);
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
@@ -115,12 +115,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   };
 
   // premiere
-  let d = new Date(series.first_air_date);
-
-  let year = d.getFullYear();
-  let month = monthNames[d.getMonth()];
-  let day = d.getDate();
-  let releaseDate = `${day}. ${month} ${year}`;
+  let year = '';
+  let releaseDate = '';
+  if (series.first_air_date) {
+    let d = new Date(series.first_air_date);
+    year = d.getFullYear();
+    let month = monthNames[d.getMonth()];
+    let day = d.getDate();
+    releaseDate = `${day}. ${month} ${year}`;
+  }
 
   // Next episode
 
@@ -159,11 +162,11 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   };
 
   const numFormatter = (num) => {
-    if (num > 999 && num < 1000000) {
-      return (num / 1000).toFixed() + 'k';
-    } else if (num > 1000000) {
+    if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'm';
-    } else if (num < 900) {
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed() + 'k';
+    } else {
       return num;
     }
   };
@@ -285,7 +288,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     </Text>
                   </View>
                 </View>
-                {omdb.imdbRating !== 'N/A' ? (
+                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
                   <View style={[styles.ratingWrapper]}>
                     <Image
                       source={imdbLogo}

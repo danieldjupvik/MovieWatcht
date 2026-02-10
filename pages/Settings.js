@@ -63,7 +63,7 @@ const Settings = ({ navigation }) => {
     try {
       await AsyncStorage.removeItem('sessionId');
       setSessionId('');
-      deleteSession(currentSessionId);
+      await deleteSession(currentSessionId);
     } catch (_e) {
       // remove error
     }

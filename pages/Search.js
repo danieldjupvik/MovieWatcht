@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   Platform,
@@ -184,7 +185,7 @@ const Search = ({ navigation }) => {
     try {
       await Share.share({ title, url });
     } catch (error) {
-      alert(error.message);
+      Alert.alert(error.message);
     }
   }, []);
 
