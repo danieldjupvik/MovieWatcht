@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -49,7 +49,8 @@ const SearchResultItem = React.memo(function SearchResultItem({ item, colorSchem
     : noImage;
   const title = item.title || item.name || item.original_title || item.original_name;
   const releaseDate = item.release_date || item.first_air_date || '';
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
+  const parsedDate = releaseDate ? new Date(releaseDate) : null;
+  const year = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.getFullYear() : '';
   const isSeries = item.media_type === 'tv';
   const mediaLabel = isSeries ? i18n.t('series') : i18n.t('movies');
   const score = Math.round(item.vote_average * 10);
@@ -114,38 +115,58 @@ const Search = ({ navigation }) => {
   const [results, setResults] = useState([]);
   const [loader, setLoader] = useState(false);
   const [query, setQuery] = useState('');
+  const debounceRef = useRef(null);
+  const abortRef = useRef(null);
 
   const clearSearch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
     setQuery('');
     setResults([]);
     setLoader(false);
   }, []);
 
-  const handleSearch = useCallback(async (inputValue) => {
+  const handleSearch = useCallback((inputValue) => {
     const rawQuery = inputValue.trim();
     setQuery(rawQuery);
 
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
     if (rawQuery.length < 1) {
+      if (abortRef.current) abortRef.current.abort();
       setResults([]);
       setLoader(false);
       return;
     }
 
-    const encodedQuery = encodeURIComponent(rawQuery);
     setLoader(true);
 
-    try {
-      const response = await axios.get(`${searchMultiUrl}&query=${encodedQuery}`);
-      const filteredResults =
-        response?.data?.results?.filter(
-          (item) => item.media_type === 'movie' || item.media_type === 'tv'
-        ) ?? [];
-      setResults(filteredResults);
-    } catch (_e) {
-      setResults([]);
-    } finally {
-      setLoader(false);
-    }
+    debounceRef.current = setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const encodedQuery = encodeURIComponent(rawQuery);
+      try {
+        const response = await axios.get(
+          `${searchMultiUrl}&query=${encodedQuery}`,
+          { signal: controller.signal }
+        );
+        const filteredResults =
+          response?.data?.results?.filter(
+            (item) => item.media_type === 'movie' || item.media_type === 'tv'
+          ) ?? [];
+        setResults(filteredResults);
+      } catch (_e) {
+        if (!controller.signal.aborted) {
+          setResults([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoader(false);
+        }
+      }
+    }, 350);
   }, []);
 
   const applySearchBarOptions = useCallback(() => {

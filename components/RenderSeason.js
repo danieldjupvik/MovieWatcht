@@ -86,12 +86,14 @@ const RenderSeason = ({ navigation, id, season }) => {
               </View>
               <View style={styles.cardsDiv}>
                 {(episodes?.episodes ?? []).map((episode, idx) => {
-                  let d = new Date(episode.air_date);
-
-                  let year = d.getFullYear();
-                  let month = monthNames[d.getMonth()];
-                  let day = d.getDate();
-                  let releaseDate = `${day}. ${month} ${year}`;
+                  let releaseDate = '';
+                  if (episode.air_date) {
+                    let d = new Date(episode.air_date);
+                    let year = d.getFullYear();
+                    let month = monthNames[d.getMonth()];
+                    let day = d.getDate();
+                    releaseDate = `${day}. ${month} ${year}`;
+                  }
                   return (
                     <View key={idx} style={styles.cards}>
                       <View style={styles.stillImgDiv}>

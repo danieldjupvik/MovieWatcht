@@ -126,10 +126,10 @@ const WatchList = ({ navigation }) => {
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
       setRefreshing(false);
-      setLoader(false);
     } catch (e) {
       console.log(e);
     } finally {
+      setLoader(false);
       setWhileLoading(true);
     }
   }, []);

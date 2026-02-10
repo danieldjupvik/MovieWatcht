@@ -145,11 +145,13 @@ const PersonDetails = ({ route, navigation }) => {
               </View>
               <View style={boxShadow}>
                 <Image
-                  source={{
-                    uri: `${basePosterUrl + person.profile_path}`,
-                  }}
+                  source={
+                    person.profile_path
+                      ? { uri: `${basePosterUrl + person.profile_path}` }
+                      : noImage
+                  }
                   placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
