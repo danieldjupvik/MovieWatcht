@@ -70,8 +70,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     const getSeries = async () => {
       try {
         const videos = await axios.get(
-          `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US'
-          }`
+          `https://api.themoviedb.org/3/tv/${id}/videos${apiKey}&language=en-US`
         );
         const response = await axios.get(
           `${
@@ -86,7 +85,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setSeries(response.data);
       } catch (e) {
         console.log(e);
-      } finally {
       }
     };
     getSeries();
@@ -99,16 +97,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
       );
       setOmdb(response.data);
-      setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
-      setRottenTomato(
-        JSON.parse(
-          response.data.Ratings.filter(
-            (source) => source.Source === 'Rotten Tomatoes'
-          )
-            .map((type) => type.Value)[0]
-            .replace('%', '')
-        )
+      if (response.data.imdbVotes && response.data.imdbVotes !== 'N/A') {
+        setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
+      }
+      const rtRating = response.data.Ratings?.find(
+        (source) => source.Source === 'Rotten Tomatoes'
       );
+      if (rtRating) {
+        setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
+      }
       return response;
     } catch (e) {
       console.log(e);
@@ -210,29 +207,9 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                     uri: `${basePosterUrl + series.poster_path}`,
                   }}
                   placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
-                {/* {!stateFinish && sessionId ? (
-                  <Loader
-                    loadingStyle={styles.watchListLoader}
-                    color={'white'}
-                    size={'small'}
-                  />
-                ) : (
-                  <Pressable onPress={watchListFunction}>
-                    <View style={styles.watchListDiv}>
-                      <FontAwesome5
-                        name={'bookmark'}
-                        solid={movieExist}
-                        style={{ color: 'red', fontSize: 25 }}
-                      />
-                      <Text style={styles.watchListText}>
-                        {i18n.t('watchlistBtn')}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )} */}
               </View>
               <Text style={[styles.title, themeTextStyle]} selectable>
                 {series.original_name}

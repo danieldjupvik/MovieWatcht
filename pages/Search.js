@@ -51,7 +51,7 @@ const SearchResultItem = React.memo(function SearchResultItem({ item, colorSchem
   const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
   const isSeries = item.media_type === 'tv';
   const mediaLabel = isSeries ? i18n.t('series') : i18n.t('movies');
-  const score = Math.floor((item.vote_average * 100) / 10);
+  const score = Math.round(item.vote_average * 10);
   const scoreColor = getScoreColor(score);
   const badgeColor = isSeries ? secondaryButton : primaryButton;
   const badgeTextColor = isSeries ? '#1a3a24' : '#FFFFFF';
@@ -130,7 +130,7 @@ const Search = ({ navigation }) => {
       return;
     }
 
-    const encodedQuery = rawQuery.replaceAll(' ', '+');
+    const encodedQuery = encodeURIComponent(rawQuery);
     setLoader(true);
 
     try {

@@ -8,7 +8,7 @@ export const secondaryButton = '#90cea1';
 export const systemColors = {
   light: {
     systemGroupedBackground: '#F2F2F7',
-    secondarySystemGroupedBackground: '#F2F2F7',
+    secondarySystemGroupedBackground: '#FFFFFF',
     separator: '#C6C6C8',
     label: '#000000',
     secondaryLabel: '#3C3C43',

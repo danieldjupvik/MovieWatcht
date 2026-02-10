@@ -8,6 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 import {
+  apiKey,
   getTokenUrl,
   accountUrl,
 } from '../settings/api';
@@ -74,7 +75,7 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: 'https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: `https://api.themoviedb.org/3/authentication/token/validate_with_login${apiKey}`,
         headers: {},
         data: {
           username: username,
@@ -96,14 +97,13 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: 'https://api.themoviedb.org/3/authentication/session/new?api_key=0e336e0a85a0361c6c6ce28bdce52748',
+        url: `https://api.themoviedb.org/3/authentication/session/new${apiKey}`,
         headers: {},
         data: {
           request_token: authorizedToken,
         },
       });
       storeSessionId(response.data.session_id);
-      console.log(response.data.session_id);
       getAccount(response.data.session_id);
       testVariable = false;
       navigation.goBack();
@@ -122,7 +122,6 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${accountUrl + `&session_id=${id}`}`);
       storeAccountId(JSON.stringify(response.data.id));
-      console.log(response.data.id);
     } catch (e) {
       console.log(e);
     } finally {
@@ -153,8 +152,6 @@ const Login = ({ navigation, route }) => {
     setShowError(false);
     setPassword(password);
   };
-  console.log(route.params);
-
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (

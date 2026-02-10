@@ -15,7 +15,7 @@ import { TabView, TabBar } from 'react-native-tab-view';
 
 const Home = () => {
   const { colorScheme } = useAppearance();
-  const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
+  const inactiveTabColor = colorScheme === 'light' ? 'black' : 'white';
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
@@ -23,15 +23,15 @@ const Home = () => {
 
   const [index, setIndex] = React.useState(0);
 
-  const [routes] = React.useState([
+  const routes = React.useMemo(() => [
     { key: 'first', title: i18n.t('trending') },
     { key: 'second', title: i18n.t('popular') },
     { key: 'third', title: i18n.t('nowPlaying') },
     { key: 'fourth', title: i18n.t('topRated') },
     { key: 'fifth', title: i18n.t('upcoming') },
-  ]);
+  ], []);
 
-  const renderScene = ({ route }) => {
+  const renderScene = React.useCallback(({ route }) => {
     switch (route.key) {
       case 'first':
         return <RenderMovies baseUrl={trendingMovieUrl} />;
@@ -46,7 +46,7 @@ const Home = () => {
       default:
         return null;
     }
-  };
+  }, []);
 
   const renderTabBar = (props) => (
     <TabBar
@@ -58,7 +58,7 @@ const Home = () => {
         marginRight: 5,
       }}
       activeColor={'red'}
-      inactiveColor={searchBarTheme}
+      inactiveColor={inactiveTabColor}
       labelStyle={{ fontWeight: '600', fontSize: 16 }}
       getLabelText={({ route }) => route.title}
       scrollEnabled={true}

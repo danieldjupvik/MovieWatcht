@@ -50,7 +50,7 @@ const Account = ({ navigation }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('sessionId');
-      deleteSession();
+      await deleteSession();
       navigation.goBack();
     } catch (e) {
       console.log(e);
@@ -88,7 +88,7 @@ const Account = ({ navigation }) => {
   };
 
   const profilePicture = {
-    uri: `${baseProfileUrl + accountInfo?.avatar.tmdb.avatar_path}`,
+    uri: `${baseProfileUrl + accountInfo?.avatar?.tmdb?.avatar_path}`,
   };
 
   const deviceHeight = Dimensions.get('window').height;
@@ -103,7 +103,7 @@ const Account = ({ navigation }) => {
             <View style={styles.avatarContainer}>
               <Image
                 source={
-                  accountInfo?.avatar.tmdb.avatar_path
+                  accountInfo?.avatar?.tmdb?.avatar_path
                     ? profilePicture
                     : noAvatar
                 }

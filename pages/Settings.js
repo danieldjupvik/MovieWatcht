@@ -19,20 +19,6 @@ const Settings = ({ navigation }) => {
   const { colorScheme } = useAppearance();
   const themeContainerStyle = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const value = await AsyncStorage.getItem('sessionId');
-        if (value !== null) {
-          setSessionId(value);
-        }
-      } catch (_e) {
-        alert('error reading value');
-      }
-    };
-    getData();
-  }, []);
-
   const getData = async () => {
     try {
       const value = await AsyncStorage.getItem('sessionId');
@@ -46,11 +32,38 @@ const Settings = ({ navigation }) => {
     }
   };
 
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getData();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const deleteSession = async (sessionIdToDelete) => {
+    try {
+      await axios({
+        method: 'DELETE',
+        url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
+        headers: {},
+        data: {
+          session_id: sessionIdToDelete,
+        },
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const logout = async () => {
+    const currentSessionId = sessionId;
     try {
       await AsyncStorage.removeItem('sessionId');
       setSessionId('');
-      deleteSession();
+      deleteSession(currentSessionId);
     } catch (_e) {
       // remove error
     }
@@ -70,28 +83,6 @@ const Settings = ({ navigation }) => {
         }
       }
     );
-
-  const deleteSession = async () => {
-    try {
-      await axios({
-        method: 'DELETE',
-        url: `https://api.themoviedb.org/3/authentication/session${apiKey}`,
-        headers: {},
-        data: {
-          session_id: sessionId,
-        },
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      getData();
-    });
-    return unsubscribe;
-  }, [navigation]);
 
   return (
     <View style={[styles.container, { backgroundColor: themeContainerStyle }]}>

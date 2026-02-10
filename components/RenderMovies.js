@@ -27,7 +27,6 @@ const RenderMovies = ({ baseUrl }) => {
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
   const [regionsText, setRegionsText] = useState();
@@ -71,53 +70,31 @@ const RenderMovies = ({ baseUrl }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    setRegionsText(theShit);
-    setLoader(true);
+  const fetchFirstPage = useCallback(async () => {
+    const region = regionFinal || defaultRegion;
     isBottomLoadingRef.current = false;
-    const getMovies = async () => {
-      try {
-        const response = await axios.get(
-          `${baseUrl + `&region=${theShit}&page=1`}`
-        );
-        setMovies(response.data.results);
-        setTotalPageNumberFromApi(response.data.total_pages);
-        setPageNumber(2);
-        setLoader(false);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-    getMovies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [regionFinal]);
+    try {
+      const response = await axios.get(
+        `${baseUrl + `&region=${region}&page=1`}`
+      );
+      setMovies(response.data.results);
+      setTotalPageNumberFromApi(response.data.total_pages);
+      setPageNumber(2);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [regionFinal, defaultRegion, baseUrl]);
 
   useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    isBottomLoadingRef.current = false;
-    const onRefresh = async () => {
-      try {
-        const response = await axios.get(
-          `${baseUrl + `&region=${theShit}&page=1`}`
-        );
-        setMovies(response.data.results);
-        setTotalPageNumberFromApi(response.data.total_pages);
-        setPageNumber(2);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-    onRefresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshIndicator]);
+    setRegionsText(regionFinal || defaultRegion);
+    setLoader(true);
+    fetchFirstPage().then(() => setLoader(false));
+  }, [regionFinal, defaultRegion, fetchFirstPage]);
 
   const onBottomLoad = useCallback(async () => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
 
     if (
       isBottomLoadingRef.current ||
@@ -132,7 +109,7 @@ const RenderMovies = ({ baseUrl }) => {
     const nextPage = pageNumber;
     try {
       const response = await axios.get(
-        `${baseUrl + `&region=${theShit}&page=${nextPage}`}`
+        `${baseUrl + `&region=${activeRegion}&page=${nextPage}`}`
       );
       setMovies((currentMovies) => {
         const currentIds = new Set(currentMovies.map((movie) => movie.id));
@@ -152,9 +129,7 @@ const RenderMovies = ({ baseUrl }) => {
 
   function onRefresh() {
     setRefreshing(true);
-    setRefreshIndicator(!refreshIndicator);
-    setPageNumber(2);
-    isBottomLoadingRef.current = false;
+    fetchFirstPage();
   }
 
   const keyExtractor = useCallback((item) => item.id.toString(), []);
@@ -261,4 +236,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RenderMovies;
+export default React.memo(RenderMovies);

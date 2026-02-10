@@ -30,7 +30,8 @@ const SettingsRow = ({
         />
       );
     }
-    if (accessory === 'checkmark' && checked) {
+    if (accessory === 'checkmark') {
+      if (!checked) return null;
       return (
         <SymbolView
           name='checkmark'

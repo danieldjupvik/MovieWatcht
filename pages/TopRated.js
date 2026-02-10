@@ -75,14 +75,14 @@ const TopRated = ({ navigation }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
   useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
-    setRegionsText(theShit);
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
+    setRegionsText(activeRegion);
     setLoader(true);
     isBottomLoadingRef.current = false;
     const getMovies = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
+          `${topRatedMovieUrl + `&region=${activeRegion}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
@@ -91,19 +91,18 @@ const TopRated = ({ navigation }) => {
         setLoader(false);
       } catch (e) {
         console.log(e);
-      } finally {
       }
     };
     getMovies();
   }, [regionFinal, defaultRegion]);
 
   useEffect(() => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
     isBottomLoadingRef.current = false;
     const onRefresh = async () => {
       try {
         const response = await axios.get(
-          `${topRatedMovieUrl + `&region=${theShit}&page=1`}`
+          `${topRatedMovieUrl + `&region=${activeRegion}&page=1`}`
         );
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
@@ -118,7 +117,7 @@ const TopRated = ({ navigation }) => {
   }, [refreshIndicator, defaultRegion, regionFinal]);
 
   const onBottomLoad = async () => {
-    const theShit = regionFinal ? regionFinal : defaultRegion;
+    const activeRegion = regionFinal ? regionFinal : defaultRegion;
 
     if (
       isBottomLoadingRef.current ||
@@ -133,7 +132,7 @@ const TopRated = ({ navigation }) => {
     const nextPage = pageNumber;
     try {
       const response = await axios.get(
-        `${topRatedMovieUrl + `&region=${theShit}&page=${nextPage}`}`
+        `${topRatedMovieUrl + `&region=${activeRegion}&page=${nextPage}`}`
       );
       setMovies((currentMovies) => {
         const currentIds = new Set(currentMovies.map((movie) => movie.id));
@@ -173,7 +172,7 @@ const TopRated = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    let title = inputValue.replaceAll(' ', '%').trim();
+    let title = encodeURIComponent(inputValue.trim());
     if (title.length >= 1) {
       getSearch(title);
     } else {
@@ -244,14 +243,12 @@ const TopRated = ({ navigation }) => {
         <Text style={[styles.description, themeTextStyle]}>
           {i18n.t('topRatedDescription')} {regionsText}
         </Text>
-        <View style={styles.container}></View>
         <ScrollView
           style={[styles.scrollView, themeContainerStyle]}
           keyboardDismissMode={'on-drag'}
           indicatorStyle={themeTabBar}
           onScroll={({ nativeEvent }) => {
             if (isCloseToBottom(nativeEvent)) {
-              console.log('load bottom');
               if (movies.length >= 1) {
                 onBottomLoad();
               }
@@ -294,7 +291,7 @@ const TopRated = ({ navigation }) => {
                           source={movie.poster_path ? posterImage : noImage}
                           style={styles.image}
                           placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                          placeholderContentFit='cover'
                           transition={300}
                         />
                       </View>

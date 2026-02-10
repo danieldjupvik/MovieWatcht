@@ -24,7 +24,6 @@ const RenderSeries = ({ baseUrl }) => {
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
   const isBottomLoadingRef = useRef(false);
@@ -35,45 +34,24 @@ const RenderSeries = ({ baseUrl }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  useEffect(() => {
-    setLoader(true);
+  const fetchFirstPage = useCallback(async () => {
     isBottomLoadingRef.current = false;
-    const getSeries = async () => {
-      try {
-        const response = await axios.get(`${baseUrl + '&page=1'}`);
-        setSeries(response.data.results);
-        setTotalPageNumberFromApi(response.data.total_pages);
-        setPageNumber(2);
-        setLoader(false);
-        console.log('fresh update');
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-    getSeries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      const response = await axios.get(`${baseUrl + '&page=1'}`);
+      setSeries(response.data.results);
+      setTotalPageNumberFromApi(response.data.total_pages);
+      setPageNumber(2);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [baseUrl]);
 
   useEffect(() => {
-    isBottomLoadingRef.current = false;
-    const onRefresh = async () => {
-      try {
-        const response = await axios.get(`${baseUrl + `&page=1`}`);
-        setSeries(response.data.results);
-        setTotalPageNumberFromApi(response.data.total_pages);
-        setPageNumber(2);
-        console.log('fresh update');
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-    onRefresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshIndicator]);
+    setLoader(true);
+    fetchFirstPage().then(() => setLoader(false));
+  }, [fetchFirstPage]);
 
   const onBottomLoad = useCallback(async () => {
     if (
@@ -107,9 +85,7 @@ const RenderSeries = ({ baseUrl }) => {
 
   function onRefresh() {
     setRefreshing(true);
-    setRefreshIndicator(!refreshIndicator);
-    setPageNumber(2);
-    isBottomLoadingRef.current = false;
+    fetchFirstPage();
   }
 
   const keyExtractor = useCallback((item) => item.id.toString(), []);
@@ -118,7 +94,7 @@ const RenderSeries = ({ baseUrl }) => {
     <SeriesCard
       id={item.id}
       posterPath={item.poster_path}
-      name={item.original_name}
+      name={item.name}
       voteAverage={item.vote_average}
       colorScheme={colorScheme}
     />
@@ -216,4 +192,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RenderSeries;
+export default React.memo(RenderSeries);

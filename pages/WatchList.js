@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Text,
   FlatList,
@@ -21,7 +21,7 @@ import ButtonStyles from '../styles/buttons';
 
 const WatchList = ({ navigation }) => {
   const [allMovies, setAllMovies] = useState([]);
-  const [filteredMovies, setFilteredMovies] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [accountId, setAccountId] = useState();
   const [sessionId, setSessionId] = useState();
   const [loader, setLoader] = useState(true);
@@ -49,12 +49,12 @@ const WatchList = ({ navigation }) => {
             hideWhenScrolling: false,
             onChangeText: (e) => handleSearch(e.nativeEvent.text ?? ''),
             onCancelButtonPress: () => {
-              setFilteredMovies(allMovies);
+              setSearchQuery('');
             },
           }
         : undefined,
     });
-  }, [navigation, showWatchList, allMovies, handleSearch]);
+  }, [navigation, showWatchList, handleSearch]);
 
   useEffect(() => {
     getAccountAndSession();
@@ -69,6 +69,7 @@ const WatchList = ({ navigation }) => {
       ]);
     } catch (e) {
       console.log(e);
+      return;
     }
     const accountId = fromLocalStorage[0][1];
     const sessionId = fromLocalStorage[1][1];
@@ -89,13 +90,15 @@ const WatchList = ({ navigation }) => {
       ]);
     } catch (e) {
       console.log(e);
+      return;
     }
-    const sessionId = fromLocalStorage[1][1];
-    setShowWatchList(!!sessionId);
+    const storedAccountId = fromLocalStorage[0][1];
+    const storedSessionId = fromLocalStorage[1][1];
+    setShowWatchList(!!storedSessionId);
 
-    setAccountId(accountId);
-    setSessionId(sessionId);
-  }, [accountId]);
+    setAccountId(storedAccountId);
+    setSessionId(storedSessionId);
+  }, []);
 
   useEffect(() => {
     if (sessionId) {
@@ -119,12 +122,10 @@ const WatchList = ({ navigation }) => {
         `https://api.themoviedb.org/3/account/${accountIdParam}/watchlist/movies${apiKey}&session_id=${sessionIdParam}&sort_by=created_at.desc&page=1`
       );
       setAllMovies(response.data.results);
-      setFilteredMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
       setRefreshing(false);
       setLoader(false);
-      console.log('Fetched Watchlist movies');
     } catch (e) {
       console.log(e);
     } finally {
@@ -154,11 +155,6 @@ const WatchList = ({ navigation }) => {
         const unique = newResults.filter((movie) => !currentIds.has(movie.id));
         return [...current, ...unique];
       });
-      setFilteredMovies((current) => {
-        const currentIds = new Set(current.map((movie) => movie.id));
-        const unique = newResults.filter((movie) => !currentIds.has(movie.id));
-        return [...current, ...unique];
-      });
       setPageNumber((currentPage) => currentPage + 1);
     } catch (e) {
       console.log(e);
@@ -176,11 +172,9 @@ const WatchList = ({ navigation }) => {
         `https://api.themoviedb.org/3/account/${accountId}/watchlist/movies${apiKey}&session_id=${sessionId}&sort_by=created_at.desc&page=1`
       );
       setAllMovies(response.data.results);
-      setFilteredMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
       setRefreshing(false);
-      console.log('Fetched Watchlist movies');
     } catch (e) {
       console.log(e);
     } finally {
@@ -197,17 +191,16 @@ const WatchList = ({ navigation }) => {
   }
 
   const handleSearch = useCallback((inputValue) => {
-    const query = inputValue.trim().toLowerCase();
-    if (query.length < 1) {
-      setFilteredMovies(allMovies);
-      return;
-    }
-    setFilteredMovies(
-      allMovies.filter((movie) =>
-        movie.title?.toLowerCase().includes(query)
-      )
+    setSearchQuery(inputValue);
+  }, []);
+
+  const filteredMovies = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (query.length < 1) return allMovies;
+    return allMovies.filter((movie) =>
+      movie.title?.toLowerCase().includes(query)
     );
-  }, [allMovies]);
+  }, [allMovies, searchQuery]);
 
   const keyExtractor = useCallback((item) => item.id.toString(), []);
 
@@ -248,7 +241,7 @@ const WatchList = ({ navigation }) => {
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
-      {showWatchList === true ? (
+      {showWatchList ? (
         <>
           {loader ? (
             <Loader loadingStyle={styles.loaderStyle} />

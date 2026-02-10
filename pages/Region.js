@@ -12,10 +12,6 @@ const Region = ({ navigation }) => {
   const { colorScheme } = useAppearance();
   const themeContainerStyle = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
-  useEffect(() => {
-    getRegion();
-  }, []);
-
   const getRegion = async () => {
     try {
       const value = await AsyncStorage.getItem('region');
@@ -29,9 +25,9 @@ const Region = ({ navigation }) => {
     }
   };
 
-  const selectRegion = (regionValue) => {
+  const selectRegion = async (regionValue) => {
     setSelectedRegion(regionValue);
-    storeRegion(regionValue);
+    await storeRegion(regionValue);
     navigation.goBack();
   };
 

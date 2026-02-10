@@ -11,15 +11,3 @@ export const RegionProvider = (props) => {
 };
 
 export default RegionContext;
-
-// export const ColorContext = React.createContext();
-
-// export const AppStateProvider = (props) => {
-//   const contextValue = { ...yourContext };
-
-//   return (
-//     <AppStateContext.Provider value={contextValue}>
-//       {props.children}
-//     </AppStateContext.Provider>
-//   );
-// };

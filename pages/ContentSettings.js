@@ -8,10 +8,10 @@ import SettingsRow from '../components/SettingsRow';
 
 const ContentSettings = ({ navigation }) => {
   const { colorScheme } = useAppearance();
-  const themeContainerStyle = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
+  const containerBg = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   return (
-    <View style={[styles.container, { backgroundColor: themeContainerStyle }]}>
+    <View style={[styles.container, { backgroundColor: containerBg }]}>
       <ScrollView contentInsetAdjustmentBehavior='automatic'>
         <View style={styles.content}>
           <SettingsSection header={i18n.t('languageAndRegion')}>

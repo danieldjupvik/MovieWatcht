@@ -29,7 +29,7 @@ const About = () => {
     ? Constants.expoConfig?.ios?.buildNumber
     : Constants.expoConfig?.android?.versionCode;
 
-  let year = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
     <View style={[styles.container, { backgroundColor: containerBg }]}>

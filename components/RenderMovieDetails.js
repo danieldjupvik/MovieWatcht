@@ -106,7 +106,6 @@ const RenderDetails = ({ navigation, id }) => {
         }
       } catch (e) {
         console.log(e);
-      } finally {
       }
     };
     getMovie();
@@ -286,7 +285,7 @@ const RenderDetails = ({ navigation, id }) => {
                     uri: `${basePosterUrl + movie.poster_path}`,
                   }}
                   placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
                 {!stateFinish && sessionId ? (

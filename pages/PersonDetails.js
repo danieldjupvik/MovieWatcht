@@ -77,7 +77,6 @@ const PersonDetails = ({ route, navigation }) => {
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
-        console.log(response.data.media);
       } catch (e) {
         console.log(e);
       } finally {
@@ -87,17 +86,17 @@ const PersonDetails = ({ route, navigation }) => {
     getCreditPerson();
   }, [creditId]);
 
-  let dBirthday = new Date(person.birthday);
-  let year = dBirthday.getFullYear();
-  let month = monthNames[dBirthday.getMonth()];
-  let day = dBirthday.getDate();
-  let birthday = `${day}. ${month} ${year}`;
+  const dBirthday = new Date(person.birthday);
+  const year = dBirthday.getFullYear();
+  const month = monthNames[dBirthday.getMonth()];
+  const day = dBirthday.getDate();
+  const birthday = `${day}. ${month} ${year}`;
 
-  let dDeathday = new Date(person.deathday);
-  let deathYear = dDeathday.getFullYear();
-  let deathMonth = monthNames[dDeathday.getMonth()];
-  let deathDay = dDeathday.getDate();
-  let deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
+  const dDeathday = new Date(person.deathday);
+  const deathYear = dDeathday.getFullYear();
+  const deathMonth = monthNames[dDeathday.getMonth()];
+  const deathDay = dDeathday.getDate();
+  const deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
 
   const knownForItems = (person.combined_credits?.cast || [])
     .slice()
@@ -209,14 +208,10 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {knownForItems.map((movie, idx) => {
-                    if (movie.poster_path !== null) {
-                      let mediaType;
-                      if (movie.media_type === 'movie') {
-                        mediaType = 'Details';
-                      } else {
-                        mediaType = 'SeriesDetails';
-                      }
+                  {knownForItems
+                    .filter((movie) => movie.poster_path !== null)
+                    .map((movie, idx) => {
+                      const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
                           style={styles.moviesCard}
@@ -235,8 +230,6 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-
-
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -251,8 +244,7 @@ const PersonDetails = ({ route, navigation }) => {
                           </View>
                         </Pressable>
                       );
-                    }
-                  })}
+                    })}
                 </View>
               </ScrollView>
             </View>
@@ -263,14 +255,10 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {appearsInItems.map((movie, idx) => {
-                    if (movie.poster_path !== null) {
-                      let mediaType;
-                      if (movie.media_type === 'movie') {
-                        mediaType = 'Details';
-                      } else {
-                        mediaType = 'SeriesDetails';
-                      }
+                  {appearsInItems
+                    .filter((movie) => movie.poster_path !== null)
+                    .map((movie, idx) => {
+                      const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
                           style={styles.moviesCard}
@@ -289,8 +277,6 @@ const PersonDetails = ({ route, navigation }) => {
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
-
-
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -310,8 +296,7 @@ const PersonDetails = ({ route, navigation }) => {
                           </View>
                         </Pressable>
                       );
-                    }
-                  })}
+                    })}
                 </View>
               </ScrollView>
             </View>

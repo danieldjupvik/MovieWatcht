@@ -13,7 +13,7 @@ export const AppearanceProvider = ({ children }) => {
       if (value !== null) {
         setAppearance(value);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const colorScheme = appearance === 'auto' ? systemColorScheme : appearance;
@@ -27,9 +27,14 @@ export const AppearanceProvider = ({ children }) => {
   }, [appearance]);
 
   const updateAppearance = useCallback(async (value) => {
+    const previous = appearance;
     setAppearance(value);
-    await AsyncStorage.setItem('appearance', value);
-  }, []);
+    try {
+      await AsyncStorage.setItem('appearance', value);
+    } catch {
+      setAppearance(previous);
+    }
+  }, [appearance]);
 
   const value = useMemo(
     () => ({ colorScheme, appearance, updateAppearance }),

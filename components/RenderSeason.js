@@ -77,15 +77,15 @@ const RenderSeason = ({ navigation, id, season }) => {
               <View style={[styles.imageDiv, boxShadow]}>
                 <Image
                   source={{
-                    uri: `${basePosterUrl + episodes.poster_path}`,
+                    uri: `${basePosterUrl + (episodes?.poster_path ?? '')}`,
                   }}
                   placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                  placeholderContentFit='cover'
                   style={styles.posterImg}
                 />
               </View>
               <View style={styles.cardsDiv}>
-                {episodes.episodes.map((episode, idx) => {
+                {(episodes?.episodes ?? []).map((episode, idx) => {
                   let d = new Date(episode.air_date);
 
                   let year = d.getFullYear();
@@ -100,7 +100,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                             uri: `${baseStillImageUrl + episode.still_path}`,
                           }}
                           placeholder={imageBlurhash}
-                            placeholderContentFit='cover'
+                          placeholderContentFit='cover'
                           style={styles.stillImg}
 
 
