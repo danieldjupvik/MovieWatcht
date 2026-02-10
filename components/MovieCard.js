@@ -48,7 +48,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme }) => {
     } else {
       Alert.alert(title, '', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Share', onPress: () => Share.share({ title, url: tmdbUrl }) },
+        { text: 'Share', onPress: () => Share.share({ title, message: `${title} ${tmdbUrl}`, url: tmdbUrl }) },
         { text: 'Open on TMDb', onPress: () => Linking.openURL(tmdbUrl) },
       ]);
     }

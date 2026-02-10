@@ -227,7 +227,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 <Text style={[styles.separators, themeTextStyle]}>•</Text>
                 <View style={styles.underTitleElem}>
                   <Text style={[styles.underTitle, themeTextStyle]}>
-                    {series.episode_run_time[0]} min
+                    {series.episode_run_time?.[0] ? `${series.episode_run_time[0]} min` : ''}
                   </Text>
                 </View>
                 <Text style={[styles.separators, themeTextStyle]}>•</Text>

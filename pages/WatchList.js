@@ -60,10 +60,6 @@ const WatchList = ({ navigation }) => {
     });
   }, [navigation, showWatchList, handleSearch]);
 
-  useEffect(() => {
-    getAccountAndSession();
-  }, [getAccountAndSession]);
-
   const getAccountAndSession = useCallback(async () => {
     let fromLocalStorage;
     try {
@@ -81,6 +77,10 @@ const WatchList = ({ navigation }) => {
     setAccountId(accountId);
     setSessionId(sessionId);
   }, []);
+
+  useEffect(() => {
+    getAccountAndSession();
+  }, [getAccountAndSession]);
 
   const checkIfLoggedIn = useCallback(async () => {
     let fromLocalStorage;
@@ -101,20 +101,6 @@ const WatchList = ({ navigation }) => {
     setSessionId(storedSessionId);
   }, []);
 
-  useEffect(() => {
-    if (sessionId) {
-      getWatchListMovies(accountId, sessionId);
-    }
-  }, [sessionId, accountId, getWatchListMovies]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      checkIfLoggedIn();
-    });
-
-    return unsubscribe;
-  }, [navigation, checkIfLoggedIn]);
-
   const getWatchListMovies = useCallback(async (accountIdParam, sessionIdParam) => {
     setLoader(true);
     isBottomLoadingRef.current = false;
@@ -133,6 +119,20 @@ const WatchList = ({ navigation }) => {
       setWhileLoading(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (sessionId) {
+      getWatchListMovies(accountId, sessionId);
+    }
+  }, [sessionId, accountId, getWatchListMovies]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      checkIfLoggedIn();
+    });
+
+    return unsubscribe;
+  }, [navigation, checkIfLoggedIn]);
 
   const onBottomLoad = useCallback(async () => {
     if (

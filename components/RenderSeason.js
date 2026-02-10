@@ -63,8 +63,7 @@ const RenderSeason = ({ navigation, id, season }) => {
       }
     };
     getSeason();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [id, season]);
 
   return (
     <View style={[styles.container, themeContainerStyle]}>

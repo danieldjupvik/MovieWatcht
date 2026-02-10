@@ -77,8 +77,7 @@ const RenderDetails = ({ navigation, id }) => {
     const getMovie = async () => {
       try {
         const videos = await axios.get(
-          `https://api.themoviedb.org/3/movie/${id}/videos${apiKey}&language=en-US'
-          }`
+          `https://api.themoviedb.org/3/movie/${id}/videos${apiKey}&language=en-US`
         );
         const sessionId = await AsyncStorage.getItem('sessionId');
         const response = await axios.get(

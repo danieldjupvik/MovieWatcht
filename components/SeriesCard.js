@@ -48,7 +48,7 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
     } else {
       Alert.alert(name, '', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Share', onPress: () => Share.share({ title: name, url: tmdbUrl }) },
+        { text: 'Share', onPress: () => Share.share({ title: name, message: `${name} ${tmdbUrl}`, url: tmdbUrl }) },
         { text: 'Open on TMDb', onPress: () => Linking.openURL(tmdbUrl) },
       ]);
     }
