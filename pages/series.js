@@ -16,9 +16,8 @@ import i18n from '../language/i18n';
 import {
   backgroundColorDark,
   backgroundColorLight,
-} from '../colors/colors';
+ primaryButton } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import { primaryButton } from '../colors/colors';
 import { useAppearance } from '../components/AppearanceContext';
 import RenderSeries from '../components/RenderSeries';
 

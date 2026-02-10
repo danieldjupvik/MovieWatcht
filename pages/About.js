@@ -22,7 +22,6 @@ import SettingsRow from '../components/SettingsRow';
 const About = () => {
   const { colorScheme } = useAppearance();
   const isDark = colorScheme === 'dark';
-  const textColor = isDark ? '#FFFFFF' : '#000000';
   const secondaryText = isDark ? '#98989F' : '#8E8E93';
   const containerBg = isDark ? backgroundColorDark : backgroundColorLight;
 

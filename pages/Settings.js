@@ -26,7 +26,7 @@ const Settings = ({ navigation }) => {
         if (value !== null) {
           setSessionId(value);
         }
-      } catch (e) {
+      } catch (_e) {
         alert('error reading value');
       }
     };
@@ -41,7 +41,7 @@ const Settings = ({ navigation }) => {
       } else {
         setSessionId('');
       }
-    } catch (e) {
+    } catch (_e) {
       alert('error reading value');
     }
   };
@@ -51,7 +51,7 @@ const Settings = ({ navigation }) => {
       await AsyncStorage.removeItem('sessionId');
       setSessionId('');
       deleteSession();
-    } catch (e) {
+    } catch (_e) {
       // remove error
     }
   };

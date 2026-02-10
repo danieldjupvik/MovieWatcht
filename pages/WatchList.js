@@ -27,7 +27,6 @@ const WatchList = ({ navigation }) => {
   const [loader, setLoader] = useState(true);
   const [bottomLoader, setBottomLoader] = useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
-  const [refreshIndicator, setRefreshIndicator] = useState(true);
   const [showWatchList, setShowWatchList] = useState(false);
   const [pageNumber, setPageNumber] = useState(2);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
@@ -55,13 +54,13 @@ const WatchList = ({ navigation }) => {
           }
         : undefined,
     });
-  }, [navigation, showWatchList, allMovies]);
+  }, [navigation, showWatchList, allMovies, handleSearch]);
 
   useEffect(() => {
     getAccountAndSession();
-  }, [refreshIndicator]);
+  }, [getAccountAndSession]);
 
-  const getAccountAndSession = async () => {
+  const getAccountAndSession = useCallback(async () => {
     let fromLocalStorage;
     try {
       fromLocalStorage = await AsyncStorage.multiGet([
@@ -74,14 +73,14 @@ const WatchList = ({ navigation }) => {
     const accountId = fromLocalStorage[0][1];
     const sessionId = fromLocalStorage[1][1];
 
-    {
-      sessionId ? getWatchListMovies(accountId, sessionId) : null;
+    if (sessionId) {
+      getWatchListMovies(accountId, sessionId);
     }
     setAccountId(accountId);
     setSessionId(sessionId);
-  };
+  }, [getWatchListMovies]);
 
-  const checkIfLoggedIn = async () => {
+  const checkIfLoggedIn = useCallback(async () => {
     let fromLocalStorage;
     try {
       fromLocalStorage = await AsyncStorage.multiGet([
@@ -92,19 +91,17 @@ const WatchList = ({ navigation }) => {
       console.log(e);
     }
     const sessionId = fromLocalStorage[1][1];
-    {
-      sessionId ? setShowWatchList(true) : setShowWatchList(false);
-    }
+    setShowWatchList(!!sessionId);
 
     setAccountId(accountId);
     setSessionId(sessionId);
-  };
+  }, [accountId]);
 
   useEffect(() => {
-    {
-      sessionId ? getWatchListMovies(accountId, sessionId) : null;
+    if (sessionId) {
+      getWatchListMovies(accountId, sessionId);
     }
-  }, [sessionId]);
+  }, [sessionId, accountId, getWatchListMovies]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -112,9 +109,9 @@ const WatchList = ({ navigation }) => {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, checkIfLoggedIn]);
 
-  const getWatchListMovies = async (accountIdParam, sessionIdParam) => {
+  const getWatchListMovies = useCallback(async (accountIdParam, sessionIdParam) => {
     setLoader(true);
     isBottomLoadingRef.current = false;
     try {
@@ -133,7 +130,7 @@ const WatchList = ({ navigation }) => {
     } finally {
       setWhileLoading(true);
     }
-  };
+  }, []);
 
   const onBottomLoad = useCallback(async () => {
     if (
@@ -199,7 +196,7 @@ const WatchList = ({ navigation }) => {
     isBottomLoadingRef.current = false;
   }
 
-  function handleSearch(inputValue) {
+  const handleSearch = useCallback((inputValue) => {
     const query = inputValue.trim().toLowerCase();
     if (query.length < 1) {
       setFilteredMovies(allMovies);
@@ -210,7 +207,7 @@ const WatchList = ({ navigation }) => {
         movie.title?.toLowerCase().includes(query)
       )
     );
-  }
+  }, [allMovies]);
 
   const keyExtractor = useCallback((item) => item.id.toString(), []);
 
@@ -251,7 +248,7 @@ const WatchList = ({ navigation }) => {
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
-      {showWatchList == true ? (
+      {showWatchList === true ? (
         <>
           {loader ? (
             <Loader loadingStyle={styles.loaderStyle} />

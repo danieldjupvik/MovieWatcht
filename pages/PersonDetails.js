@@ -67,7 +67,7 @@ const PersonDetails = ({ route, navigation }) => {
       }
     };
     getPerson();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const getCreditPerson = async () => {
@@ -85,19 +85,19 @@ const PersonDetails = ({ route, navigation }) => {
       }
     };
     getCreditPerson();
-  }, []);
+  }, [creditId]);
 
-  var dBirthday = new Date(person.birthday);
-  var year = dBirthday.getFullYear();
-  var month = monthNames[dBirthday.getMonth()];
-  var day = dBirthday.getDate();
-  var birthday = `${day}. ${month} ${year}`;
+  let dBirthday = new Date(person.birthday);
+  let year = dBirthday.getFullYear();
+  let month = monthNames[dBirthday.getMonth()];
+  let day = dBirthday.getDate();
+  let birthday = `${day}. ${month} ${year}`;
 
-  var dDeathday = new Date(person.deathday);
-  var deathYear = dDeathday.getFullYear();
-  var deathMonth = monthNames[dDeathday.getMonth()];
-  var deathDay = dDeathday.getDate();
-  var deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
+  let dDeathday = new Date(person.deathday);
+  let deathYear = dDeathday.getFullYear();
+  let deathMonth = monthNames[dDeathday.getMonth()];
+  let deathDay = dDeathday.getDate();
+  let deathday = `${deathDay}. ${deathMonth} ${deathYear}`;
 
   const knownForItems = (person.combined_credits?.cast || [])
     .slice()
@@ -461,9 +461,6 @@ const styles = StyleSheet.create({
     width: deviceWidth / 4.5,
     height: deviceWidth / 3,
     marginBottom: 13,
-  },
-  rating: {
-    marginLeft: 6,
   },
   ratingDiv: {
     marginTop: 10,

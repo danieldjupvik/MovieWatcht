@@ -37,7 +37,7 @@ const getScoreColor = (score) => {
   return '#FF453A';
 };
 
-const SearchResultItem = React.memo(({ item, colorScheme, onPress, onLongPress }) => {
+const SearchResultItem = React.memo(function SearchResultItem({ item, colorScheme, onPress, onLongPress }) {
   const isDark = colorScheme === 'dark';
   const textStyle = { color: isDark ? '#FFFFFF' : '#000000' };
   const mutedStyle = { color: isDark ? '#98989F' : '#8E8E93' };
@@ -140,7 +140,7 @@ const Search = ({ navigation }) => {
           (item) => item.media_type === 'movie' || item.media_type === 'tv'
         ) ?? [];
       setResults(filteredResults);
-    } catch (e) {
+    } catch (_e) {
       setResults([]);
     } finally {
       setLoader(false);

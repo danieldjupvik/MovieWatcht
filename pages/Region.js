@@ -24,7 +24,7 @@ const Region = ({ navigation }) => {
       } else {
         setSelectedRegion('auto');
       }
-    } catch (e) {
+    } catch (_e) {
       alert('error reading value');
     }
   };
@@ -38,7 +38,7 @@ const Region = ({ navigation }) => {
   const storeRegion = async (regionValue) => {
     try {
       await AsyncStorage.setItem('region', regionValue);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving region value, contact developer');
     }
   };

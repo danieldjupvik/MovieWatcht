@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Text,
   ScrollView,
@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   Share,
+  TextInput,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { SearchBar } from '@rneui/themed';
 import axios from 'axios';
 import {
   basePosterUrl,
@@ -16,7 +16,6 @@ import {
   topRatedMovieUrl,
 } from '../settings/api';
 import Loader from '../components/Loader';
-import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from '../language/i18n';
 import { sharedStyles as styles } from '../styles/sharedStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
@@ -26,8 +25,6 @@ import noImage from '../assets/no-image.jpg';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import * as Localization from 'expo-localization';
 import { useAppearance } from '../components/AppearanceContext';
-
-const iconStar = <FontAwesome5 name={'star'} solid style={{ color: 'red' }} />;
 
 const TopRated = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
@@ -43,7 +40,7 @@ const TopRated = ({ navigation }) => {
   const isBottomLoadingRef = useRef(false);
   const defaultRegion = Localization.getLocales()[0]?.regionCode || 'US';
 
-  const getRegion = async () => {
+  const getRegion = useCallback(async () => {
     try {
       const region = await AsyncStorage.getItem('region');
       if (!region) {
@@ -52,14 +49,14 @@ const TopRated = ({ navigation }) => {
         return;
       }
       setRegionFinal(region === 'auto' ? defaultRegion : region);
-    } catch (e) {
+    } catch (_e) {
       alert('error reading region value');
     }
-  };
+  }, [defaultRegion]);
 
   useEffect(() => {
     getRegion();
-  }, []);
+  }, [getRegion]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -67,10 +64,9 @@ const TopRated = ({ navigation }) => {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, getRegion]);
 
   const { colorScheme } = useAppearance();
-  const themeSearchbar = colorScheme === 'light' ? true : false;
   const searchBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTabBar = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
@@ -99,7 +95,7 @@ const TopRated = ({ navigation }) => {
       }
     };
     getMovies();
-  }, [regionFinal]);
+  }, [regionFinal, defaultRegion]);
 
   useEffect(() => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
@@ -119,7 +115,7 @@ const TopRated = ({ navigation }) => {
       }
     };
     onRefresh();
-  }, [refreshIndicator]);
+  }, [refreshIndicator, defaultRegion, regionFinal]);
 
   const onBottomLoad = async () => {
     const theShit = regionFinal ? regionFinal : defaultRegion;
@@ -177,7 +173,7 @@ const TopRated = ({ navigation }) => {
   function handleSearch(inputValue) {
     setSearch(inputValue);
     setLoader(true);
-    var title = inputValue.replaceAll(' ', '%').trim();
+    let title = inputValue.replaceAll(' ', '%').trim();
     if (title.length >= 1) {
       getSearch(title);
     } else {
@@ -199,13 +195,7 @@ const TopRated = ({ navigation }) => {
   };
 
   const onShare = async (title, id) => {
-    async function impactAsync(style = Haptics.ImpactFeedbackStyle.Heavy) {
-      if (!Haptics.impactAsync) {
-        throw new UnavailabilityError('Haptic', 'impactAsync');
-      }
-      await Haptics.impactAsync(style);
-    }
-    impactAsync();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const url = 'https://www.themoviedb.org/movie/' + id;
 
@@ -231,25 +221,23 @@ const TopRated = ({ navigation }) => {
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
-        <SearchBar
-          placeholder={i18n.t('search')}
-          onChangeText={(text) => handleSearch(text)}
-          lightTheme={themeSearchbar}
-          containerStyle={{
-            backgroundColor: 'transparent',
-            paddingLeft: 0,
-            paddingRight: 0,
-            width: '90%',
-            paddingBottom: 30,
-            borderTopColor: 'transparent',
-            borderBottomColor: 'transparent',
-          }}
-          searchIcon={{ size: 25, color: searchBarTheme }}
-          placeholderTextColor={searchBarTheme}
-          inputStyle={{ color: searchBarTheme }}
-          round
-          value={search}
-        />
+        <View style={{ width: '90%', paddingBottom: 30 }}>
+          <TextInput
+            placeholder={i18n.t('search')}
+            onChangeText={(text) => handleSearch(text)}
+            placeholderTextColor={searchBarTheme}
+            style={{
+              color: searchBarTheme,
+              backgroundColor: colorScheme === 'light' ? '#E8E8E8' : '#3A3A3C',
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              fontSize: 16,
+            }}
+            clearButtonMode='while-editing'
+            value={search}
+          />
+        </View>
         <Text style={[styles.heading, themeTextStyle]}>
           {i18n.t('topRated')}
         </Text>

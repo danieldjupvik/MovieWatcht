@@ -4,16 +4,11 @@ import {
   View,
   StyleSheet,
   Dimensions,
-  Button,
   Alert,
+  TextInput,
 } from 'react-native';
 import {
-  detailsMovieUrl,
-  apiKey,
-  basePosterUrl,
   getTokenUrl,
-  loginUrl,
-  getSessionUrl,
   accountUrl,
 } from '../settings/api';
 import axios from 'axios';
@@ -27,7 +22,6 @@ import {
   secondaryButton,
 } from '../colors/colors';
 import { borderRadius } from '../styles/globalStyles';
-import { TextInput } from 'react-native';
 import { Image } from 'expo-image';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
@@ -89,7 +83,7 @@ const Login = ({ navigation, route }) => {
         },
       });
       getSessionId(response.data.request_token);
-    } catch (e) {
+    } catch (_e) {
       setShowError(true);
       usernameInput.clear();
       passwordInput.clear();
@@ -138,7 +132,7 @@ const Login = ({ navigation, route }) => {
   const storeAccountId = async (accountID) => {
     try {
       await AsyncStorage.setItem('accountId', accountID);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving login session, contact developer');
     }
   };
@@ -146,7 +140,7 @@ const Login = ({ navigation, route }) => {
   const storeSessionId = async (value) => {
     try {
       await AsyncStorage.setItem('sessionId', value);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving login session, contact developer');
     }
   };
@@ -172,7 +166,7 @@ const Login = ({ navigation, route }) => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation]);
+  }, [navigation, route.params.color]);
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
@@ -284,7 +278,6 @@ const Login = ({ navigation, route }) => {
   );
 };
 const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     flex: 1,

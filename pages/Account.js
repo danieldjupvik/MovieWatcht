@@ -14,9 +14,8 @@ import {
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppearance } from '../components/AppearanceContext';
-import { accountUrl, baseProfileUrl } from './../settings/api';
+import { accountUrl, baseProfileUrl , apiKey } from './../settings/api';
 import axios from 'axios';
-import { apiKey } from '../settings/api';
 import noAvatar from '../assets/no-avatar.jpg';
 import Loader from '../components/Loader';
 import SettingsSection from '../components/SettingsSection';
@@ -31,7 +30,6 @@ const Account = ({ navigation }) => {
   const containerBg = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
   useEffect(() => {
-    let isCancelled = false;
     const getData = async () => {
       try {
         const sessionId = await AsyncStorage.getItem('sessionId');
@@ -40,16 +38,13 @@ const Account = ({ navigation }) => {
         );
         setAccountInfo(response.data);
         setSessionId(sessionId);
-      } catch (e) {
+      } catch (_e) {
         alert('error reading login credentials');
       } finally {
         setLoader(false);
       }
     };
     getData();
-    return () => {
-      isCancelled = true;
-    };
   }, []);
 
   const logout = async () => {

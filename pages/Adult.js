@@ -24,7 +24,7 @@ const Adult = () => {
       } else {
         setIsEnabled(false);
       }
-    } catch (e) {
+    } catch (_e) {
       alert('error reading value');
     }
   };
@@ -37,7 +37,7 @@ const Adult = () => {
   const storeAdult = async (adultValue) => {
     try {
       await AsyncStorage.setItem('adult', adultValue);
-    } catch (e) {
+    } catch (_e) {
       alert('Error saving adult value, contact developer');
     }
   };
