@@ -175,10 +175,10 @@ const WatchList = ({ navigation }) => {
       setAllMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-      setRefreshing(false);
     } catch (e) {
       console.log(e);
     } finally {
+      setRefreshing(false);
       setWhileLoading(true);
     }
   };

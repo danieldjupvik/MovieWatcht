@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
+  Platform,
   View,
   ScrollView,
   StyleSheet,
@@ -69,20 +71,28 @@ const Settings = ({ navigation }) => {
     }
   };
 
-  const openActionSheet = () =>
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: [i18n.t('cancel'), i18n.t('logout')],
-        destructiveButtonIndex: 1,
-        cancelButtonIndex: 0,
-        title: i18n.t('areYouSure'),
-      },
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          logout();
+  const openActionSheet = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [i18n.t('cancel'), i18n.t('logout')],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 0,
+          title: i18n.t('areYouSure'),
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            logout();
+          }
         }
-      }
-    );
+      );
+    } else {
+      Alert.alert(i18n.t('areYouSure'), '', [
+        { text: i18n.t('cancel'), style: 'cancel' },
+        { text: i18n.t('logout'), style: 'destructive', onPress: logout },
+      ]);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: themeContainerStyle }]}>

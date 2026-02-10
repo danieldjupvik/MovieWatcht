@@ -35,6 +35,7 @@
   "gender": "Kjønn",
   "female": "Kvinne",
   "male": "Mann",
+  "nonBinary": "Ikke-binær",
   "birthPlace": "Fødselssted",
   "knownFor": "Kjent for",
   "poweredBy": "Data levert av",

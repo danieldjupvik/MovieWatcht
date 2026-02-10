@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Text,
   View,
@@ -41,6 +41,7 @@ const PersonDetails = ({ route, navigation }) => {
   const [loader, setLoader] = useState(true);
   const [person, setPerson] = useState({});
   const [personCredit, setPersonCredit] = useState({});
+  const pendingRequests = useRef(0);
 
   const { colorScheme } = useAppearance();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
@@ -54,6 +55,9 @@ const PersonDetails = ({ route, navigation }) => {
       : styles.darkThemeBtnBackground;
 
   useEffect(() => {
+    pendingRequests.current = creditId ? 2 : 1;
+    setLoader(true);
+
     const getPerson = async () => {
       try {
         const response = await axios.get(
@@ -63,28 +67,26 @@ const PersonDetails = ({ route, navigation }) => {
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
+        pendingRequests.current -= 1;
+        if (pendingRequests.current <= 0) setLoader(false);
       }
     };
-    getPerson();
-  }, [id]);
 
-  useEffect(() => {
     const getCreditPerson = async () => {
-      if (!creditId) {
-        return;
-      }
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
       } catch (e) {
         console.log(e);
       } finally {
-        setLoader(false);
+        pendingRequests.current -= 1;
+        if (pendingRequests.current <= 0) setLoader(false);
       }
     };
-    getCreditPerson();
-  }, [creditId]);
+
+    getPerson();
+    if (creditId) getCreditPerson();
+  }, [id, creditId]);
 
   let birthday = '';
   if (person.birthday) {
@@ -173,7 +175,13 @@ const PersonDetails = ({ route, navigation }) => {
 
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
-                {person.gender === 1 ? i18n.t('female') : i18n.t('male')}
+                {person.gender === 1
+                  ? i18n.t('female')
+                  : person.gender === 2
+                    ? i18n.t('male')
+                    : person.gender === 3
+                      ? i18n.t('nonBinary')
+                      : ''}
               </Text>
 
               <Text style={[styles.genre, themeTextStyle]}>
@@ -217,7 +225,7 @@ const PersonDetails = ({ route, navigation }) => {
                       return (
                         <Pressable
                           style={styles.moviesCard}
-                          key={movie.id}
+                          key={movie.credit_id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,
@@ -264,7 +272,7 @@ const PersonDetails = ({ route, navigation }) => {
                       return (
                         <Pressable
                           style={styles.moviesCard}
-                          key={movie.id}
+                          key={movie.credit_id}
                           onPress={() =>
                             navigation.push(mediaType, {
                               id: movie.id,

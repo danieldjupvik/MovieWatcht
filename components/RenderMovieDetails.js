@@ -365,29 +365,22 @@ const RenderDetails = ({ navigation, id }) => {
                   {movie.revenue.toLocaleString()}
                 </Text>
               ) : null}
-              <Text
-                style={[styles.genre, themeTextStyle]}
-                onPress={() =>
-                  navigation.push('PersonDetails', {
-                    id: movie.credits.crew.filter(
-                      (crew) => crew.job === 'Director'
-                    )[0].id,
-                    creditId: movie.credits.crew.filter(
-                      (crew) => crew.job === 'Director'
-                    )[0].credit_id,
-                    headerTitle: movie.credits.crew.filter(
-                      (crew) => crew.job === 'Director'
-                    )[0].name,
-                  })
-                }
-              >
-                <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
-                {
-                  movie.credits.crew.filter(
-                    (crew) => crew.job === 'Director'
-                  )[0].name
-                }
-              </Text>
+              {movie.credits?.crew?.find((c) => c.job === 'Director') ? (
+                <Text
+                  style={[styles.genre, themeTextStyle]}
+                  onPress={() => {
+                    const director = movie.credits.crew.find((c) => c.job === 'Director');
+                    navigation.push('PersonDetails', {
+                      id: director.id,
+                      creditId: director.credit_id,
+                      headerTitle: director.name,
+                    });
+                  }}
+                >
+                  <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
+                  {movie.credits.crew.find((c) => c.job === 'Director').name}
+                </Text>
+              ) : null}
               <Text style={[styles.genre, themeTextStyle]}>
                 <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
                 {movie.genres?.map((genre) => genre.name).join(', ')}

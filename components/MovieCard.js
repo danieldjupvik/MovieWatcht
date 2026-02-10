@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Text, View, Pressable, Share, Dimensions, StyleSheet, Linking, ActionSheetIOS } from 'react-native';
+import { Text, View, Pressable, Share, Dimensions, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { basePosterUrl } from '../settings/api';
@@ -30,20 +30,28 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme }) => {
 
   const handleLongPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Cancel', 'Share', 'Open on TMDb'],
-        cancelButtonIndex: 0,
-        title,
-      },
-      (buttonIndex) => {
-        if (buttonIndex === 1) {
-          Share.share({ title, url: tmdbUrl });
-        } else if (buttonIndex === 2) {
-          Linking.openURL(tmdbUrl);
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Share', 'Open on TMDb'],
+          cancelButtonIndex: 0,
+          title,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            Share.share({ title, url: tmdbUrl });
+          } else if (buttonIndex === 2) {
+            Linking.openURL(tmdbUrl);
+          }
         }
-      }
-    );
+      );
+    } else {
+      Alert.alert(title, '', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Share', onPress: () => Share.share({ title, url: tmdbUrl }) },
+        { text: 'Open on TMDb', onPress: () => Linking.openURL(tmdbUrl) },
+      ]);
+    }
   }, [title, tmdbUrl]);
 
   return (

@@ -35,6 +35,7 @@
   "gender": "Gender",
   "female": "Female",
   "male": "Male",
+  "nonBinary": "Non-binary",
   "birthPlace": "Birth place",
   "knownFor": "Known for",
   "poweredBy": "Data powered by",

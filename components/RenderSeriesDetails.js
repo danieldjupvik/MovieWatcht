@@ -85,6 +85,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setSeries(response.data);
       } catch (e) {
         console.log(e);
+        setLoader(false);
       }
     };
     getSeries();
