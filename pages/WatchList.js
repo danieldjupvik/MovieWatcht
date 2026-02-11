@@ -14,7 +14,7 @@ import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from '../language/i18n';
-import logoTransparent from '../assets/icon-transparent.png';
+import logoDark from '../assets/MovieWatcht-dark.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sharedStyles as styles } from '../styles/sharedStyles';
 import ButtonStyles from '../styles/buttons';
@@ -269,7 +269,7 @@ const WatchList = ({ navigation }) => {
         </>
       ) : (
         <View style={[styles.loginSection, themeBoxStyle]}>
-          <Image source={logoTransparent} style={styles.loginImage} />
+          <Image source={logoDark} style={styles.loginImage} />
           <Text style={[styles.loginSectionText, themeTextStyle]}>
             {i18n.t('watchListRequirement')}
           </Text>

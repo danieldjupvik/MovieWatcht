@@ -1,0 +1,40 @@
+{
+  "fill" : {
+    "automatic-gradient" : "gray:0.35000,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "output-1024.png",
+          "name" : "output-1024",
+          "position" : {
+            "scale" : 0.83,
+            "translation-in-points" : [
+              -10.265040996810512,
+              -26.918880480455073
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
