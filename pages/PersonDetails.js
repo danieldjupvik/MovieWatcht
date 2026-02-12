@@ -231,6 +231,8 @@ const PersonDetails = ({ route, navigation }) => {
                                   ? { uri: `${basePosterUrl}${movie.poster_path}` }
                                   : noImage
                               }
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -278,6 +280,8 @@ const PersonDetails = ({ route, navigation }) => {
                                   ? { uri: `${basePosterUrl}${movie.poster_path}` }
                                   : noImage
                               }
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <View style={styles.ratingDiv}>

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, ScrollView, Text, Pressable, Modal } from 'react-native';
 import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Gallery from 'react-native-awesome-gallery';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppearance } from './AppearanceContext';
@@ -23,6 +24,7 @@ const PosterGalleryModal = ({
   thumbW = 44,
 }) => {
   const { colorScheme } = useAppearance();
+  const insets = useSafeAreaInsets();
   const themeTextStyle = colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle = colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
   const thumbScrollRef = useRef(null);
@@ -59,7 +61,7 @@ const PosterGalleryModal = ({
           onIndexChange={handleIndexChange}
           onSwipeToClose={onClose}
         />
-        <View style={styles.galleryHeader}>
+        <View style={[styles.galleryHeader, { top: insets.top + 10 }]}>
           <Pressable onPress={onClose} hitSlop={16}>
             <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
           </Pressable>
@@ -67,7 +69,7 @@ const PosterGalleryModal = ({
             {index + 1} / {images?.length ?? 0}
           </Text>
         </View>
-        <View style={styles.galleryFooter}>
+        <View style={[styles.galleryFooter, { bottom: insets.bottom + 10 }]}>
           {currentImage && (
             <Text style={[styles.galleryMetaText, themeTextStyle]}>
               {[
@@ -111,7 +113,6 @@ const styles = StyleSheet.create({
   },
   galleryHeader: {
     position: 'absolute',
-    top: 60,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -128,7 +129,6 @@ const styles = StyleSheet.create({
   },
   galleryFooter: {
     position: 'absolute',
-    bottom: 40,
     left: 0,
     right: 0,
     gap: 10,

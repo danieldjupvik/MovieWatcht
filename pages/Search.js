@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   FlatList,
   Platform,
   Pressable,
@@ -9,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import axios from 'axios';
@@ -106,6 +106,7 @@ const SearchResultItem = React.memo(function SearchResultItem({ item, colorSchem
 
 const Search = ({ navigation }) => {
   const { colorScheme } = useAppearance();
+  const { height: deviceHeight } = useWindowDimensions();
   const isDark = colorScheme === 'dark';
   const themeTabBar = isDark ? 'white' : 'black';
   const containerBg = {
@@ -241,7 +242,7 @@ const Search = ({ navigation }) => {
     const textColor = { color: isDark ? '#98989F' : '#8E8E93' };
 
     if (loader) {
-      return <Loader loadingStyle={styles.loaderStyle} />;
+      return <Loader loadingStyle={{ paddingTop: deviceHeight / 3.5 }} />;
     }
     if (query.length < 1) {
       return (
@@ -284,8 +285,6 @@ const Search = ({ navigation }) => {
     </View>
   );
 };
-
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -367,9 +366,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.3,
-  },
-  loaderStyle: {
-    paddingTop: deviceHeight / 3.5,
   },
   emptyState: {
     flex: 1,

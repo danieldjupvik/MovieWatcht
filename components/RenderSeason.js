@@ -74,9 +74,11 @@ const RenderSeason = ({ navigation, id, season }) => {
               <Pressable onPress={() => { if (episodes.images?.posters?.length > 0) setGalleryVisible(true); }}>
                 <View style={[styles.imageDiv, boxShadow]}>
                   <Image
-                    source={{
-                      uri: `${basePosterUrl + (episodes?.poster_path ?? '')}`,
-                    }}
+                    source={
+                      episodes?.poster_path
+                        ? { uri: `${basePosterUrl}${episodes.poster_path}` }
+                        : noImage
+                    }
                     placeholder={imageBlurhash}
                     placeholderContentFit='cover'
                     style={[styles.posterImg, { width: seasonPosterW, height: seasonPosterH }]}

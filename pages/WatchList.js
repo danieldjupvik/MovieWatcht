@@ -117,8 +117,8 @@ const WatchList = ({ navigation }) => {
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
       setRefreshing(false);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to fetch watchlist:', e);
     } finally {
       setLoader(false);
       setWhileLoading(true);

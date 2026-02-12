@@ -271,9 +271,11 @@ const RenderDetails = ({ navigation, id }) => {
                   <Pressable onPress={() => { if (movie.images?.posters?.length > 0) setGalleryVisible(true); }}>
                     <View style={boxShadow}>
                       <Image
-                        source={{
-                          uri: `${basePosterUrl + movie.poster_path}`,
-                        }}
+                        source={
+                          movie.poster_path
+                            ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                            : noImage
+                        }
                         placeholder={imageBlurhash}
                         placeholderContentFit='cover'
                         style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
@@ -341,13 +343,13 @@ const RenderDetails = ({ navigation, id }) => {
                       <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
                       {movie.status}
                     </Text>
-                    {movie.budget !== 0 ? (
+                    {Number.isFinite(movie.budget) && movie.budget !== 0 ? (
                       <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
                         <Text style={styles.category}>{i18n.t('budget')}</Text> $
                         {movie.budget.toLocaleString()}
                       </Text>
                     ) : null}
-                    {movie.revenue !== 0 ? (
+                    {Number.isFinite(movie.revenue) && movie.revenue !== 0 ? (
                       <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
                         <Text style={styles.category}>{i18n.t('revenue')}</Text> $
                         {movie.revenue.toLocaleString()}
@@ -511,7 +513,7 @@ const RenderDetails = ({ navigation, id }) => {
                 showsHorizontalScrollIndicator={false}
               >
                 <View style={styles.castDiv}>
-                  {movie.credits.cast.slice(0, 20).map((cast, idx) => {
+                  {movie.credits?.cast?.slice(0, 20).map((cast, idx) => {
                     const profilePicture = {
                       uri: `${baseProfileUrl + cast.profile_path}`,
                     };
@@ -533,8 +535,8 @@ const RenderDetails = ({ navigation, id }) => {
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
-
-
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <Text style={[styles.textName, themeTextStyle]}>
@@ -553,7 +555,7 @@ const RenderDetails = ({ navigation, id }) => {
                 </View>
               </ScrollView>
             </View>
-            {movie.recommendations.results.length > 0 ? (
+            {movie.recommendations?.results?.length > 0 ? (
               <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('recommendations')}
@@ -606,7 +608,7 @@ const RenderDetails = ({ navigation, id }) => {
                 </ScrollView>
               </View>
             ) : null}
-            {movie.similar.results.length > 0 ? (
+            {movie.similar?.results?.length > 0 ? (
               <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('similar')}

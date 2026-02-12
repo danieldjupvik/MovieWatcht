@@ -182,9 +182,11 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <Pressable onPress={() => { if (series.images?.posters?.length > 0) setGalleryVisible(true); }}>
                     <View style={boxShadow}>
                       <Image
-                        source={{
-                          uri: `${basePosterUrl + series.poster_path}`,
-                        }}
+                        source={
+                          series.poster_path
+                            ? { uri: `${basePosterUrl}${series.poster_path}` }
+                            : noImage
+                        }
                         placeholder={imageBlurhash}
                         placeholderContentFit='cover'
                         style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}

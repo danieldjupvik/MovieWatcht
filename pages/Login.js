@@ -64,10 +64,10 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${getTokenUrl}`);
       getRequestToken(response.data.request_token);
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to get token:', e);
       setLoginDisabled(false);
-
-    } finally {
+      setShowError(true);
     }
   };
 
