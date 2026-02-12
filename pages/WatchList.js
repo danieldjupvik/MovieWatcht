@@ -12,6 +12,7 @@ import axios from 'axios';
 import { apiKey } from '../settings/api';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
+import useResponsive from '../hooks/useResponsive';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from '../language/i18n';
 import logoDark from '../assets/MovieWatcht-dark.png';
@@ -34,6 +35,7 @@ const WatchList = ({ navigation }) => {
   const isBottomLoadingRef = useRef(false);
 
   const { colorScheme } = useAppearance();
+  const { numColumns, posterWidth, posterHeight } = useResponsive();
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -208,8 +210,10 @@ const WatchList = ({ navigation }) => {
       title={item.title}
       voteAverage={item.vote_average}
       colorScheme={colorScheme}
+      cardWidth={posterWidth}
+      cardHeight={posterHeight}
     />
-  ), [colorScheme]);
+  ), [colorScheme, posterWidth, posterHeight]);
 
   const ListFooter = useCallback(() => (
     <>
@@ -244,10 +248,11 @@ const WatchList = ({ navigation }) => {
             <Loader loadingStyle={styles.loaderStyle} />
           ) : (
             <FlatList
+              key={numColumns}
               data={filteredMovies}
               renderItem={renderItem}
               keyExtractor={keyExtractor}
-              numColumns={3}
+              numColumns={numColumns}
               style={[styles.scrollView, themeContainerStyle]}
               contentContainerStyle={styles.flatListContent}
               contentInsetAdjustmentBehavior='automatic'

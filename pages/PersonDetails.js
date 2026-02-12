@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Pressable
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -30,6 +29,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
 import { monthNames } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import noImage from '../assets/no-image.jpg';
@@ -44,6 +44,7 @@ const PersonDetails = ({ route, navigation }) => {
   const pendingRequests = useRef(0);
 
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -53,6 +54,12 @@ const PersonDetails = ({ route, navigation }) => {
     colorScheme === 'light'
       ? styles.lightThemeBtnBackground
       : styles.darkThemeBtnBackground;
+
+  const backdropHeight = isTablet ? 380 : 250;
+  const posterImgW = isTablet ? 160 : 120;
+  const posterImgH = posterImgW * 1.5;
+  const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
+  const posterH = posterW * 1.5;
 
   useEffect(() => {
     pendingRequests.current = creditId ? 2 : 1;
@@ -119,7 +126,7 @@ const PersonDetails = ({ route, navigation }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={styles.backdrop}>
+              <View style={[styles.backdrop, { height: backdropHeight }]}>
                 <Image
                   source={
                     personCredit.media?.backdrop_path
@@ -154,7 +161,7 @@ const PersonDetails = ({ route, navigation }) => {
                   }
                   placeholder={imageBlurhash}
                   placeholderContentFit='cover'
-                  style={styles.posterImg}
+                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
                 />
               </View>
               <Text style={[styles.title, styles.runtime, themeTextStyle]}>
@@ -236,7 +243,7 @@ const PersonDetails = ({ route, navigation }) => {
                         >
                           <View style={boxShadow}>
                             <Image
-                              style={styles.posterImage}
+                              style={[styles.posterImage, { width: posterW, height: posterH }]}
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
@@ -283,7 +290,7 @@ const PersonDetails = ({ route, navigation }) => {
                         >
                           <View style={boxShadow}>
                             <Image
-                              style={styles.posterImage}
+                              style={[styles.posterImage, { width: posterW, height: posterH }]}
                               source={{
                                 uri: `${basePosterUrl + movie.poster_path}`,
                               }}
@@ -320,7 +327,6 @@ const PersonDetails = ({ route, navigation }) => {
 const globalFontsize = 16;
 const globalPadding = 5;
 const normalFontWeight = '400';
-const deviceWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
@@ -329,7 +335,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   main: {
-    width: deviceWidth,
+    width: '100%',
     justifyContent: 'center',
   },
   scrollViewWrapper: {
@@ -408,8 +414,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   profileImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 4.5,
+    width: 85,
+    height: 85,
     marginBottom: 5,
     borderRadius: 50,
   },
@@ -453,9 +459,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   posterImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 3,
     marginBottom: 13,
+    borderRadius: borderRadius,
   },
   ratingDiv: {
     marginTop: 10,

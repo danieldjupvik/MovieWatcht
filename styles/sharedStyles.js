@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -7,9 +7,6 @@ import {
   primaryButton,
 } from '../colors/colors';
 import { borderRadius } from './globalStyles';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 export const sharedStyles = StyleSheet.create({
   container: {
@@ -31,11 +28,11 @@ export const sharedStyles = StyleSheet.create({
     width: '100%',
   },
   flatListContent: {
-    alignItems: 'center',
-    width: deviceWidth,
+    paddingHorizontal: 5,
+    width: '100%',
   },
   columnWrapper: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   main: {
     flex: 1,
@@ -48,11 +45,11 @@ export const sharedStyles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',
-    width: deviceWidth,
+    width: '100%',
   },
   image: {
-    width: deviceWidth / 3.3,
-    height: deviceWidth / 2.24,
+    width: 120,
+    height: 180,
     backgroundColor: 'grey',
     borderRadius: borderRadius,
   },
@@ -89,11 +86,11 @@ export const sharedStyles = StyleSheet.create({
     paddingBottom: 20,
   },
   loaderStyle: {
-    paddingTop: deviceHeight / 4.5,
-    paddingBottom: deviceHeight,
+    paddingTop: 150,
+    paddingBottom: 600,
   },
   noMoviesDiv: {
-    marginTop: deviceHeight / 4.5,
+    marginTop: 150,
     flexDirection: 'row',
   },
   noMoviesText: {
@@ -102,7 +99,8 @@ export const sharedStyles = StyleSheet.create({
     marginRight: 10,
   },
   loginSection: {
-    width: deviceWidth - 50,
+    width: '90%',
+    maxWidth: 500,
     alignItems: 'center',
     padding: 20,
     borderRadius: borderRadius,

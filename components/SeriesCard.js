@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Text, View, Pressable, Share, Dimensions, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
+import { Text, View, Pressable, Share, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { basePosterUrl } from '../settings/api';
@@ -10,9 +10,7 @@ import { borderRadius } from '../styles/globalStyles';
 import { textColorDark, textColorLight } from '../colors/colors';
 import * as Haptics from 'expo-haptics';
 
-const deviceWidth = Dimensions.get('window').width;
-
-const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
+const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme, cardWidth, cardHeight }) => {
   const navigation = useNavigation();
 
   const themeTextStyle =
@@ -60,7 +58,7 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
         <View style={styles.imageDiv}>
           <Image
             source={posterImage}
-            style={styles.image}
+            style={cardWidth ? [styles.image, { width: cardWidth, height: cardHeight }] : styles.image}
             placeholder={imageBlurhash}
             placeholderContentFit='cover'
             transition={300}
@@ -83,8 +81,8 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
 
 const styles = StyleSheet.create({
   image: {
-    width: deviceWidth / 3.3,
-    height: deviceWidth / 2.24,
+    width: 120,
+    height: 180,
     backgroundColor: 'grey',
     borderRadius: borderRadius,
   },

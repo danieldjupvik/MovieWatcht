@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
@@ -28,6 +27,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
 import noImage from '../assets/no-image.jpg';
 import { WebView } from 'react-native-webview';
 import imdbLogo from '../assets/imdb-logo.png';
@@ -58,6 +58,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [imdbVotes, setImdbVotes] = useState();
 
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -65,6 +66,17 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
+
+  const backdropHeight = isTablet ? 380 : 250;
+  const posterImgW = isTablet ? 160 : 120;
+  const posterImgH = posterImgW * 1.5;
+  const videoWidth = isTablet ? Math.min(width * 0.4, 400) : Math.min(width * 0.52, 320);
+  const videoHeight = videoWidth / 1.78;
+  const castSize = isTablet ? 110 : Math.min(width / 4.5, 100);
+  const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
+  const posterH = posterW * 1.5;
+  const seasonW = isTablet ? 140 : Math.min(width / 3.9, 130);
+  const seasonH = seasonW * 1.5;
 
   useEffect(() => {
     const getSeries = async () => {
@@ -180,7 +192,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={styles.backdrop}>
+              <View style={[styles.backdrop, { height: backdropHeight }]}>
                 <Image
                   source={
                     series.backdrop_path
@@ -212,7 +224,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   }}
                   placeholder={imageBlurhash}
                   placeholderContentFit='cover'
-                  style={styles.posterImg}
+                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
                 />
               </View>
               <Text style={[styles.title, themeTextStyle]} selectable>
@@ -416,7 +428,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           >
                             <View style={boxShadow}>
                               <Image
-                                style={styles.seasonImage}
+                                style={[styles.seasonImage, { width: seasonW, height: seasonH }]}
                                 source={{
                                   uri: `${basePosterUrl + serie.poster_path}`,
                                 }}
@@ -467,7 +479,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               mediaPlaybackRequiresUserAction
                               javaScriptEnabled
                               scrollEnabled={false}
-                              style={styles.videoElem}
+                              style={[styles.videoElem, { width: videoWidth, height: videoHeight }]}
                               source={{
                                 uri: `https://www.youtube.com/embed/${video.key}`,
                               }}
@@ -511,10 +523,10 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           })
                         }
                       >
-                        <View style={styles.castCard}>
+                        <View style={[styles.castCard, { width: castSize }]}>
                           <View style={boxShadow}>
                             <Image
-                              style={styles.profileImage}
+                              style={[styles.profileImage, { width: castSize, height: castSize }]}
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
@@ -565,7 +577,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             >
                               <View style={boxShadow}>
                                 <Image
-                                  style={styles.posterImage}
+                                  style={[styles.posterImage, { width: posterW, height: posterH }]}
                                   source={{
                                     uri: `${
                                       basePosterUrl + series.poster_path
@@ -621,7 +633,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           >
                             <View style={boxShadow}>
                               <Image
-                                style={styles.posterImage}
+                                style={[styles.posterImage, { width: posterW, height: posterH }]}
                                 source={{
                                   uri: `${basePosterUrl + series.poster_path}`,
                                 }}
@@ -657,8 +669,6 @@ const RenderSeriesDetails = ({ navigation, id }) => {
 const globalFontsize = 17;
 const globalPadding = 5;
 const normalFontWeight = '300';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -674,11 +684,11 @@ const styles = StyleSheet.create({
     marginBottom: 45,
   },
   main: {
-    width: deviceWidth,
+    width: '100%',
     justifyContent: 'center',
   },
   Loader: {
-    marginBottom: deviceHeight / 2.2,
+    marginBottom: 300,
   },
   backdrop: {
     width: '100%',
@@ -881,8 +891,6 @@ const styles = StyleSheet.create({
   },
   videoElem: {
     marginBottom: 10,
-    width: deviceWidth / 1.9,
-    height: deviceWidth / 3.4,
     marginRight: 30,
     borderRadius: borderRadius,
   },
@@ -899,12 +907,9 @@ const styles = StyleSheet.create({
   castCard: {
     alignItems: 'center',
     marginRight: 20,
-    width: deviceWidth / 4.5,
     textAlign: 'center',
   },
   profileImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 4.5,
     marginBottom: 8,
     borderRadius: 50,
   },
@@ -940,8 +945,6 @@ const styles = StyleSheet.create({
     // marginBottom: 20,
   },
   seasonImage: {
-    width: deviceWidth / 3.9,
-    height: deviceWidth / 2.4,
     marginBottom: 13,
     borderRadius: borderRadius,
   },
@@ -973,8 +976,6 @@ const styles = StyleSheet.create({
   },
 
   posterImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 3,
     marginBottom: 13,
     borderRadius: borderRadius,
   },

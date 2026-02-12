@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Alert,
   Pressable
 } from 'react-native';
@@ -31,6 +30,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
@@ -67,11 +67,21 @@ const RenderDetails = ({ navigation, id }) => {
   const [imdbVotes, setImdbVotes] = useState();
 
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
+  const backdropHeight = isTablet ? 380 : 250;
+  const posterImgW = isTablet ? 160 : 120;
+  const posterImgH = posterImgW * 1.5;
+  const videoWidth = isTablet ? Math.min(width * 0.4, 400) : Math.min(width * 0.52, 320);
+  const videoHeight = videoWidth / 1.78;
+  const castSize = isTablet ? 110 : Math.min(width / 4.5, 100);
+  const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
+  const posterH = posterW * 1.5;
   useEffect(() => {
     setStateFinish(false);
     const getMovie = async () => {
@@ -259,7 +269,7 @@ const RenderDetails = ({ navigation, id }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={styles.backdrop}>
+              <View style={[styles.backdrop, { height: backdropHeight }]}>
                 <Image
                   source={
                     movie.backdrop_path
@@ -291,7 +301,7 @@ const RenderDetails = ({ navigation, id }) => {
                   }}
                   placeholder={imageBlurhash}
                   placeholderContentFit='cover'
-                  style={styles.posterImg}
+                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
                 />
                 {!stateFinish && sessionId ? (
                   <Loader
@@ -466,7 +476,7 @@ const RenderDetails = ({ navigation, id }) => {
                               mediaPlaybackRequiresUserAction
                               javaScriptEnabled
                               scrollEnabled={false}
-                              style={styles.videoElem}
+                              style={[styles.videoElem, { width: videoWidth, height: videoHeight }]}
                               source={{
                                 uri: `https://www.youtube.com/embed/${video.key}`,
                               }}
@@ -510,10 +520,10 @@ const RenderDetails = ({ navigation, id }) => {
                           })
                         }
                       >
-                        <View style={styles.castCard}>
+                        <View style={[styles.castCard, { width: castSize }]}>
                           <View style={boxShadow}>
                             <Image
-                              style={styles.profileImage}
+                              style={[styles.profileImage, { width: castSize, height: castSize }]}
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
@@ -564,7 +574,7 @@ const RenderDetails = ({ navigation, id }) => {
                             >
                               <View style={boxShadow}>
                                 <Image
-                                  style={styles.posterImage}
+                                  style={[styles.posterImage, { width: posterW, height: posterH }]}
                                   source={{
                                     uri: `${basePosterUrl + movie.poster_path}`,
                                   }}
@@ -617,7 +627,7 @@ const RenderDetails = ({ navigation, id }) => {
                           >
                             <View style={boxShadow}>
                               <Image
-                                style={styles.posterImage}
+                                style={[styles.posterImage, { width: posterW, height: posterH }]}
                                 source={{
                                   uri: `${basePosterUrl + movie.poster_path}`,
                                 }}
@@ -653,8 +663,6 @@ const RenderDetails = ({ navigation, id }) => {
 const globalFontsize = 17;
 const globalPadding = 5;
 const normalFontWeight = '300';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -670,11 +678,11 @@ const styles = StyleSheet.create({
     marginBottom: 45,
   },
   main: {
-    width: deviceWidth,
+    width: '100%',
     justifyContent: 'center',
   },
   Loader: {
-    marginBottom: deviceHeight / 2.2,
+    marginBottom: 300,
   },
   backdrop: {
     width: '100%',
@@ -834,8 +842,6 @@ const styles = StyleSheet.create({
   },
   videoElem: {
     marginBottom: 10,
-    width: deviceWidth / 1.9,
-    height: deviceWidth / 3.4,
     marginRight: 30,
     borderRadius: borderRadius,
   },
@@ -852,12 +858,9 @@ const styles = StyleSheet.create({
   castCard: {
     alignItems: 'center',
     marginRight: 20,
-    width: deviceWidth / 4.5,
     textAlign: 'center',
   },
   profileImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 4.5,
     marginBottom: 8,
     borderRadius: 50,
   },
@@ -904,8 +907,6 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   posterImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 3,
     marginBottom: 13,
     borderRadius: borderRadius,
   },

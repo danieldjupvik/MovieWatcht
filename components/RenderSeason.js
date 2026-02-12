@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
@@ -24,6 +23,7 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
 
 export const monthNames = [
   'Jan',
@@ -43,6 +43,9 @@ const RenderSeason = ({ navigation, id, season }) => {
   const [loader, setLoader] = useState(true);
   const [episodes, setEpisodes] = useState([]);
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
+  const stillWidth = isTablet ? Math.min(width / 4, 220) : Math.min(width / 3, 160);
+  const stillHeight = stillWidth / 1.6;
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -102,7 +105,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                           }}
                           placeholder={imageBlurhash}
                           placeholderContentFit='cover'
-                          style={styles.stillImg}
+                          style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
 
 
                         />
@@ -132,9 +135,6 @@ const RenderSeason = ({ navigation, id, season }) => {
     </View>
   );
 };
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -167,13 +167,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius,
   },
   stillImg: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 5,
     borderRadius: borderRadius,
   },
   stillImgDiv: {},
   infoDiv: {
-    width: deviceWidth - 185,
+    flex: 1,
     marginLeft: 15,
   },
   imageDiv: {
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   Loader: {
-    marginBottom: deviceHeight / 9,
+    marginBottom: 80,
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,
