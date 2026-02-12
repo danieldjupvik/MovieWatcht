@@ -89,8 +89,9 @@ const TopRated = ({ navigation }) => {
         setPageNumber(2);
         setRefreshing(false);
         setLoader(false);
-      } catch (_e) {
-
+      } catch (e) {
+        console.error('Failed to fetch movies:', e);
+        setLoader(false);
       }
     };
     getMovies();

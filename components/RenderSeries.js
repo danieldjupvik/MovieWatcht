@@ -18,6 +18,7 @@ import {
   textColorDark,
   textColorLight,
 } from '../colors/colors';
+import { useScrollToTop } from '@react-navigation/native';
 
 const RenderSeries = ({ baseUrl }) => {
   const [series, setSeries] = useState([]);
@@ -27,6 +28,8 @@ const RenderSeries = ({ baseUrl }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [pageNumber, setPageNumber] = useState(2);
   const isBottomLoadingRef = useRef(false);
+  const listRef = useRef(null);
+  useScrollToTop(listRef);
 
   const { colorScheme } = useAppearance();
   const { numColumns, posterWidth, posterHeight } = useResponsive();
@@ -42,8 +45,8 @@ const RenderSeries = ({ baseUrl }) => {
       setSeries(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to fetch series:', e);
     } finally {
       setRefreshing(false);
     }
@@ -76,8 +79,8 @@ const RenderSeries = ({ baseUrl }) => {
         return [...currentSeries, ...uniqueNewSeries];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to load more series:', e);
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
@@ -122,6 +125,7 @@ const RenderSeries = ({ baseUrl }) => {
           <Loader loadingStyle={styles.loaderStyle} />
         ) : (
           <FlatList
+            ref={listRef}
             key={numColumns}
             data={series}
             renderItem={renderItem}

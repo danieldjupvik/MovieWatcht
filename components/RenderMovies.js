@@ -20,7 +20,7 @@ import {
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useScrollToTop } from '@react-navigation/native';
 
 const RenderMovies = ({ baseUrl }) => {
   const [movies, setMovies] = useState([]);
@@ -32,7 +32,9 @@ const RenderMovies = ({ baseUrl }) => {
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
   const isBottomLoadingRef = useRef(false);
+  const listRef = useRef(null);
   const navigation = useNavigation();
+  useScrollToTop(listRef);
 
   const { colorScheme } = useAppearance();
   const { numColumns, posterWidth, posterHeight } = useResponsive();
@@ -166,6 +168,7 @@ const RenderMovies = ({ baseUrl }) => {
           <Loader loadingStyle={styles.loaderStyle} />
         ) : (
           <FlatList
+            ref={listRef}
             key={numColumns}
             data={movies}
             renderItem={renderItem}

@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { Text, View, Pressable, Share, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { basePosterUrl } from '../settings/api';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
@@ -12,6 +13,11 @@ import * as Haptics from 'expo-haptics';
 
 const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth, cardHeight }) => {
   const navigation = useNavigation();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -26,8 +32,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth,
     navigation.navigate('Details', { id, headerTitle: title });
   }, [id, title, navigation]);
 
-  const handleLongPress = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  const showActionSheet = useCallback(() => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -36,6 +41,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth,
           title,
         },
         (buttonIndex) => {
+          scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 });
           if (buttonIndex === 1) {
             Share.share({ title, url: tmdbUrl });
           } else if (buttonIndex === 2) {
@@ -45,16 +51,22 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth,
       );
     } else {
       Alert.alert(title, '', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Share', onPress: () => Share.share({ title, message: `${title} ${tmdbUrl}`, url: tmdbUrl }) },
-        { text: 'Open on TMDb', onPress: () => Linking.openURL(tmdbUrl) },
+        { text: 'Cancel', style: 'cancel', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); } },
+        { text: 'Share', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); Share.share({ title, message: `${title} ${tmdbUrl}`, url: tmdbUrl }); } },
+        { text: 'Open on TMDb', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); Linking.openURL(tmdbUrl); } },
       ]);
     }
-  }, [title, tmdbUrl]);
+  }, [title, tmdbUrl, scale]);
+
+  const handleLongPress = useCallback(() => {
+    scale.value = withSpring(1.04, { duration: 350, dampingRatio: 0.85 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimeout(showActionSheet, 250);
+  }, [scale, showActionSheet]);
 
   return (
     <Pressable onPress={handlePress} onLongPress={handleLongPress}>
-      <View style={styles.cards}>
+      <Animated.View style={[styles.cards, animatedStyle]}>
         <View style={styles.imageDiv}>
           <Image
             source={posterImage}
@@ -74,7 +86,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth,
             {Math.floor((voteAverage * 100) / 10)}%
           </Text>
         </View>
-      </View>
+      </Animated.View>
     </Pressable>
   );
 };

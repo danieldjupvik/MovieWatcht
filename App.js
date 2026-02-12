@@ -50,10 +50,16 @@ function themedScreenOptions(headerBg, headerTintColor) {
 }
 
 function themedRouteOptions(headerBg, headerTintColor) {
-  return ({ route }) => ({
-    title: route.params.headerTitle,
-    ...themedScreenOptions(headerBg, headerTintColor),
-  });
+  return ({ route, navigation }) => {
+    const state = navigation.getState();
+    const idx = state.routes.findIndex((r) => r.key === route.key);
+    const prevTitle = idx > 0 ? state.routes[idx - 1]?.params?.headerTitle : undefined;
+    return {
+      title: route.params.headerTitle,
+      ...(prevTitle?.length > 20 && { headerBackTitle: prevTitle.slice(0, 18) + '…' }),
+      ...themedScreenOptions(headerBg, headerTintColor),
+    };
+  };
 }
 
 const HomeStack = createNativeStackNavigator();

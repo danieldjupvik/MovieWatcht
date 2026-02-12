@@ -19,6 +19,7 @@ import logoDark from '../assets/MovieWatcht-dark.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sharedStyles as styles } from '../styles/sharedStyles';
 import ButtonStyles from '../styles/buttons';
+import { useScrollToTop } from '@react-navigation/native';
 
 const WatchList = ({ navigation }) => {
   const [allMovies, setAllMovies] = useState([]);
@@ -33,6 +34,8 @@ const WatchList = ({ navigation }) => {
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
   const isBottomLoadingRef = useRef(false);
+  const listRef = useRef(null);
+  useScrollToTop(listRef);
 
   const { colorScheme } = useAppearance();
   const { numColumns, posterWidth, posterHeight } = useResponsive();
@@ -247,6 +250,7 @@ const WatchList = ({ navigation }) => {
             <Loader loadingStyle={styles.loaderStyle} />
           ) : (
             <FlatList
+              ref={listRef}
               key={numColumns}
               data={filteredMovies}
               renderItem={renderItem}

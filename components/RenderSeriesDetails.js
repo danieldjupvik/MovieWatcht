@@ -1,32 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
   omdbApiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseBackdropPlaceholderUrl,
   baseProfileUrl,
-  baseFullPosterUrl,
-  getLanguageName,
 } from '../settings/api';
-import Gallery from 'react-native-awesome-gallery';
+import ProgressiveBackdrop from './ProgressiveBackdrop';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import i18n from '../language/i18n';
 import axios from 'axios';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import {
   backgroundColorDark,
   backgroundColorLight,
@@ -42,34 +35,19 @@ import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import freshNegative from '../assets/freshNegative.png';
 import freshPositive from '../assets/freshPositive.png';
+import PosterGalleryModal from './PosterGalleryModal';
+import { formatDate } from '../utils/dateUtils';
 
-const thumbGap = 6;
-
-export const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 const RenderSeriesDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [series, setSeries] = useState({});
+  const [error, setError] = useState(false);
   const [videos, setVideos] = useState([]);
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const galleryRef = useRef(null);
-  const thumbScrollRef = useRef(null);
 
   const { colorScheme } = useAppearance();
   const { width, isTablet } = useResponsive();
@@ -110,8 +88,9 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setVideos(videos.data.results);
         getOmdbInfo(response.data.external_ids.imdb_id);
         setSeries(response.data);
-      } catch (_e) {
-
+      } catch (e) {
+        console.error('Failed to fetch series:', e);
+        setError(true);
         setLoader(false);
       }
     };
@@ -135,57 +114,38 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
       }
       return response;
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to fetch OMDB info:', e);
     } finally {
       setLoader(false);
     }
   };
 
-  // premiere
   let year = '';
   let releaseDate = '';
   if (series.first_air_date) {
-    let d = new Date(series.first_air_date);
+    const d = new Date(series.first_air_date);
     year = d.getFullYear();
-    let month = monthNames[d.getMonth()];
-    let day = d.getDate();
-    releaseDate = `${day}. ${month} ${year}`;
+    releaseDate = formatDate(series.first_air_date);
   }
 
-  // Next episode
-
-  const nextEpisode = (date) => {
-    let newDate = new Date(date);
-    let nextYear = newDate.getFullYear();
-    let nextMonth = monthNames[newDate.getMonth()];
-    let nextDay = newDate.getDate();
-    let nextReleaseDate = `${nextDay}. ${nextMonth} ${nextYear}`;
-    return nextReleaseDate;
-  };
+  const nextEpisode = (date) => formatDate(date);
 
   const nextAirCountdown = (date) => {
-    let cleanDate = date.replaceAll('-', '/');
-    let dates = `${cleanDate} 00:00 AM`;
-    let end = new Date(dates);
-    let _second = 1000;
-    let _minute = _second * 60;
-    let _hour = _minute * 60;
-    let _day = _hour * 24;
+    if (!date) return false;
+    const [y, m, d] = date.split('-').map(Number);
+    const end = new Date(y, m - 1, d);
+    const _hour = 3600000;
+    const _day = _hour * 24;
 
-    let now = new Date();
-    let distance = end - now;
+    const distance = end - new Date();
+    if (distance < 0 || Number.isNaN(distance)) return false;
 
-    let days = Math.floor(distance / _day);
-    let hours = Math.floor((distance % _day) / _hour);
-    let dayString = days > 1 ? i18n.t('days') : i18n.t('day');
-    let hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
-    let timeUntilAir = `${days} ${dayString} ${hours} ${hourString}`;
-
-    if (distance < 0) {
-      return false;
-    }
-
-    return timeUntilAir;
+    const days = Math.floor(distance / _day);
+    const hours = Math.floor((distance % _day) / _hour);
+    const dayString = days > 1 ? i18n.t('days') : i18n.t('day');
+    const hourString = hours > 1 ? i18n.t('hours') : i18n.t('hour');
+    return `${days} ${dayString} ${hours} ${hourString}`;
   };
 
   const numFormatter = (num) => {
@@ -202,44 +162,21 @@ const RenderSeriesDetails = ({ navigation, id }) => {
     <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, themeTextStyle]}>
+            {i18n.t('errorLoading')}
+          </Text>
+        </View>
       ) : (
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={[styles.backdrop, { height: backdropHeight }]}>
-                <Image
-                  source={
-                    series.backdrop_path
-                      ? {
-                          uri: `${baseBackdropUrl + series.backdrop_path}`,
-                        }
-                      : noImage
-                  }
-                  style={StyleSheet.absoluteFill}
-                  placeholder={
-                    series.backdrop_path
-                      ? {
-                          uri: `${
-                            baseBackdropPlaceholderUrl + series.backdrop_path
-                          }`,
-                        }
-                      : imageBlurhash
-                  }
-                  placeholderContentFit='cover'
-                  transition={350}
-                  contentFit='cover'
-                />
-                <LinearGradient
-                  colors={[
-                    'rgba(0,0,0,0.4)',
-                    'rgba(0,0,0,0.6)',
-                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
-                  ]}
-                  locations={[0, 0.5, 1]}
-                  style={StyleSheet.absoluteFill}
-                />
-
-              </View>
+              <ProgressiveBackdrop
+                backdropPath={series.backdrop_path}
+                height={backdropHeight}
+                backgroundColor={colorScheme === 'light' ? backgroundColorLight : backgroundColorDark}
+              />
               <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
                 <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
                   <Pressable onPress={() => { if (series.images?.posters?.length > 0) setGalleryVisible(true); }}>
@@ -304,7 +241,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                       {series.status}
                     </Text>
 
-                    {series.created_by[0] ? (
+                    {Array.isArray(series.created_by) && series.created_by.length > 0 ? (
                       <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
                         <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
                         {series.created_by[0].name}
@@ -335,7 +272,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           </Text>
                         </View>
                       </Pressable>
-                      {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
+                      {omdb ? (
                         <Pressable
                           style={[styles.ratingWrapper]}
                           onPress={() => WebBrowser.openBrowserAsync(`https://www.imdb.com/title/${series.external_ids?.imdb_id}/`)}
@@ -347,29 +284,36 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           />
                           <View style={styles.ratingElem}>
                             <Text style={[themeTextStyle]}>
-                              {omdb?.imdbRating}/10
+                              {omdb.imdbRating && omdb.imdbRating !== 'N/A'
+                                ? `${omdb.imdbRating}/10`
+                                : '—'}
                             </Text>
-                            <Text style={[styles.ratingCounter, themeTextStyle]}>
-                              {numFormatter(imdbVotes)}
-                            </Text>
+                            {imdbVotes ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {numFormatter(imdbVotes)}
+                              </Text>
+                            ) : null}
                           </View>
                         </Pressable>
                       ) : null}
-
-                      {rottenTomato ? (
+                      {omdb ? (
                         <Pressable
                           style={[styles.ratingWrapper]}
                           onPress={() => WebBrowser.openBrowserAsync(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(series.original_name)}`)}
                         >
                           <Image
-                            source={rottenTomato > 60 ? freshPositive : freshNegative}
+                            source={rottenTomato ? (rottenTomato > 60 ? freshPositive : freshNegative) : freshPositive}
                             style={styles.rottenLogo}
                           />
                           <View style={styles.ratingElem}>
-                            <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
-                            <Text style={[styles.ratingCounter, themeTextStyle]}>
-                              {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                            <Text style={[themeTextStyle]}>
+                              {rottenTomato ? `${rottenTomato}%` : '—'}
                             </Text>
+                            {rottenTomato ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                              </Text>
+                            ) : null}
                           </View>
                         </Pressable>
                       ) : null}
@@ -445,17 +389,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 ) : null}
               </>
             )}
-            {series.seasons.length > 0 ? (
+            {series.seasons?.length > 0 ? (
               <View style={styles.seasonMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('seasons')}
                 </Text>
                 <ScrollView showsHorizontalScrollIndicator={false}>
                   <View style={styles.seasonDiv}>
-                    {series.seasons.map((serie, idx) => {
-                      if (serie.poster_path !== null) {
-                        return (
-                          <TouchableOpacity
+                    {series.seasons.map((serie, idx) => (
+                          <Pressable
                             style={styles.seasonCard}
                             key={idx}
                             onPress={() =>
@@ -470,11 +412,13 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             <View style={boxShadow}>
                               <Image
                                 style={[styles.seasonImage, { width: seasonW, height: seasonH }]}
-                                source={{
-                                  uri: `${basePosterUrl + serie.poster_path}`,
-                                }}
-                
-
+                                source={
+                                  serie.poster_path
+                                    ? { uri: `${basePosterUrl}${serie.poster_path}` }
+                                    : noImage
+                                }
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                               />
                             </View>
                             <Text style={[styles.textName, themeTextStyle]}>
@@ -486,10 +430,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             >
                               {serie.episode_count} {i18n.t('episodes')}
                             </Text>
-                          </TouchableOpacity>
-                        );
-                      }
-                    })}
+                          </Pressable>
+                    ))}
                   </View>
                 </ScrollView>
               </View>
@@ -520,6 +462,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               <Image
                                 source={{ uri: `https://img.youtube.com/vi/${video.key}/hqdefault.jpg` }}
                                 style={{ width: videoWidth, height: videoHeight }}
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                                 contentFit='cover'
                                 transition={200}
                               />
@@ -540,10 +484,11 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                           </View>
                         );
                       })}
-                  </View>
-                </ScrollView>
-              </View>
-            ) : null}
+                </View>
+              </ScrollView>
+            </View>
+          ) : null}
+          {series.credits?.cast?.length > 0 ? (
             <View style={styles.castMain}>
               <Text style={[styles.castHeading, themeTextStyle]}>
                 {i18n.t('cast')}
@@ -558,7 +503,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                       uri: `${baseProfileUrl + cast.profile_path}`,
                     };
                     return (
-                      <TouchableOpacity
+                      <Pressable
                         key={idx}
                         onPress={() =>
                           navigation.push('PersonDetails', {
@@ -575,8 +520,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
-              
-
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <Text style={[styles.textName, themeTextStyle]}>
@@ -589,14 +534,15 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             {cast.character}
                           </Text>
                         </View>
-                      </TouchableOpacity>
+                      </Pressable>
                     );
                   })}
                 </View>
               </ScrollView>
             </View>
-            {series.recommendations.results.length > 0 ? (
-              <View style={styles.moviesMain}>
+          ) : null}
+          {series.recommendations?.results?.length > 0 ? (
+            <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('recommendations')}
                 </Text>
@@ -607,10 +553,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {series.recommendations.results
                       .slice(0, 50)
-                      .map((series, idx) => {
-                        if (series.poster_path !== null) {
-                          return (
-                            <TouchableOpacity
+                      .map((series, idx) => (
+                            <Pressable
                               style={styles.moviesCard}
                               key={idx}
                               onPress={() =>
@@ -623,13 +567,13 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               <View style={boxShadow}>
                                 <Image
                                   style={[styles.posterImage, { width: posterW, height: posterH }]}
-                                  source={{
-                                    uri: `${
-                                      basePosterUrl + series.poster_path
-                                    }`,
-                                  }}
-                  
-
+                                  source={
+                                    series.poster_path
+                                      ? { uri: `${basePosterUrl}${series.poster_path}` }
+                                      : noImage
+                                  }
+                                  placeholder={imageBlurhash}
+                                  placeholderContentFit='cover'
                                 />
                               </View>
                               <View style={styles.ratingDivRec}>
@@ -645,16 +589,14 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                   %
                                 </Text>
                               </View>
-                            </TouchableOpacity>
-                          );
-                        }
-                      })}
+                            </Pressable>
+                      ))}
                   </View>
-                </ScrollView>
-              </View>
-            ) : null}
-            {series.similar.results.length > 0 ? (
-              <View style={styles.moviesMain}>
+              </ScrollView>
+            </View>
+          ) : null}
+          {series.similar?.results?.length > 0 ? (
+            <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('similar')}
                 </Text>
@@ -663,10 +605,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {series.similar.results.slice(0, 50).map((series, idx) => {
-                      if (series.poster_path !== null) {
-                        return (
-                          <TouchableOpacity
+                    {series.similar.results.slice(0, 50).map((series, idx) => (
+                          <Pressable
                             style={styles.moviesCard}
                             key={idx}
                             onPress={() =>
@@ -679,11 +619,13 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             <View style={boxShadow}>
                               <Image
                                 style={[styles.posterImage, { width: posterW, height: posterH }]}
-                                source={{
-                                  uri: `${basePosterUrl + series.poster_path}`,
-                                }}
-                
-
+                                source={
+                                  series.poster_path
+                                    ? { uri: `${basePosterUrl}${series.poster_path}` }
+                                    : noImage
+                                }
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                               />
                             </View>
                             <View style={styles.ratingDivRec}>
@@ -696,10 +638,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 {Math.floor((series.vote_average * 100) / 10)}%
                               </Text>
                             </View>
-                          </TouchableOpacity>
-                        );
-                      }
-                    })}
+                          </Pressable>
+                    ))}
                   </View>
                 </ScrollView>
               </View>
@@ -707,72 +647,14 @@ const RenderSeriesDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
-      <Modal
+      <PosterGalleryModal
         visible={galleryVisible}
-        transparent
-        animationType='fade'
-        statusBarTranslucent
-        onRequestClose={() => setGalleryVisible(false)}
-      >
-        <View style={[styles.galleryContainer, themeContainerStyle]}>
-          <Gallery
-            ref={galleryRef}
-            data={series.images?.posters?.map((p) => `${baseFullPosterUrl}${p.file_path}`) ?? []}
-            style={{ backgroundColor: colorScheme === 'light' ? backgroundColorLight : backgroundColorDark }}
-            initialIndex={galleryIndex}
-            onIndexChange={(idx) => {
-              setGalleryIndex(idx);
-              thumbScrollRef.current?.scrollTo({ x: idx * (thumbW + thumbGap) - thumbW * 2, animated: true });
-            }}
-            onSwipeToClose={() => setGalleryVisible(false)}
-          />
-          <View style={styles.galleryHeader}>
-            <Pressable onPress={() => setGalleryVisible(false)} hitSlop={16}>
-              <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
-            </Pressable>
-            <Text style={[styles.galleryCounter, themeTextStyle]}>
-              {galleryIndex + 1} / {series.images?.posters?.length ?? 0}
-            </Text>
-          </View>
-          <View style={styles.galleryFooter}>
-            {(() => {
-              const img = series.images?.posters?.[galleryIndex];
-              if (!img) return null;
-              const lang = img.iso_639_1 ? getLanguageName(img.iso_639_1) : null;
-              const parts = [
-                lang,
-                `${img.width}\u00d7${img.height}`,
-                img.vote_average > 0 ? `${img.vote_average.toFixed(1)} \u2605` : null,
-              ].filter(Boolean);
-              return <Text style={[styles.galleryMetaText, themeTextStyle]}>{parts.join(' \u00b7 ')}</Text>;
-            })()}
-            <ScrollView
-              ref={thumbScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.thumbContent}
-            >
-              {series.images?.posters?.map((p, idx) => (
-                <Pressable
-                  key={p.file_path}
-                  onPress={() => {
-                    galleryRef.current?.setIndex(idx, true);
-                  }}
-                >
-                  <Image
-                    source={{ uri: `${basePosterUrl}${p.file_path}` }}
-                    style={[
-                      styles.thumbImage,
-                      { width: thumbW, height: thumbW * 1.5 },
-                      idx === galleryIndex && [styles.thumbActive, { borderColor: colorScheme === 'light' ? textColorLight : textColorDark }],
-                    ]}
-                  />
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setGalleryVisible(false)}
+        images={series.images?.posters}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
@@ -1149,49 +1031,15 @@ const styles = StyleSheet.create({
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
   },
-  galleryContainer: {
+  errorContainer: {
     flex: 1,
-  },
-  galleryHeader: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
   },
-  galleryClose: {
-    fontSize: 22,
-  },
-  galleryCounter: {
+  errorText: {
     fontSize: 16,
-    fontWeight: '600',
-  },
-  galleryFooter: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    gap: 10,
-  },
-  galleryMetaText: {
-    fontSize: 13,
     textAlign: 'center',
-    opacity: 0.7,
-  },
-  thumbContent: {
-    paddingHorizontal: 16,
-    gap: thumbGap,
-  },
-  thumbImage: {
-    borderRadius: 4,
-    opacity: 0.5,
-  },
-  thumbActive: {
-    opacity: 1,
-    borderWidth: 2,
   },
 });
 

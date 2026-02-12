@@ -3,7 +3,7 @@ import {
   Text,
   View,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   Alert,
   TextInput,
 } from 'react-native';
@@ -122,9 +122,9 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${accountUrl + `&session_id=${id}`}`);
       storeAccountId(JSON.stringify(response.data.id));
-    } catch (_e) {
-
-    } finally {
+    } catch (e) {
+      console.error('Failed to fetch account:', e);
+      setShowError(true);
     }
   };
 
@@ -164,10 +164,13 @@ const Login = ({ navigation, route }) => {
       ),
     });
   }, [navigation, route.params.color]);
+
+  const { width: deviceWidth } = useWindowDimensions();
+
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
-        <ScrollView style={styles.main}>
+        <ScrollView style={[styles.main, { width: deviceWidth }]}>
           <View style={styles.loginWrap}>
             <Image
               source={tmdbLogo}
@@ -274,7 +277,7 @@ const Login = ({ navigation, route }) => {
     </>
   );
 };
-const deviceWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -282,12 +285,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   main: {
-    width: Dimensions.get('window').width,
+    width: '100%',
   },
   loginBox: {
     marginTop: 20,
     padding: 15,
-    width: deviceWidth - 50,
+    width: '85%',
+    alignSelf: 'center',
     borderRadius: borderRadius,
   },
   loginViewEmail: {

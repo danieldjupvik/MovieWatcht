@@ -5,21 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
-  baseBackdropUrl,
-  baseBackdropPlaceholderUrl,
   apiKey,
   basePosterUrl,
-  baseFullPosterUrl,
   personUrl,
   creditPerson,
 } from '../settings/api';
-import Gallery from 'react-native-awesome-gallery';
-import { FontAwesome5 } from '@expo/vector-icons';
+import ProgressiveBackdrop from '../components/ProgressiveBackdrop';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from '../language/i18n';
@@ -35,11 +29,10 @@ import {
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import useResponsive from '../hooks/useResponsive';
-import { monthNames } from '../components/RenderMovieDetails';
+import { formatDate } from '../utils/dateUtils';
+import PosterGalleryModal from '../components/PosterGalleryModal';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import noImage from '../assets/no-image.jpg';
-
-const thumbGap = 6;
 
 const PersonDetails = ({ route, navigation }) => {
   const { id } = route.params;
@@ -50,8 +43,6 @@ const PersonDetails = ({ route, navigation }) => {
   const [personCredit, setPersonCredit] = useState({});
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const galleryRef = useRef(null);
-  const thumbScrollRef = useRef(null);
   const pendingRequests = useRef(0);
 
   const { colorScheme } = useAppearance();
@@ -106,17 +97,8 @@ const PersonDetails = ({ route, navigation }) => {
     if (creditId) getCreditPerson();
   }, [id, creditId]);
 
-  let birthday = '';
-  if (person.birthday) {
-    const dBirthday = new Date(person.birthday);
-    birthday = `${dBirthday.getDate()}. ${monthNames[dBirthday.getMonth()]} ${dBirthday.getFullYear()}`;
-  }
-
-  let deathday = '';
-  if (person.deathday) {
-    const dDeathday = new Date(person.deathday);
-    deathday = `${dDeathday.getDate()}. ${monthNames[dDeathday.getMonth()]} ${dDeathday.getFullYear()}`;
-  }
+  let birthday = formatDate(person.birthday);
+  let deathday = formatDate(person.deathday);
 
   const knownForItems = (person.combined_credits?.cast || [])
     .slice()
@@ -137,41 +119,11 @@ const PersonDetails = ({ route, navigation }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={[styles.backdrop, { height: backdropHeight }]}>
-                <Image
-                  source={
-                    personCredit.media?.backdrop_path
-                      ? {
-                          uri: `${baseBackdropUrl + personCredit.media.backdrop_path}`,
-                        }
-                      : noImage
-                  }
-                  style={StyleSheet.absoluteFill}
-                  placeholder={
-                    personCredit.media?.backdrop_path
-                      ? {
-                          uri: `${
-                            baseBackdropPlaceholderUrl +
-                            personCredit.media.backdrop_path
-                          }`,
-                        }
-                      : imageBlurhash
-                  }
-                  placeholderContentFit='cover'
-                  transition={350}
-                  contentFit='cover'
-                />
-                <LinearGradient
-                  colors={[
-                    'rgba(0,0,0,0.4)',
-                    'rgba(0,0,0,0.6)',
-                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
-                  ]}
-                  locations={[0, 0.5, 1]}
-                  style={StyleSheet.absoluteFill}
-                />
-
-              </View>
+              <ProgressiveBackdrop
+                backdropPath={personCredit.media?.backdrop_path}
+                height={backdropHeight}
+                backgroundColor={colorScheme === 'light' ? backgroundColorLight : backgroundColorDark}
+              />
               <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0, marginBottom: isTablet ? 30 : 0 }}>
                 <View style={isTablet ? { alignItems: 'center' } : undefined}>
                   <Pressable onPress={() => { if (person.images?.profiles?.length > 0) setGalleryVisible(true); }}>
@@ -257,9 +209,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {knownForItems
-                    .filter((movie) => movie.poster_path !== null)
-                    .map((movie) => {
+                  {knownForItems.map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
@@ -276,9 +226,11 @@ const PersonDetails = ({ route, navigation }) => {
                           <View style={boxShadow}>
                             <Image
                               style={[styles.posterImage, { width: posterW, height: posterH }]}
-                              source={{
-                                uri: `${basePosterUrl + movie.poster_path}`,
-                              }}
+                              source={
+                                movie.poster_path
+                                  ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                  : noImage
+                              }
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -304,9 +256,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {appearsInItems
-                    .filter((movie) => movie.poster_path !== null)
-                    .map((movie) => {
+                  {appearsInItems.map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
@@ -323,9 +273,11 @@ const PersonDetails = ({ route, navigation }) => {
                           <View style={boxShadow}>
                             <Image
                               style={[styles.posterImage, { width: posterW, height: posterH }]}
-                              source={{
-                                uri: `${basePosterUrl + movie.poster_path}`,
-                              }}
+                              source={
+                                movie.poster_path
+                                  ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                  : noImage
+                              }
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -352,70 +304,14 @@ const PersonDetails = ({ route, navigation }) => {
           </ScrollView>
         </View>
       )}
-      <Modal
+      <PosterGalleryModal
         visible={galleryVisible}
-        transparent
-        animationType='fade'
-        statusBarTranslucent
-        onRequestClose={() => setGalleryVisible(false)}
-      >
-        <View style={[styles.galleryContainer, themeContainerStyle]}>
-          <Gallery
-            ref={galleryRef}
-            data={person.images?.profiles?.map((p) => `${baseFullPosterUrl}${p.file_path}`) ?? []}
-            style={{ backgroundColor: colorScheme === 'light' ? backgroundColorLight : backgroundColorDark }}
-            initialIndex={galleryIndex}
-            onIndexChange={(idx) => {
-              setGalleryIndex(idx);
-              thumbScrollRef.current?.scrollTo({ x: idx * (thumbW + thumbGap) - thumbW * 2, animated: true });
-            }}
-            onSwipeToClose={() => setGalleryVisible(false)}
-          />
-          <View style={styles.galleryHeader}>
-            <Pressable onPress={() => setGalleryVisible(false)} hitSlop={16}>
-              <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
-            </Pressable>
-            <Text style={[styles.galleryCounter, themeTextStyle]}>
-              {galleryIndex + 1} / {person.images?.profiles?.length ?? 0}
-            </Text>
-          </View>
-          <View style={styles.galleryFooter}>
-            {(() => {
-              const img = person.images?.profiles?.[galleryIndex];
-              if (!img) return null;
-              const parts = [
-                `${img.width}\u00d7${img.height}`,
-                img.vote_average > 0 ? `${img.vote_average.toFixed(1)} \u2605` : null,
-              ].filter(Boolean);
-              return <Text style={[styles.galleryMetaText, themeTextStyle]}>{parts.join(' \u00b7 ')}</Text>;
-            })()}
-            <ScrollView
-              ref={thumbScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.thumbContent}
-            >
-              {person.images?.profiles?.map((p, idx) => (
-                <Pressable
-                  key={p.file_path}
-                  onPress={() => {
-                    galleryRef.current?.setIndex(idx, true);
-                  }}
-                >
-                  <Image
-                    source={{ uri: `${basePosterUrl}${p.file_path}` }}
-                    style={[
-                      styles.thumbImage,
-                      { width: thumbW, height: thumbW * 1.5 },
-                      idx === galleryIndex && [styles.thumbActive, { borderColor: colorScheme === 'light' ? textColorLight : textColorDark }],
-                    ]}
-                  />
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setGalleryVisible(false)}
+        images={person.images?.profiles}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
@@ -586,50 +482,6 @@ const styles = StyleSheet.create({
   },
   darkThemeBtnBackground: {
     backgroundColor: '#4a4b4d',
-  },
-  galleryContainer: {
-    flex: 1,
-  },
-  galleryHeader: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  galleryClose: {
-    fontSize: 22,
-  },
-  galleryCounter: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  galleryFooter: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    gap: 10,
-  },
-  galleryMetaText: {
-    fontSize: 13,
-    textAlign: 'center',
-    opacity: 0.7,
-  },
-  thumbContent: {
-    paddingHorizontal: 16,
-    gap: thumbGap,
-  },
-  thumbImage: {
-    borderRadius: 4,
-    opacity: 0.5,
-  },
-  thumbActive: {
-    opacity: 1,
-    borderWidth: 2,
   },
 });
 

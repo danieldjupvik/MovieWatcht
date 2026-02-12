@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import axios from 'axios';
 import i18n from '../language/i18n';
 import { Image } from 'expo-image';
@@ -117,6 +117,8 @@ const Search = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
+  const listRef = useRef(null);
+  useScrollToTop(listRef);
 
   useEffect(() => {
     return () => {
@@ -267,6 +269,7 @@ const Search = ({ navigation }) => {
   return (
     <View style={[styles.container, containerBg]}>
       <FlatList
+        ref={listRef}
         data={results}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

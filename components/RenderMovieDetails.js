@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -6,23 +6,17 @@ import {
   ScrollView,
   Alert,
   Pressable,
-  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAppearance } from './AppearanceContext';
 import {
   detailsMovieUrl,
   apiKey,
   omdbApiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseBackdropPlaceholderUrl,
   baseProfileUrl,
-  baseFullPosterUrl,
-  getLanguageName,
 } from '../settings/api';
-import Gallery from 'react-native-awesome-gallery';
+import ProgressiveBackdrop from './ProgressiveBackdrop';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from './Loader';
 import * as Haptics from 'expo-haptics';
@@ -44,26 +38,13 @@ import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import freshNegative from '../assets/freshNegative.png';
 import freshPositive from '../assets/freshPositive.png';
+import PosterGalleryModal from './PosterGalleryModal';
+import { monthNames, formatDate } from '../utils/dateUtils';
 
-const thumbGap = 6;
-
-export const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [movie, setMovie] = useState({});
+  const [error, setError] = useState(false);
   const [videos, setVideos] = useState([]);
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
@@ -75,8 +56,6 @@ const RenderDetails = ({ navigation, id }) => {
   const [imdbVotes, setImdbVotes] = useState();
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const galleryRef = useRef(null);
-  const thumbScrollRef = useRef(null);
 
   const { colorScheme } = useAppearance();
   const { width, isTablet } = useResponsive();
@@ -126,7 +105,10 @@ const RenderDetails = ({ navigation, id }) => {
         if (sessionId) {
           getMovieState(sessionId);
         }
-      } catch (_e) {
+      } catch (e) {
+        console.error('Failed to fetch movie:', e);
+        setError(true);
+        setLoader(false);
       }
     };
     getMovie();
@@ -139,18 +121,18 @@ const RenderDetails = ({ navigation, id }) => {
         `https://www.omdbapi.com/?apikey=${omdbApiKey}&i=${imdbId}`
       );
       setOmdb(response.data);
-      setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
-      setRottenTomato(
-        JSON.parse(
-          response.data.Ratings.filter(
-            (source) => source.Source === 'Rotten Tomatoes'
-          )
-            .map((type) => type.Value)[0]
-            .replace('%', '')
-        )
+      if (response.data.imdbVotes && response.data.imdbVotes !== 'N/A') {
+        setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
+      }
+      const rtRating = response.data.Ratings?.find(
+        (source) => source.Source === 'Rotten Tomatoes'
       );
+      if (rtRating) {
+        setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
+      }
       return response;
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to fetch OMDB info:', e);
     } finally {
       setLoader(false);
     }
@@ -163,7 +145,8 @@ const RenderDetails = ({ navigation, id }) => {
       );
       setMovieExist(response.data.watchlist);
       return response;
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to fetch movie state:', e);
     } finally {
       setStateFinish(true);
     }
@@ -199,7 +182,8 @@ const RenderDetails = ({ navigation, id }) => {
         },
       });
       return response;
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to add movie to watchlist:', e);
     }
   };
 
@@ -218,7 +202,8 @@ const RenderDetails = ({ navigation, id }) => {
         },
       });
       return response;
-    } catch (_e) {
+    } catch (e) {
+      console.error('Failed to remove movie from watchlist:', e);
     }
   };
 
@@ -235,11 +220,7 @@ const RenderDetails = ({ navigation, id }) => {
 
   let digitalReleaseDate = '';
   if (digitalRelease) {
-    let dd = new Date(digitalRelease);
-    let yearDigital = dd.getFullYear();
-    let monthDigital = monthNames[dd.getMonth()];
-    let dayDigital = dd.getDate();
-    digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+    digitalReleaseDate = formatDate(digitalRelease);
   }
 
   // Runtime
@@ -270,44 +251,21 @@ const RenderDetails = ({ navigation, id }) => {
     <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, themeTextStyle]}>
+            {i18n.t('errorLoading')}
+          </Text>
+        </View>
       ) : (
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={[styles.backdrop, { height: backdropHeight }]}>
-                <Image
-                  source={
-                    movie.backdrop_path
-                      ? {
-                          uri: `${baseBackdropUrl + movie.backdrop_path}`,
-                        }
-                      : noImage
-                  }
-                  style={StyleSheet.absoluteFill}
-                  placeholder={
-                    movie.backdrop_path
-                      ? {
-                          uri: `${
-                            baseBackdropPlaceholderUrl + movie.backdrop_path
-                          }`,
-                        }
-                      : imageBlurhash
-                  }
-                  placeholderContentFit='cover'
-                  transition={350}
-                  contentFit='cover'
-                />
-                <LinearGradient
-                  colors={[
-                    'rgba(0,0,0,0.4)',
-                    'rgba(0,0,0,0.6)',
-                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
-                  ]}
-                  locations={[0, 0.5, 1]}
-                  style={StyleSheet.absoluteFill}
-                />
-
-              </View>
+              <ProgressiveBackdrop
+                backdropPath={movie.backdrop_path}
+                height={backdropHeight}
+                backgroundColor={colorScheme === 'light' ? backgroundColorLight : backgroundColorDark}
+              />
               <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
                 <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
                   <Pressable onPress={() => { if (movie.images?.posters?.length > 0) setGalleryVisible(true); }}>
@@ -439,7 +397,7 @@ const RenderDetails = ({ navigation, id }) => {
                         </Pressable>
                       ) : null}
 
-                      {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
+                      {omdb ? (
                         <Pressable
                           style={[styles.ratingWrapper]}
                           onPress={() => WebBrowser.openBrowserAsync(`https://www.imdb.com/title/${movie.imdb_id}/`)}
@@ -451,28 +409,36 @@ const RenderDetails = ({ navigation, id }) => {
                           />
                           <View style={styles.ratingElem}>
                             <Text style={[themeTextStyle]}>
-                              {omdb?.imdbRating}/10
+                              {omdb.imdbRating && omdb.imdbRating !== 'N/A'
+                                ? `${omdb.imdbRating}/10`
+                                : '—'}
                             </Text>
-                            <Text style={[styles.ratingCounter, themeTextStyle]}>
-                              {numFormatter(imdbVotes)}
-                            </Text>
+                            {imdbVotes ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {numFormatter(imdbVotes)}
+                              </Text>
+                            ) : null}
                           </View>
                         </Pressable>
                       ) : null}
-                      {rottenTomato ? (
+                      {omdb ? (
                         <Pressable
                           style={[styles.ratingWrapper]}
                           onPress={() => WebBrowser.openBrowserAsync(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(movie.title)}`)}
                         >
                           <Image
-                            source={rottenTomato > 60 ? freshPositive : freshNegative}
+                            source={rottenTomato ? (rottenTomato > 60 ? freshPositive : freshNegative) : freshPositive}
                             style={styles.rottenLogo}
                           />
                           <View style={styles.ratingElem}>
-                            <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
-                            <Text style={[styles.ratingCounter, themeTextStyle]}>
-                              {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                            <Text style={[themeTextStyle]}>
+                              {rottenTomato ? `${rottenTomato}%` : '—'}
                             </Text>
+                            {rottenTomato ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                              </Text>
+                            ) : null}
                           </View>
                         </Pressable>
                       ) : null}
@@ -510,6 +476,8 @@ const RenderDetails = ({ navigation, id }) => {
                               <Image
                                 source={{ uri: `https://img.youtube.com/vi/${video.key}/hqdefault.jpg` }}
                                 style={{ width: videoWidth, height: videoHeight }}
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                                 contentFit='cover'
                                 transition={200}
                               />
@@ -597,9 +565,7 @@ const RenderDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {movie.recommendations.results
                       .slice(0, 50)
-                      .map((movie, idx) => {
-                        if (movie.poster_path !== null) {
-                          return (
+                      .map((movie, idx) => (
                             <Pressable
                               style={styles.moviesCard}
                               key={idx}
@@ -613,11 +579,13 @@ const RenderDetails = ({ navigation, id }) => {
                               <View style={boxShadow}>
                                 <Image
                                   style={[styles.posterImage, { width: posterW, height: posterH }]}
-                                  source={{
-                                    uri: `${basePosterUrl + movie.poster_path}`,
-                                  }}
-    
-
+                                  source={
+                                    movie.poster_path
+                                      ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                      : noImage
+                                  }
+                                  placeholder={imageBlurhash}
+                                  placeholderContentFit='cover'
                                 />
                               </View>
                               <View style={styles.ratingDivRec}>
@@ -633,9 +601,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 </Text>
                               </View>
                             </Pressable>
-                          );
-                        }
-                      })}
+                      ))}
                   </View>
                 </ScrollView>
               </View>
@@ -650,9 +616,7 @@ const RenderDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {movie.similar.results.slice(0, 50).map((movie, idx) => {
-                      if (movie.poster_path !== null) {
-                        return (
+                    {movie.similar.results.slice(0, 50).map((movie, idx) => (
                           <Pressable
                             style={styles.moviesCard}
                             key={idx}
@@ -666,11 +630,13 @@ const RenderDetails = ({ navigation, id }) => {
                             <View style={boxShadow}>
                               <Image
                                 style={[styles.posterImage, { width: posterW, height: posterH }]}
-                                source={{
-                                  uri: `${basePosterUrl + movie.poster_path}`,
-                                }}
-  
-
+                                source={
+                                  movie.poster_path
+                                    ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                    : noImage
+                                }
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                               />
                             </View>
                             <View style={styles.ratingDivRec}>
@@ -684,9 +650,7 @@ const RenderDetails = ({ navigation, id }) => {
                               </Text>
                             </View>
                           </Pressable>
-                        );
-                      }
-                    })}
+                    ))}
                   </View>
                 </ScrollView>
               </View>
@@ -694,72 +658,14 @@ const RenderDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
-      <Modal
+      <PosterGalleryModal
         visible={galleryVisible}
-        transparent
-        animationType='fade'
-        statusBarTranslucent
-        onRequestClose={() => setGalleryVisible(false)}
-      >
-        <View style={[styles.galleryContainer, themeContainerStyle]}>
-          <Gallery
-            ref={galleryRef}
-            data={movie.images?.posters?.map((p) => `${baseFullPosterUrl}${p.file_path}`) ?? []}
-            style={{ backgroundColor: colorScheme === 'light' ? backgroundColorLight : backgroundColorDark }}
-            initialIndex={galleryIndex}
-            onIndexChange={(idx) => {
-              setGalleryIndex(idx);
-              thumbScrollRef.current?.scrollTo({ x: idx * (thumbW + thumbGap) - thumbW * 2, animated: true });
-            }}
-            onSwipeToClose={() => setGalleryVisible(false)}
-          />
-          <View style={styles.galleryHeader}>
-            <Pressable onPress={() => setGalleryVisible(false)} hitSlop={16}>
-              <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
-            </Pressable>
-            <Text style={[styles.galleryCounter, themeTextStyle]}>
-              {galleryIndex + 1} / {movie.images?.posters?.length ?? 0}
-            </Text>
-          </View>
-          <View style={styles.galleryFooter}>
-            {(() => {
-              const img = movie.images?.posters?.[galleryIndex];
-              if (!img) return null;
-              const lang = img.iso_639_1 ? getLanguageName(img.iso_639_1) : null;
-              const parts = [
-                lang,
-                `${img.width}\u00d7${img.height}`,
-                img.vote_average > 0 ? `${img.vote_average.toFixed(1)} \u2605` : null,
-              ].filter(Boolean);
-              return <Text style={[styles.galleryMetaText, themeTextStyle]}>{parts.join(' \u00b7 ')}</Text>;
-            })()}
-            <ScrollView
-              ref={thumbScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.thumbContent}
-            >
-              {movie.images?.posters?.map((p, idx) => (
-                <Pressable
-                  key={p.file_path}
-                  onPress={() => {
-                    galleryRef.current?.setIndex(idx, true);
-                  }}
-                >
-                  <Image
-                    source={{ uri: `${basePosterUrl}${p.file_path}` }}
-                    style={[
-                      styles.thumbImage,
-                      { width: thumbW, height: thumbW * 1.5 },
-                      idx === galleryIndex && [styles.thumbActive, { borderColor: colorScheme === 'light' ? textColorLight : textColorDark }],
-                    ]}
-                  />
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setGalleryVisible(false)}
+        images={movie.images?.posters}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
@@ -1073,49 +979,15 @@ const styles = StyleSheet.create({
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
   },
-  galleryContainer: {
+  errorContainer: {
     flex: 1,
-  },
-  galleryHeader: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
   },
-  galleryClose: {
-    fontSize: 22,
-  },
-  galleryCounter: {
+  errorText: {
     fontSize: 16,
-    fontWeight: '600',
-  },
-  galleryFooter: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    gap: 10,
-  },
-  galleryMetaText: {
-    fontSize: 13,
     textAlign: 'center',
-    opacity: 0.7,
-  },
-  thumbContent: {
-    paddingHorizontal: 16,
-    gap: thumbGap,
-  },
-  thumbImage: {
-    borderRadius: 4,
-    opacity: 0.5,
-  },
-  thumbActive: {
-    opacity: 1,
-    borderWidth: 2,
   },
 });
 
