@@ -69,8 +69,8 @@ const WatchList = ({ navigation }) => {
         'accountId',
         'sessionId',
       ]);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
       return;
     }
     const accountId = fromLocalStorage[0][1];
@@ -91,8 +91,8 @@ const WatchList = ({ navigation }) => {
         'accountId',
         'sessionId',
       ]);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
       return;
     }
     const storedAccountId = fromLocalStorage[0][1];
@@ -114,8 +114,8 @@ const WatchList = ({ navigation }) => {
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
       setRefreshing(false);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
       setLoader(false);
       setWhileLoading(true);
@@ -159,10 +159,9 @@ const WatchList = ({ navigation }) => {
         return [...current, ...unique];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
-      console.log('loaded new page');
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
     }
@@ -177,8 +176,8 @@ const WatchList = ({ navigation }) => {
       setAllMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
       setRefreshing(false);
       setWhileLoading(true);

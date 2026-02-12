@@ -42,8 +42,8 @@ const RenderSeries = ({ baseUrl }) => {
       setSeries(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
       setRefreshing(false);
     }
@@ -76,8 +76,8 @@ const RenderSeries = ({ baseUrl }) => {
         return [...currentSeries, ...uniqueNewSeries];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);

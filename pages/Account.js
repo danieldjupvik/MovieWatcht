@@ -54,8 +54,8 @@ const Account = ({ navigation }) => {
       await AsyncStorage.removeItem('sessionId');
       await deleteSession();
       navigation.goBack();
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     }
   };
 
@@ -92,8 +92,8 @@ const Account = ({ navigation }) => {
           session_id: sessionId,
         },
       });
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     }
   };
 

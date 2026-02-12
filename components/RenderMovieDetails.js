@@ -14,6 +14,7 @@ import { useAppearance } from './AppearanceContext';
 import {
   detailsMovieUrl,
   apiKey,
+  omdbApiKey,
   basePosterUrl,
   baseBackdropUrl,
   baseBackdropPlaceholderUrl,
@@ -125,8 +126,7 @@ const RenderDetails = ({ navigation, id }) => {
         if (sessionId) {
           getMovieState(sessionId);
         }
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
       }
     };
     getMovie();
@@ -136,7 +136,7 @@ const RenderDetails = ({ navigation, id }) => {
   const getOmdbInfo = async (imdbId) => {
     try {
       const response = await axios.get(
-        `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
+        `https://www.omdbapi.com/?apikey=${omdbApiKey}&i=${imdbId}`
       );
       setOmdb(response.data);
       setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
@@ -150,8 +150,7 @@ const RenderDetails = ({ navigation, id }) => {
         )
       );
       return response;
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     } finally {
       setLoader(false);
     }
@@ -162,11 +161,9 @@ const RenderDetails = ({ navigation, id }) => {
       const response = await axios.get(
         `https://api.themoviedb.org/3/movie/${id}/account_states${apiKey}&session_id=${session}`
       );
-      console.log(response.data.watchlist);
       setMovieExist(response.data.watchlist);
       return response;
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     } finally {
       setStateFinish(true);
     }
@@ -178,11 +175,9 @@ const RenderDetails = ({ navigation, id }) => {
       if (movieExist) {
         removeMovieToWatchlist();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        console.log('movie was removed');
       } else {
         setMovieToWatchlist();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        console.log('movie was added');
       }
     } else {
       Alert.alert(i18n.t('watchlistModalTex'), '', [{ text: i18n.t('close') }]);
@@ -204,8 +199,7 @@ const RenderDetails = ({ navigation, id }) => {
         },
       });
       return response;
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     }
   };
 
@@ -224,8 +218,7 @@ const RenderDetails = ({ navigation, id }) => {
         },
       });
       return response;
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     }
   };
 

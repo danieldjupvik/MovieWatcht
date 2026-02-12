@@ -1,4 +1,15 @@
-//Movies
+const TMDB_API_KEY = process.env.EXPO_PUBLIC_TMDB_API_KEY || '';
+const OMDB_API_KEY = process.env.EXPO_PUBLIC_OMDB_API_KEY || '';
+
+if (__DEV__ && !TMDB_API_KEY) {
+  console.warn(
+    'EXPO_PUBLIC_TMDB_API_KEY is not set. Run `bun run env:pull` to fetch environment variables.'
+  );
+}
+
+export const apiKey = `?api_key=${TMDB_API_KEY}`;
+export const omdbApiKey = OMDB_API_KEY;
+
 export const basePosterUrl = 'https://image.tmdb.org/t/p/w342';
 export const baseSearchPosterUrl = 'https://image.tmdb.org/t/p/w92';
 export const baseStillImageUrl = 'https://image.tmdb.org/t/p/w300';
@@ -7,7 +18,6 @@ export const baseFullPosterUrl = 'https://image.tmdb.org/t/p/w780';
 export const baseBackdropPlaceholderUrl = 'https://image.tmdb.org/t/p/w300';
 export const baseProfileUrl = 'https://image.tmdb.org/t/p/w185';
 export const detailsMovieUrl = 'https://api.themoviedb.org/3/movie/';
-export const apiKey = '?api_key=0e336e0a85a0361c6c6ce28bdce52748';
 export const baseUrl = `https://api.themoviedb.org/3/movie/popular${apiKey}`;
 export const searchMovieUrl = `https://api.themoviedb.org/3/search/movie${apiKey}`;
 export const searchMultiUrl = `https://api.themoviedb.org/3/search/multi${apiKey}`;
@@ -20,7 +30,6 @@ export const creditPerson = `https://api.themoviedb.org/3/credit/`;
 export const getTokenUrl = `https://api.themoviedb.org/3/authentication/token/new${apiKey}`;
 export const accountUrl = `https://api.themoviedb.org/3/account${apiKey}`;
 
-//Series
 export const popularSeriesUrl = `https://api.themoviedb.org/3/tv/popular${apiKey}`;
 export const topRatedSeriesUrl = `https://api.themoviedb.org/3/tv/top_rated${apiKey}`;
 export const onTheAirSeriesUrl = `https://api.themoviedb.org/3/tv/on_the_air${apiKey}`;

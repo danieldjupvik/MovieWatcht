@@ -13,6 +13,7 @@ import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
   apiKey,
+  omdbApiKey,
   basePosterUrl,
   baseBackdropUrl,
   baseBackdropPlaceholderUrl,
@@ -109,8 +110,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setVideos(videos.data.results);
         getOmdbInfo(response.data.external_ids.imdb_id);
         setSeries(response.data);
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
+
         setLoader(false);
       }
     };
@@ -121,7 +122,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const getOmdbInfo = async (imdbId) => {
     try {
       const response = await axios.get(
-        `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
+        `https://www.omdbapi.com/?apikey=${omdbApiKey}&i=${imdbId}`
       );
       setOmdb(response.data);
       if (response.data.imdbVotes && response.data.imdbVotes !== 'N/A') {
@@ -134,8 +135,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
         setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
       }
       return response;
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     } finally {
       setLoader(false);
     }

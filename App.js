@@ -30,6 +30,7 @@ import Adult from './pages/Adult';
 
 import { RegionProvider } from './components/RegionContext';
 import { AppearanceProvider, useAppearance } from './components/AppearanceContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const Tab = createNativeBottomTabNavigator();
 
@@ -203,7 +204,8 @@ function AppContent() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <RegionProvider>
+      <ErrorBoundary>
+        <RegionProvider>
           <StatusBar backgroundColor='black' barStyle={themeStatusBarStyle} />
           <NavigationContainer theme={navTheme}>
             <Tab.Navigator
@@ -287,7 +289,8 @@ function AppContent() {
               />
             </Tab.Navigator>
           </NavigationContainer>
-      </RegionProvider>
+        </RegionProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

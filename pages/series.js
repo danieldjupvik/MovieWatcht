@@ -37,7 +37,7 @@ const Series = () => {
     { key: 'third', title: i18n.t('airingToday') },
     { key: 'fourth', title: i18n.t('airingNow') },
     { key: 'fifth', title: i18n.t('topRated') },
-  ], [i18n.locale]);
+  ], []);
 
   const renderScene = React.useCallback(({ route }) => {
     switch (route.key) {

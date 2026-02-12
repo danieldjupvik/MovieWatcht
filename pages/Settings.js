@@ -55,8 +55,8 @@ const Settings = ({ navigation }) => {
           session_id: sessionIdToDelete,
         },
       });
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     }
   };
 

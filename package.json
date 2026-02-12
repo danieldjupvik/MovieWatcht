@@ -5,7 +5,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint ."
+    "lint": "expo lint .",
+    "env:pull": "npx eas-cli@latest env:pull --environment production",
+    "build": "npx eas-cli@latest build --platform ios",
+    "submit": "npx eas-cli@latest submit --platform ios"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

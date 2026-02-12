@@ -64,9 +64,9 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${getTokenUrl}`);
       getRequestToken(response.data.request_token);
-    } catch (e) {
+    } catch (_e) {
       setLoginDisabled(false);
-      console.log(e);
+
     } finally {
     }
   };
@@ -107,11 +107,11 @@ const Login = ({ navigation, route }) => {
       getAccount(response.data.session_id);
       testVariable = false;
       navigation.goBack();
-    } catch (e) {
+    } catch (_e) {
       setShowError(true);
       usernameInput.clear();
       passwordInput.clear();
-      console.log(e);
+
       setLoginDisabled(false);
     } finally {
       setLoginDisabled(false);
@@ -122,8 +122,8 @@ const Login = ({ navigation, route }) => {
     try {
       const response = await axios.get(`${accountUrl + `&session_id=${id}`}`);
       storeAccountId(JSON.stringify(response.data.id));
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
     } finally {
     }
   };

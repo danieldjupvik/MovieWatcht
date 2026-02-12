@@ -83,8 +83,8 @@ const PersonDetails = ({ route, navigation }) => {
           `${personUrl + id + apiKey}&append_to_response=combined_credits,images`
         );
         setPerson(response.data);
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
+
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);
@@ -95,8 +95,7 @@ const PersonDetails = ({ route, navigation }) => {
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);

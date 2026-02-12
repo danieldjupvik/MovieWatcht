@@ -74,8 +74,8 @@ const RenderSeason = ({ navigation, id, season }) => {
           `${detailsSeriesUrl + id + `/season/${season}` + apiKey}&append_to_response=images&include_image_language=en,null`
         );
         setEpisodes(response.data);
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
+
       } finally {
         setLoader(false);
       }
