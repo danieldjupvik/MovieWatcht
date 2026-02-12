@@ -44,8 +44,10 @@ const RenderSeason = ({ navigation, id, season }) => {
   const [episodes, setEpisodes] = useState([]);
   const { colorScheme } = useAppearance();
   const { width, isTablet } = useResponsive();
-  const stillWidth = isTablet ? Math.min(width / 4, 220) : Math.min(width / 3, 160);
+  const stillWidth = isTablet ? 280 : Math.min(width / 3, 160);
   const stillHeight = stillWidth / 1.6;
+  const seasonPosterW = isTablet ? 180 : 140;
+  const seasonPosterH = isTablet ? 257 : 200;
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -74,7 +76,7 @@ const RenderSeason = ({ navigation, id, season }) => {
         <Loader loadingStyle={styles.Loader} />
       ) : (
         <View style={styles.scrollViewWrapper}>
-          <ScrollView indicatorStyle={scrollBarTheme}>
+          <ScrollView indicatorStyle={scrollBarTheme} contentContainerStyle={{ paddingBottom: isTablet ? 0 : 50 }}>
             <View style={styles.main}>
               <View style={[styles.imageDiv, boxShadow]}>
                 <Image
@@ -83,51 +85,92 @@ const RenderSeason = ({ navigation, id, season }) => {
                   }}
                   placeholder={imageBlurhash}
                   placeholderContentFit='cover'
-                  style={styles.posterImg}
+                  style={[styles.posterImg, { width: seasonPosterW, height: seasonPosterH }]}
                 />
               </View>
-              <View style={styles.cardsDiv}>
-                {(episodes?.episodes ?? []).map((episode, idx) => {
-                  let releaseDate = '';
-                  if (episode.air_date) {
-                    let d = new Date(episode.air_date);
-                    let year = d.getFullYear();
-                    let month = monthNames[d.getMonth()];
-                    let day = d.getDate();
-                    releaseDate = `${day}. ${month} ${year}`;
-                  }
-                  return (
-                    <View key={idx} style={styles.cards}>
-                      <View style={styles.stillImgDiv}>
-                        <Image
-                          source={{
-                            uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
-                          }}
-                          placeholder={imageBlurhash}
-                          placeholderContentFit='cover'
-                          style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
-
-
-                        />
-                      </View>
-                      <View style={styles.infoDiv}>
-                        <Text style={[styles.episodeName, themeTextStyle]}>
-                          {episode.episode_number} - {episode.name}
-                        </Text>
-                        <Text style={[styles.releaseDate, themeTextStyle]}>
-                          {releaseDate}
-                        </Text>
-                        <Text
-                          numberOfLines={2}
-                          style={[styles.overview, themeTextStyle]}
-                        >
-                          {episode.overview}
-                        </Text>
-                      </View>
+              {isTablet ? (
+                <View style={styles.cardsDiv}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={{ flexDirection: 'row' }}>
+                      {(episodes?.episodes ?? []).map((episode, idx) => {
+                        let releaseDate = '';
+                        if (episode.air_date) {
+                          let d = new Date(episode.air_date);
+                          let year = d.getFullYear();
+                          let month = monthNames[d.getMonth()];
+                          let day = d.getDate();
+                          releaseDate = `${day}. ${month} ${year}`;
+                        }
+                        return (
+                          <View key={idx} style={{ width: stillWidth, marginRight: 20 }}>
+                            <Image
+                              source={{
+                                uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
+                              }}
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
+                              style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
+                            />
+                            <Text style={[styles.episodeName, themeTextStyle, { marginTop: 10 }]}>
+                              {episode.episode_number} - {episode.name}
+                            </Text>
+                            <Text style={[styles.releaseDate, themeTextStyle]}>
+                              {releaseDate}
+                            </Text>
+                            <Text
+                              numberOfLines={3}
+                              style={[styles.overview, themeTextStyle]}
+                            >
+                              {episode.overview}
+                            </Text>
+                          </View>
+                        );
+                      })}
                     </View>
-                  );
-                })}
-              </View>
+                  </ScrollView>
+                </View>
+              ) : (
+                <View style={styles.cardsDiv}>
+                  {(episodes?.episodes ?? []).map((episode, idx) => {
+                    let releaseDate = '';
+                    if (episode.air_date) {
+                      let d = new Date(episode.air_date);
+                      let year = d.getFullYear();
+                      let month = monthNames[d.getMonth()];
+                      let day = d.getDate();
+                      releaseDate = `${day}. ${month} ${year}`;
+                    }
+                    return (
+                      <View key={idx} style={styles.cards}>
+                        <View style={styles.stillImgDiv}>
+                          <Image
+                            source={{
+                              uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
+                            }}
+                            placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
+                            style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
+                          />
+                        </View>
+                        <View style={styles.infoDiv}>
+                          <Text style={[styles.episodeName, themeTextStyle]}>
+                            {episode.episode_number} - {episode.name}
+                          </Text>
+                          <Text style={[styles.releaseDate, themeTextStyle]}>
+                            {releaseDate}
+                          </Text>
+                          <Text
+                            numberOfLines={2}
+                            style={[styles.overview, themeTextStyle]}
+                          >
+                            {episode.overview}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
@@ -142,8 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollViewWrapper: {
-    paddingBottom: 45,
-    height: '100%',
+    marginBottom: 45,
   },
   main: {
     marginLeft: 22,
@@ -161,8 +203,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   posterImg: {
-    width: 140,
-    height: 200,
     marginTop: 20,
     borderRadius: borderRadius,
   },

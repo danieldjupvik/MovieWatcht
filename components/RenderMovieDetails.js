@@ -8,6 +8,7 @@ import {
   Pressable
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppearance } from './AppearanceContext';
 import {
   detailsMovieUrl,
@@ -74,8 +75,8 @@ const RenderDetails = ({ navigation, id }) => {
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
 
-  const backdropHeight = isTablet ? 380 : 250;
-  const posterImgW = isTablet ? 160 : 120;
+  const backdropHeight = isTablet ? 560 : 250;
+  const posterImgW = isTablet ? 200 : 120;
   const posterImgH = posterImgW * 1.5;
   const videoWidth = isTablet ? Math.min(width * 0.4, 400) : Math.min(width * 0.52, 320);
   const videoHeight = videoWidth / 1.78;
@@ -292,163 +293,181 @@ const RenderDetails = ({ navigation, id }) => {
                   transition={350}
                   contentFit='cover'
                 />
-                <View style={styles.child} />
-              </View>
-              <View style={[styles.imageDiv, boxShadow]}>
-                <Image
-                  source={{
-                    uri: `${basePosterUrl + movie.poster_path}`,
-                  }}
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
+                <LinearGradient
+                  colors={[
+                    'rgba(0,0,0,0.4)',
+                    'rgba(0,0,0,0.6)',
+                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
+                  ]}
+                  locations={[0, 0.5, 1]}
+                  style={StyleSheet.absoluteFill}
                 />
-                {!stateFinish && sessionId ? (
-                  <Loader
-                    loadingStyle={styles.watchListLoader}
-                    color={'white'}
-                    size={'small'}
-                  />
-                ) : (
-                  <Pressable onPress={watchListFunction}>
-                    <View style={styles.watchListDiv}>
-                      <FontAwesome5
-                        name={'bookmark'}
-                        solid={movieExist}
-                        style={{ color: 'red', fontSize: 25 }}
-                      />
-                      <Text style={styles.watchListText}>
-                        {i18n.t('watchlistBtn')}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )}
-              </View>
-              <Text style={[styles.title, themeTextStyle]} selectable>
-                {movie.title}
-              </Text>
-              <View style={styles.underTitleDiv}>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {year}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {runtime}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {omdb?.Rated}
-                  </Text>
-                </View>
-              </View>
-              <Text style={[styles.rating, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
-                {releaseDate}
-              </Text>
-              {digitalRelease ? (
-                <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
-                  <Text style={styles.category}>
-                    {i18n.t('digitalReleaseDate')}
-                  </Text>{' '}
-                  {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
-                </Text>
-              ) : null}
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-                {movie.status}
-              </Text>
-              {movie.budget !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('budget')}</Text> $
-                  {movie.budget.toLocaleString()}
-                </Text>
-              ) : null}
-              {movie.revenue !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('revenue')}</Text> $
-                  {movie.revenue.toLocaleString()}
-                </Text>
-              ) : null}
-              {movie.credits?.crew?.find((c) => c.job === 'Director') ? (
-                <Text
-                  style={[styles.genre, themeTextStyle]}
-                  onPress={() => {
-                    const director = movie.credits.crew.find((c) => c.job === 'Director');
-                    navigation.push('PersonDetails', {
-                      id: director.id,
-                      creditId: director.credit_id,
-                      headerTitle: director.name,
-                    });
-                  }}
-                >
-                  <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
-                  {movie.credits.crew.find((c) => c.job === 'Director').name}
-                </Text>
-              ) : null}
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
-                {movie.genres?.map((genre) => genre.name).join(', ')}
-              </Text>
 
-              <View style={[styles.rating, styles.ratingDiv]}>
-                {movie.vote_average !== 0 ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={tmdbLogo}
-                      style={styles.tmdbLogo}
-                      contentFit='contain'
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>
-                        {Math.floor((movie.vote_average * 100) / 10)}%{' '}
-                      </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {numFormatter(movie.vote_count)}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
-
-                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={imdbLogo}
-                      style={styles.imdbLogo}
-                      contentFit='contain'
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>
-                        {omdb?.imdbRating}/10
-                      </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {numFormatter(imdbVotes)}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
-                {rottenTomato ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={rottenTomato > 60 ? freshPositive : freshNegative}
-                      style={styles.rottenLogo}
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
-                      </Text>
-                    </View>
-                  </View>
-                ) : null}
               </View>
-              <Text style={[styles.overview, themeTextStyle]}>
-                {movie.overview}
-              </Text>
+              <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
+                <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
+                  <View style={boxShadow}>
+                    <Image
+                      source={{
+                        uri: `${basePosterUrl + movie.poster_path}`,
+                      }}
+                      placeholder={imageBlurhash}
+                      placeholderContentFit='cover'
+                      style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
+                    />
+                  </View>
+                  {!stateFinish && sessionId ? (
+                    <Loader
+                      loadingStyle={isTablet ? { marginTop: 12 } : styles.watchListLoader}
+                      color={'white'}
+                      size={'small'}
+                    />
+                  ) : (
+                    <Pressable onPress={watchListFunction}>
+                      <View style={isTablet ? { marginTop: 12, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' } : styles.watchListDiv}>
+                        <FontAwesome5
+                          name={'bookmark'}
+                          solid={movieExist}
+                          style={{ color: 'red', fontSize: 25 }}
+                        />
+                        <Text style={styles.watchListText}>
+                          {i18n.t('watchlistBtn')}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )}
+                </View>
+                <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
+                  <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
+                    <Text style={[styles.title, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, fontSize: 24, marginTop: 10, color: 'white' }]} selectable>
+                      {movie.title}
+                    </Text>
+                    <View style={[styles.underTitleDiv, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {year}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {runtime}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {omdb?.Rated}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.rating, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
+                      {releaseDate}
+                    </Text>
+                    {digitalRelease ? (
+                      <Text style={[styles.genre, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>
+                          {i18n.t('digitalReleaseDate')}
+                        </Text>{' '}
+                        {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
+                      {movie.status}
+                    </Text>
+                    {movie.budget !== 0 ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('budget')}</Text> $
+                        {movie.budget.toLocaleString()}
+                      </Text>
+                    ) : null}
+                    {movie.revenue !== 0 ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('revenue')}</Text> $
+                        {movie.revenue.toLocaleString()}
+                      </Text>
+                    ) : null}
+                    {movie.credits?.crew?.find((c) => c.job === 'Director') ? (
+                      <Text
+                        style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}
+                        onPress={() => {
+                          const director = movie.credits.crew.find((c) => c.job === 'Director');
+                          navigation.push('PersonDetails', {
+                            id: director.id,
+                            creditId: director.credit_id,
+                            headerTitle: director.name,
+                          });
+                        }}
+                      >
+                        <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
+                        {movie.credits.crew.find((c) => c.job === 'Director').name}
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
+                      {movie.genres?.map((genre) => genre.name).join(', ')}
+                    </Text>
+                  </View>
+                  <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
+                    <View style={[styles.rating, styles.ratingDiv, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 0, marginBottom: 0, flex: 0 }]}>
+                      {movie.vote_average !== 0 ? (
+                        <View style={[styles.ratingWrapper]}>
+                          <Image
+                            source={tmdbLogo}
+                            style={styles.tmdbLogo}
+                            contentFit='contain'
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {Math.floor((movie.vote_average * 100) / 10)}%{' '}
+                            </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {numFormatter(movie.vote_count)}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+
+                      {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
+                        <View style={[styles.ratingWrapper]}>
+                          <Image
+                            source={imdbLogo}
+                            style={styles.imdbLogo}
+                            contentFit='contain'
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {omdb?.imdbRating}/10
+                            </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {numFormatter(imdbVotes)}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+                      {rottenTomato ? (
+                        <View style={[styles.ratingWrapper]}>
+                          <Image
+                            source={rottenTomato > 60 ? freshPositive : freshNegative}
+                            style={styles.rottenLogo}
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={[styles.overview, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      {movie.overview}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
             <View style={styles.trailerMain}>
               <Text style={[styles.trailerHeading, themeTextStyle]}>
@@ -687,10 +706,6 @@ const styles = StyleSheet.create({
   backdrop: {
     width: '100%',
     height: 250,
-  },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   posterImg: {
     width: 120,

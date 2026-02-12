@@ -6,6 +6,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppearance } from './AppearanceContext';
 import {
   detailsSeriesUrl,
@@ -67,8 +68,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const themeBoxStyle =
     colorScheme === 'light' ? styles.lightThemeBox : styles.darkThemeBox;
 
-  const backdropHeight = isTablet ? 380 : 250;
-  const posterImgW = isTablet ? 160 : 120;
+  const backdropHeight = isTablet ? 560 : 250;
+  const posterImgW = isTablet ? 200 : 120;
   const posterImgH = posterImgW * 1.5;
   const videoWidth = isTablet ? Math.min(width * 0.4, 400) : Math.min(width * 0.52, 320);
   const videoHeight = videoWidth / 1.78;
@@ -215,130 +216,146 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   transition={350}
                   contentFit='cover'
                 />
-                <View style={styles.child} />
-              </View>
-              <View style={[styles.imageDiv, boxShadow]}>
-                <Image
-                  source={{
-                    uri: `${basePosterUrl + series.poster_path}`,
-                  }}
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
+                <LinearGradient
+                  colors={[
+                    'rgba(0,0,0,0.4)',
+                    'rgba(0,0,0,0.6)',
+                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
+                  ]}
+                  locations={[0, 0.5, 1]}
+                  style={StyleSheet.absoluteFill}
                 />
+
               </View>
-              <Text style={[styles.title, themeTextStyle]} selectable>
-                {series.original_name}
-              </Text>
-              <View style={styles.underTitleDiv}>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {year}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {series.episode_run_time?.[0] ? `${series.episode_run_time[0]} min` : ''}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {omdb?.Rated}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.underTitleDiv2}>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {series.number_of_seasons} {i18n.t('totalSeasons')}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {series.number_of_episodes} {i18n.t('totalEpisodes')}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={[styles.rating, styles.runtime, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
-                {releaseDate}
-              </Text>
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-                {series.status}
-              </Text>
-
-              {series.created_by[0] ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
-                  {series.created_by[0].name}
-                </Text>
-              ) : null}
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
-                {series.genres?.map((genre) => genre.name).join(', ')}
-              </Text>
-
-              <View style={[styles.rating, styles.ratingDiv]}>
-                <View style={[styles.ratingWrapper]}>
-                  <Image
-                    source={tmdbLogo}
-                    style={styles.tmdbLogo}
-                    contentFit='contain'
-                  />
-                  <View style={styles.ratingElem}>
-                    <Text style={[themeTextStyle]}>
-                      {Math.floor((series.vote_average * 100) / 10)}%{' '}
-                    </Text>
-                    <Text style={[styles.ratingCounter, themeTextStyle]}>
-                      {numFormatter(series.vote_count)}
-                    </Text>
-                  </View>
-                </View>
-                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
-                  <View style={[styles.ratingWrapper]}>
+              <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
+                <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
+                  <View style={boxShadow}>
                     <Image
-                      source={imdbLogo}
-                      style={styles.imdbLogo}
-                      contentFit='contain'
+                      source={{
+                        uri: `${basePosterUrl + series.poster_path}`,
+                      }}
+                      placeholder={imageBlurhash}
+                      placeholderContentFit='cover'
+                      style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
                     />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>
-                        {omdb?.imdbRating}/10
-                      </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {numFormatter(imdbVotes)}
-                      </Text>
-                    </View>
                   </View>
-                ) : null}
-
-                {rottenTomato ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={rottenTomato > 60 ? freshPositive : freshNegative}
-                      style={styles.rottenLogo}
-
-
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
-                      </Text>
+                </View>
+                <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
+                  <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
+                    <Text style={[styles.title, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, fontSize: 24, marginTop: 10, color: 'white' }]} selectable>
+                      {series.original_name}
+                    </Text>
+                    <View style={[styles.underTitleDiv, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {year}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {series.episode_run_time?.[0] ? `${series.episode_run_time[0]} min` : ''}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {omdb?.Rated}
+                        </Text>
+                      </View>
                     </View>
+
+                    <View style={[styles.underTitleDiv2, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {series.number_of_seasons} {i18n.t('totalSeasons')}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {series.number_of_episodes} {i18n.t('totalEpisodes')}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={[styles.rating, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
+                      {releaseDate}
+                    </Text>
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
+                      {series.status}
+                    </Text>
+
+                    {series.created_by[0] ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('createdBy')}</Text>{' '}
+                        {series.created_by[0].name}
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
+                      {series.genres?.map((genre) => genre.name).join(', ')}
+                    </Text>
                   </View>
-                ) : null}
+                  <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
+                    <View style={[styles.rating, styles.ratingDiv, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 0, marginBottom: 0, flex: 0 }]}>
+                      <View style={[styles.ratingWrapper]}>
+                        <Image
+                          source={tmdbLogo}
+                          style={styles.tmdbLogo}
+                          contentFit='contain'
+                        />
+                        <View style={styles.ratingElem}>
+                          <Text style={[themeTextStyle]}>
+                            {Math.floor((series.vote_average * 100) / 10)}%{' '}
+                          </Text>
+                          <Text style={[styles.ratingCounter, themeTextStyle]}>
+                            {numFormatter(series.vote_count)}
+                          </Text>
+                        </View>
+                      </View>
+                      {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
+                        <View style={[styles.ratingWrapper]}>
+                          <Image
+                            source={imdbLogo}
+                            style={styles.imdbLogo}
+                            contentFit='contain'
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {omdb?.imdbRating}/10
+                            </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {numFormatter(imdbVotes)}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+
+                      {rottenTomato ? (
+                        <View style={[styles.ratingWrapper]}>
+                          <Image
+                            source={rottenTomato > 60 ? freshPositive : freshNegative}
+                            style={styles.rottenLogo}
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={[styles.overview, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      {series.overview}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <Text style={[styles.overview, themeTextStyle]}>
-                {series.overview}
-              </Text>
             </View>
             {series.next_episode_to_air &&
             nextAirCountdown(series.next_episode_to_air.air_date) ? (
@@ -693,10 +710,6 @@ const styles = StyleSheet.create({
   backdrop: {
     width: '100%',
     height: 250,
-  },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   posterImg: {
     width: 120,

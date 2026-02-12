@@ -7,6 +7,7 @@ import {
   Pressable
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   baseBackdropUrl,
   baseBackdropPlaceholderUrl,
@@ -55,8 +56,8 @@ const PersonDetails = ({ route, navigation }) => {
       ? styles.lightThemeBtnBackground
       : styles.darkThemeBtnBackground;
 
-  const backdropHeight = isTablet ? 380 : 250;
-  const posterImgW = isTablet ? 160 : 120;
+  const backdropHeight = isTablet ? 560 : 250;
+  const posterImgW = isTablet ? 200 : 120;
   const posterImgH = posterImgW * 1.5;
   const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
   const posterH = posterW * 1.5;
@@ -150,73 +151,92 @@ const PersonDetails = ({ route, navigation }) => {
                   transition={350}
                   contentFit='cover'
                 />
-                <View style={styles.child} />
-              </View>
-              <View style={boxShadow}>
-                <Image
-                  source={
-                    person.profile_path
-                      ? { uri: `${basePosterUrl + person.profile_path}` }
-                      : noImage
-                  }
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: -backdropHeight / 2 }]}
+                <LinearGradient
+                  colors={[
+                    'rgba(0,0,0,0.4)',
+                    'rgba(0,0,0,0.6)',
+                    colorScheme === 'light' ? backgroundColorLight : backgroundColorDark,
+                  ]}
+                  locations={[0, 0.5, 1]}
+                  style={StyleSheet.absoluteFill}
                 />
+
               </View>
-              <Text style={[styles.title, styles.runtime, themeTextStyle]}>
-                {person.name}
-              </Text>
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
-                {birthday}
-              </Text>
-
-              {person.deathday ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
-                  {deathday}
-                </Text>
-              ) : null}
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
-                {person.gender === 1
-                  ? i18n.t('female')
-                  : person.gender === 2
-                    ? i18n.t('male')
-                    : person.gender === 3
-                      ? i18n.t('nonBinary')
-                      : ''}
-              </Text>
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
-                {person.place_of_birth}
-              </Text>
-
-              {person.homepage ? (
-                <View style={styles.homepageButtonMain}>
-                  <Pressable
-                    style={styles.homepageButtonDiv}
-                    onPress={goToWebsite}
-                  >
-                    <Text
-                      style={[
-                        styles.homepageButton,
-                        themeTextStyle,
-                        themeBtnBackground,
-                      ]}
-                    >
-                      {i18n.t('homepage')}
-                    </Text>
-                  </Pressable>
+              <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0, marginBottom: isTablet ? 30 : 0 }}>
+                <View style={isTablet ? { alignItems: 'center' } : undefined}>
+                  <View style={boxShadow}>
+                    <Image
+                      source={
+                        person.profile_path
+                          ? { uri: `${basePosterUrl + person.profile_path}` }
+                          : noImage
+                      }
+                      placeholder={imageBlurhash}
+                      placeholderContentFit='cover'
+                      style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
+                    />
+                  </View>
                 </View>
-              ) : null}
-              <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
-                {person.biography}
-              </Text>
+                <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
+                  <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
+                    <Text style={[styles.title, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, fontSize: 24, marginTop: 10, color: 'white' }]}>
+                      {person.name}
+                    </Text>
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
+                      {birthday}
+                    </Text>
+
+                    {person.deathday ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
+                        {deathday}
+                      </Text>
+                    ) : null}
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
+                      {person.gender === 1
+                        ? i18n.t('female')
+                        : person.gender === 2
+                          ? i18n.t('male')
+                          : person.gender === 3
+                            ? i18n.t('nonBinary')
+                            : ''}
+                    </Text>
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
+                      {person.place_of_birth}
+                    </Text>
+
+                    {person.homepage ? (
+                      <View style={styles.homepageButtonMain}>
+                        <Pressable
+                          style={[styles.homepageButtonDiv, isTablet && { marginLeft: 0 }]}
+                          onPress={goToWebsite}
+                        >
+                          <Text
+                            style={[
+                              styles.homepageButton,
+                              themeTextStyle,
+                              themeBtnBackground,
+                            ]}
+                          >
+                            {i18n.t('homepage')}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
+                    <Text style={[styles.overview, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 10 }]}>
+                      {person.biography}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
 
             <View style={styles.moviesMain}>
@@ -379,10 +399,6 @@ const styles = StyleSheet.create({
   },
   runtime: {
     marginBottom: globalPadding * 4,
-  },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   rating: {
     marginLeft: 22,
