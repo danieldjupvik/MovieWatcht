@@ -3,6 +3,7 @@ export const basePosterUrl = 'https://image.tmdb.org/t/p/w342';
 export const baseSearchPosterUrl = 'https://image.tmdb.org/t/p/w92';
 export const baseStillImageUrl = 'https://image.tmdb.org/t/p/w300';
 export const baseBackdropUrl = 'https://image.tmdb.org/t/p/w780';
+export const baseFullPosterUrl = 'https://image.tmdb.org/t/p/w780';
 export const baseBackdropPlaceholderUrl = 'https://image.tmdb.org/t/p/w300';
 export const baseProfileUrl = 'https://image.tmdb.org/t/p/w185';
 export const detailsMovieUrl = 'https://api.themoviedb.org/3/movie/';
@@ -26,3 +27,13 @@ export const onTheAirSeriesUrl = `https://api.themoviedb.org/3/tv/on_the_air${ap
 export const airingTodaySeriesUrl = `https://api.themoviedb.org/3/tv/airing_today${apiKey}`;
 export const detailsSeriesUrl = 'https://api.themoviedb.org/3/tv/';
 export const trendingSeriesUrl = `https://api.themoviedb.org/3/trending/tv/week${apiKey}`;
+
+const langMap = {
+  en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
+  pt: 'Portuguese', ja: 'Japanese', ko: 'Korean', zh: 'Chinese', ru: 'Russian',
+  ar: 'Arabic', hi: 'Hindi', th: 'Thai', tr: 'Turkish', pl: 'Polish',
+  nl: 'Dutch', sv: 'Swedish', da: 'Danish', no: 'Norwegian', fi: 'Finnish',
+  cs: 'Czech', hu: 'Hungarian', ro: 'Romanian', el: 'Greek', he: 'Hebrew',
+  uk: 'Ukrainian', vi: 'Vietnamese', id: 'Indonesian', ms: 'Malay', nb: 'Norwegian',
+};
+export const getLanguageName = (code) => langMap[code] ?? code?.toUpperCase();

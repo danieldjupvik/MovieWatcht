@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   ScrollView,
+  Pressable,
+  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,7 +17,11 @@ import {
   baseBackdropUrl,
   baseBackdropPlaceholderUrl,
   baseProfileUrl,
+  baseFullPosterUrl,
+  getLanguageName,
 } from '../settings/api';
+import Gallery from 'react-native-awesome-gallery';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import i18n from '../language/i18n';
 import axios from 'axios';
@@ -30,11 +36,13 @@ import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import useResponsive from '../hooks/useResponsive';
 import noImage from '../assets/no-image.jpg';
-import { WebView } from 'react-native-webview';
+import * as WebBrowser from 'expo-web-browser';
 import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import freshNegative from '../assets/freshNegative.png';
 import freshPositive from '../assets/freshPositive.png';
+
+const thumbGap = 6;
 
 export const monthNames = [
   'Jan',
@@ -57,6 +65,10 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const galleryRef = useRef(null);
+  const thumbScrollRef = useRef(null);
 
   const { colorScheme } = useAppearance();
   const { width, isTablet } = useResponsive();
@@ -78,6 +90,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   const posterH = posterW * 1.5;
   const seasonW = isTablet ? 140 : Math.min(width / 3.9, 130);
   const seasonH = seasonW * 1.5;
+  const thumbW = isTablet ? 64 : 44;
 
   useEffect(() => {
     const getSeries = async () => {
@@ -90,7 +103,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
             detailsSeriesUrl +
             id +
             apiKey +
-            '&append_to_response=translations,recommendations,similar,credits,external_ids'
+            '&append_to_response=translations,recommendations,similar,credits,external_ids,images&include_image_language=en,null'
           }`
         );
         setVideos(videos.data.results);
@@ -229,16 +242,18 @@ const RenderSeriesDetails = ({ navigation, id }) => {
               </View>
               <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
                 <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
-                  <View style={boxShadow}>
-                    <Image
-                      source={{
-                        uri: `${basePosterUrl + series.poster_path}`,
-                      }}
-                      placeholder={imageBlurhash}
-                      placeholderContentFit='cover'
-                      style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
-                    />
-                  </View>
+                  <Pressable onPress={() => { if (series.images?.posters?.length > 0) setGalleryVisible(true); }}>
+                    <View style={boxShadow}>
+                      <Image
+                        source={{
+                          uri: `${basePosterUrl + series.poster_path}`,
+                        }}
+                        placeholder={imageBlurhash}
+                        placeholderContentFit='cover'
+                        style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
+                      />
+                    </View>
+                  </Pressable>
                 </View>
                 <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
                   <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
@@ -302,7 +317,10 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   </View>
                   <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
                     <View style={[styles.rating, styles.ratingDiv, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 0, marginBottom: 0, flex: 0 }]}>
-                      <View style={[styles.ratingWrapper]}>
+                      <Pressable
+                        style={[styles.ratingWrapper]}
+                        onPress={() => WebBrowser.openBrowserAsync(`https://www.themoviedb.org/tv/${series.id}`)}
+                      >
                         <Image
                           source={tmdbLogo}
                           style={styles.tmdbLogo}
@@ -316,9 +334,12 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                             {numFormatter(series.vote_count)}
                           </Text>
                         </View>
-                      </View>
+                      </Pressable>
                       {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
-                        <View style={[styles.ratingWrapper]}>
+                        <Pressable
+                          style={[styles.ratingWrapper]}
+                          onPress={() => WebBrowser.openBrowserAsync(`https://www.imdb.com/title/${series.external_ids?.imdb_id}/`)}
+                        >
                           <Image
                             source={imdbLogo}
                             style={styles.imdbLogo}
@@ -332,11 +353,14 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               {numFormatter(imdbVotes)}
                             </Text>
                           </View>
-                        </View>
+                        </Pressable>
                       ) : null}
 
                       {rottenTomato ? (
-                        <View style={[styles.ratingWrapper]}>
+                        <Pressable
+                          style={[styles.ratingWrapper]}
+                          onPress={() => WebBrowser.openBrowserAsync(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(series.original_name)}`)}
+                        >
                           <Image
                             source={rottenTomato > 60 ? freshPositive : freshNegative}
                             style={styles.rottenLogo}
@@ -347,7 +371,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
                             </Text>
                           </View>
-                        </View>
+                        </Pressable>
                       ) : null}
                     </View>
                     <Text style={[styles.overview, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
@@ -470,52 +494,56 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                 </ScrollView>
               </View>
             ) : null}
-            <View style={styles.trailerMain}>
-              <Text style={[styles.trailerHeading, themeTextStyle]}>
-                {i18n.t('extras')}
-              </Text>
-              <ScrollView
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-              >
-                <View style={styles.trailerDiv}>
-                  {videos
-                    .filter(
-                      (type) =>
-                        type.type === 'Trailer' && type.site === 'YouTube'
-                    )
-                    .map((video, idx) => {
-                      let maxLimit = 32;
-                      return (
-                        <View style={styles.videoDiv} key={idx}>
-                          <View style={boxShadow}>
-                            <WebView
-                              allowsFullscreenVideo
-                              useWebKit
-                              allowsInlineMediaPlayback
-                              mediaPlaybackRequiresUserAction
-                              javaScriptEnabled
-                              scrollEnabled={false}
-                              style={[styles.videoElem, { width: videoWidth, height: videoHeight }]}
-                              source={{
-                                uri: `https://www.youtube.com/embed/${video.key}`,
-                              }}
-                            />
+            {videos.filter((v) => v.type === 'Trailer' && v.site === 'YouTube').length > 0 ? (
+              <View style={styles.trailerMain}>
+                <Text style={[styles.trailerHeading, themeTextStyle]}>
+                  {i18n.t('extras')}
+                </Text>
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={styles.trailerDiv}>
+                    {videos
+                      .filter(
+                        (type) =>
+                          type.type === 'Trailer' && type.site === 'YouTube'
+                      )
+                      .map((video, idx) => {
+                        let maxLimit = 32;
+                        return (
+                          <View style={styles.videoDiv} key={idx}>
+                            <Pressable
+                              onPress={() => WebBrowser.openBrowserAsync(`https://www.youtube.com/watch?v=${video.key}`)}
+                              style={[boxShadow, { width: videoWidth, height: videoHeight, borderRadius: borderRadius, overflow: 'hidden' }]}
+                            >
+                              <Image
+                                source={{ uri: `https://img.youtube.com/vi/${video.key}/hqdefault.jpg` }}
+                                style={{ width: videoWidth, height: videoHeight }}
+                                contentFit='cover'
+                                transition={200}
+                              />
+                              <View style={styles.playOverlay}>
+                                <View style={styles.playButton}>
+                                  <FontAwesome5 name='play' solid style={styles.playIcon} />
+                                </View>
+                              </View>
+                            </Pressable>
+                            <Text style={[styles.videoText, themeTextStyle]}>
+                              {video.name.length > maxLimit
+                                ? video.name.substring(0, maxLimit - 3) + '...'
+                                : video.name}
+                            </Text>
+                            <Text style={[styles.typeText, themeTextStyle]}>
+                              {video.type}
+                            </Text>
                           </View>
-                          <Text style={[styles.videoText, themeTextStyle]}>
-                            {video.name.length > maxLimit
-                              ? video.name.substring(0, maxLimit - 3) + '...'
-                              : video.name}
-                          </Text>
-                          <Text style={[styles.typeText, themeTextStyle]}>
-                            {video.type}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                </View>
-              </ScrollView>
-            </View>
+                        );
+                      })}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
             <View style={styles.castMain}>
               <Text style={[styles.castHeading, themeTextStyle]}>
                 {i18n.t('cast')}
@@ -679,6 +707,72 @@ const RenderSeriesDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
+      <Modal
+        visible={galleryVisible}
+        transparent
+        animationType='fade'
+        statusBarTranslucent
+        onRequestClose={() => setGalleryVisible(false)}
+      >
+        <View style={[styles.galleryContainer, themeContainerStyle]}>
+          <Gallery
+            ref={galleryRef}
+            data={series.images?.posters?.map((p) => `${baseFullPosterUrl}${p.file_path}`) ?? []}
+            style={{ backgroundColor: colorScheme === 'light' ? backgroundColorLight : backgroundColorDark }}
+            initialIndex={galleryIndex}
+            onIndexChange={(idx) => {
+              setGalleryIndex(idx);
+              thumbScrollRef.current?.scrollTo({ x: idx * (thumbW + thumbGap) - thumbW * 2, animated: true });
+            }}
+            onSwipeToClose={() => setGalleryVisible(false)}
+          />
+          <View style={styles.galleryHeader}>
+            <Pressable onPress={() => setGalleryVisible(false)} hitSlop={16}>
+              <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
+            </Pressable>
+            <Text style={[styles.galleryCounter, themeTextStyle]}>
+              {galleryIndex + 1} / {series.images?.posters?.length ?? 0}
+            </Text>
+          </View>
+          <View style={styles.galleryFooter}>
+            {(() => {
+              const img = series.images?.posters?.[galleryIndex];
+              if (!img) return null;
+              const lang = img.iso_639_1 ? getLanguageName(img.iso_639_1) : null;
+              const parts = [
+                lang,
+                `${img.width}\u00d7${img.height}`,
+                img.vote_average > 0 ? `${img.vote_average.toFixed(1)} \u2605` : null,
+              ].filter(Boolean);
+              return <Text style={[styles.galleryMetaText, themeTextStyle]}>{parts.join(' \u00b7 ')}</Text>;
+            })()}
+            <ScrollView
+              ref={thumbScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.thumbContent}
+            >
+              {series.images?.posters?.map((p, idx) => (
+                <Pressable
+                  key={p.file_path}
+                  onPress={() => {
+                    galleryRef.current?.setIndex(idx, true);
+                  }}
+                >
+                  <Image
+                    source={{ uri: `${basePosterUrl}${p.file_path}` }}
+                    style={[
+                      styles.thumbImage,
+                      { width: thumbW, height: thumbW * 1.5 },
+                      idx === galleryIndex && [styles.thumbActive, { borderColor: colorScheme === 'light' ? textColorLight : textColorDark }],
+                    ]}
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -892,11 +986,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   videoDiv: {
-    textAlign: 'center',
+    marginRight: 16,
   },
   videoText: {
     fontWeight: '600',
     fontSize: 13,
+    marginTop: 10,
   },
   typeText: {
     paddingTop: 5,
@@ -906,6 +1001,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginRight: 30,
     borderRadius: borderRadius,
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    color: 'white',
+    fontSize: 18,
+    marginLeft: 3,
   },
   castMain: {
     marginTop: 25 + globalPadding,
@@ -1035,6 +1148,50 @@ const styles = StyleSheet.create({
   },
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
+  },
+  galleryContainer: {
+    flex: 1,
+  },
+  galleryHeader: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  galleryClose: {
+    fontSize: 22,
+  },
+  galleryCounter: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  galleryFooter: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    gap: 10,
+  },
+  galleryMetaText: {
+    fontSize: 13,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+  thumbContent: {
+    paddingHorizontal: 16,
+    gap: thumbGap,
+  },
+  thumbImage: {
+    borderRadius: 4,
+    opacity: 0.5,
+  },
+  thumbActive: {
+    opacity: 1,
+    borderWidth: 2,
   },
 });
 

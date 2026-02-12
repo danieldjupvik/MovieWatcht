@@ -4,7 +4,8 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Pressable
+  Pressable,
+  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,9 +14,12 @@ import {
   baseBackdropPlaceholderUrl,
   apiKey,
   basePosterUrl,
+  baseFullPosterUrl,
   personUrl,
   creditPerson,
 } from '../settings/api';
+import Gallery from 'react-native-awesome-gallery';
+import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from '../language/i18n';
@@ -35,6 +39,8 @@ import { monthNames } from '../components/RenderMovieDetails';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import noImage from '../assets/no-image.jpg';
 
+const thumbGap = 6;
+
 const PersonDetails = ({ route, navigation }) => {
   const { id } = route.params;
   const { creditId } = route.params;
@@ -42,6 +48,10 @@ const PersonDetails = ({ route, navigation }) => {
   const [loader, setLoader] = useState(true);
   const [person, setPerson] = useState({});
   const [personCredit, setPersonCredit] = useState({});
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const galleryRef = useRef(null);
+  const thumbScrollRef = useRef(null);
   const pendingRequests = useRef(0);
 
   const { colorScheme } = useAppearance();
@@ -61,6 +71,7 @@ const PersonDetails = ({ route, navigation }) => {
   const posterImgH = posterImgW * 1.5;
   const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
   const posterH = posterW * 1.5;
+  const thumbW = isTablet ? 64 : 44;
 
   useEffect(() => {
     pendingRequests.current = creditId ? 2 : 1;
@@ -69,7 +80,7 @@ const PersonDetails = ({ route, navigation }) => {
     const getPerson = async () => {
       try {
         const response = await axios.get(
-          `${personUrl + id + apiKey}&append_to_response=combined_credits`
+          `${personUrl + id + apiKey}&append_to_response=combined_credits,images`
         );
         setPerson(response.data);
       } catch (e) {
@@ -164,18 +175,20 @@ const PersonDetails = ({ route, navigation }) => {
               </View>
               <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0, marginBottom: isTablet ? 30 : 0 }}>
                 <View style={isTablet ? { alignItems: 'center' } : undefined}>
-                  <View style={boxShadow}>
-                    <Image
-                      source={
-                        person.profile_path
-                          ? { uri: `${basePosterUrl + person.profile_path}` }
-                          : noImage
-                      }
-                      placeholder={imageBlurhash}
-                      placeholderContentFit='cover'
-                      style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
-                    />
-                  </View>
+                  <Pressable onPress={() => { if (person.images?.profiles?.length > 0) setGalleryVisible(true); }}>
+                    <View style={boxShadow}>
+                      <Image
+                        source={
+                          person.profile_path
+                            ? { uri: `${basePosterUrl + person.profile_path}` }
+                            : noImage
+                        }
+                        placeholder={imageBlurhash}
+                        placeholderContentFit='cover'
+                        style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
+                      />
+                    </View>
+                  </Pressable>
                 </View>
                 <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
                   <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
@@ -340,6 +353,70 @@ const PersonDetails = ({ route, navigation }) => {
           </ScrollView>
         </View>
       )}
+      <Modal
+        visible={galleryVisible}
+        transparent
+        animationType='fade'
+        statusBarTranslucent
+        onRequestClose={() => setGalleryVisible(false)}
+      >
+        <View style={[styles.galleryContainer, themeContainerStyle]}>
+          <Gallery
+            ref={galleryRef}
+            data={person.images?.profiles?.map((p) => `${baseFullPosterUrl}${p.file_path}`) ?? []}
+            style={{ backgroundColor: colorScheme === 'light' ? backgroundColorLight : backgroundColorDark }}
+            initialIndex={galleryIndex}
+            onIndexChange={(idx) => {
+              setGalleryIndex(idx);
+              thumbScrollRef.current?.scrollTo({ x: idx * (thumbW + thumbGap) - thumbW * 2, animated: true });
+            }}
+            onSwipeToClose={() => setGalleryVisible(false)}
+          />
+          <View style={styles.galleryHeader}>
+            <Pressable onPress={() => setGalleryVisible(false)} hitSlop={16}>
+              <FontAwesome5 name='times' style={[styles.galleryClose, themeTextStyle]} />
+            </Pressable>
+            <Text style={[styles.galleryCounter, themeTextStyle]}>
+              {galleryIndex + 1} / {person.images?.profiles?.length ?? 0}
+            </Text>
+          </View>
+          <View style={styles.galleryFooter}>
+            {(() => {
+              const img = person.images?.profiles?.[galleryIndex];
+              if (!img) return null;
+              const parts = [
+                `${img.width}\u00d7${img.height}`,
+                img.vote_average > 0 ? `${img.vote_average.toFixed(1)} \u2605` : null,
+              ].filter(Boolean);
+              return <Text style={[styles.galleryMetaText, themeTextStyle]}>{parts.join(' \u00b7 ')}</Text>;
+            })()}
+            <ScrollView
+              ref={thumbScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.thumbContent}
+            >
+              {person.images?.profiles?.map((p, idx) => (
+                <Pressable
+                  key={p.file_path}
+                  onPress={() => {
+                    galleryRef.current?.setIndex(idx, true);
+                  }}
+                >
+                  <Image
+                    source={{ uri: `${basePosterUrl}${p.file_path}` }}
+                    style={[
+                      styles.thumbImage,
+                      { width: thumbW, height: thumbW * 1.5 },
+                      idx === galleryIndex && [styles.thumbActive, { borderColor: colorScheme === 'light' ? textColorLight : textColorDark }],
+                    ]}
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -510,6 +587,50 @@ const styles = StyleSheet.create({
   },
   darkThemeBtnBackground: {
     backgroundColor: '#4a4b4d',
+  },
+  galleryContainer: {
+    flex: 1,
+  },
+  galleryHeader: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  galleryClose: {
+    fontSize: 22,
+  },
+  galleryCounter: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  galleryFooter: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    gap: 10,
+  },
+  galleryMetaText: {
+    fontSize: 13,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+  thumbContent: {
+    paddingHorizontal: 16,
+    gap: thumbGap,
+  },
+  thumbImage: {
+    borderRadius: 4,
+    opacity: 0.5,
+  },
+  thumbActive: {
+    opacity: 1,
+    borderWidth: 2,
   },
 });
 
