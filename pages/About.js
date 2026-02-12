@@ -13,6 +13,7 @@ import * as WebBrowser from 'expo-web-browser';
 import {
   backgroundColorDark,
   backgroundColorLight,
+  systemColors,
 } from './../colors/colors';
 import tmdbLogo from '../assets/tmdb-logo.png';
 import { useAppearance } from '../components/AppearanceContext';
@@ -21,10 +22,10 @@ import SettingsRow from '../components/SettingsRow';
 
 const About = () => {
   const { colorScheme } = useAppearance();
-  const isDark = colorScheme === 'dark';
-  const secondaryText = isDark ? '#98989F' : '#8E8E93';
-  const containerBg = isDark ? backgroundColorDark : backgroundColorLight;
+  const colors = systemColors[colorScheme] || systemColors.light;
+  const containerBg = colorScheme === 'light' ? backgroundColorLight : backgroundColorDark;
 
+  const version = Constants.expoConfig?.version;
   const buildNumber = Platform.OS === 'ios'
     ? Constants.expoConfig?.ios?.buildNumber
     : Constants.expoConfig?.android?.versionCode;
@@ -35,15 +36,17 @@ const About = () => {
     <View style={[styles.container, { backgroundColor: containerBg }]}>
       <ScrollView contentInsetAdjustmentBehavior='automatic'>
         <View style={styles.content}>
-          <SettingsSection header={i18n.t('aboutThisApp')}>
-            <SettingsRow
-              title={`Copyright \u00A9 ${year} Daniel Djupvik`}
-              subtitle={i18n.t('allRightsReserved')}
-            />
-            <SettingsRow
-              title={`${i18n.t('version')} ${Constants.expoConfig?.version} (${buildNumber})`}
-            />
-          </SettingsSection>
+          <View style={styles.appInfo}>
+            <Text style={[styles.appName, { color: colors.label }]}>
+              {Constants.expoConfig?.name}
+            </Text>
+            <Text style={[styles.versionText, { color: colors.secondaryLabel }]}>
+              {`${i18n.t('version')} ${version}${buildNumber ? ` (${buildNumber})` : ''}`}
+            </Text>
+            <Text style={[styles.copyright, { color: colors.tertiaryLabel }]}>
+              {`\u00A9 ${year} Daniel Djupvik \u00B7 ${i18n.t('allRightsReserved')}`}
+            </Text>
+          </View>
 
           <SettingsSection header={i18n.t('tmdbPrivacy')}>
             <SettingsRow
@@ -65,16 +68,10 @@ const About = () => {
                 contentFit='contain'
                 style={styles.tmdbLogo}
               />
-              <Text style={[styles.disclaimer, { color: secondaryText }]}>
-                This product uses the TMDb API but is not endorsed or certified by TMDb.
-              </Text>
-              <Text style={[styles.disclaimer, { color: secondaryText }]}>
-                Images are provided with the help of The Movie Database.
+              <Text style={[styles.disclaimer, { color: colors.tertiaryLabel }]}>
+                This product uses the TMDb API but is not endorsed or certified by TMDb. Images are provided with the help of The Movie Database.
               </Text>
             </View>
-          </SettingsSection>
-
-          <SettingsSection header='Info'>
             <SettingsRow
               title='Icon provided by FontAwesome'
               accessory='chevron'
@@ -92,21 +89,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingBottom: 40,
   },
+  appInfo: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 4,
+    gap: 6,
+  },
+  appName: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  versionText: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  copyright: {
+    fontSize: 13,
+    fontWeight: '400',
+  },
   tmdbSection: {
-    padding: 16,
+    paddingLeft: 20,
+    paddingRight: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
   },
   tmdbLogo: {
     width: 100,
     height: 50,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   disclaimer: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 4,
   },
 });
 

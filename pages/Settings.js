@@ -55,8 +55,8 @@ const Settings = ({ navigation }) => {
           session_id: sessionIdToDelete,
         },
       });
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to delete session on server:', e);
     }
   };
 
@@ -100,7 +100,7 @@ const Settings = ({ navigation }) => {
         <View style={styles.content}>
           <SettingsSection header={i18n.t('mainSettings')}>
             <SettingsRow
-              icon='info.circle.fill'
+              icon='info.circle'
               iconColor='#007AFF'
               title={i18n.t('about')}
               accessory='chevron'
@@ -111,7 +111,7 @@ const Settings = ({ navigation }) => {
               }
             />
             <SettingsRow
-              icon='paintbrush.fill'
+              icon='paintbrush'
               iconColor='#AF52DE'
               title={i18n.t('appearance')}
               accessory='chevron'
@@ -137,7 +137,7 @@ const Settings = ({ navigation }) => {
           <SettingsSection header={i18n.t('accountSettings')}>
             {sessionId ? (
               <SettingsRow
-                icon='person.crop.circle.fill'
+                icon='person.crop.circle'
                 iconColor='#34C759'
                 title={i18n.t('account')}
                 accessory='chevron'
@@ -150,7 +150,7 @@ const Settings = ({ navigation }) => {
             ) : null}
             {sessionId ? (
               <SettingsRow
-                icon='rectangle.portrait.and.arrow.right.fill'
+                icon='rectangle.portrait.and.arrow.right'
                 iconColor='#FF3B30'
                 title={i18n.t('logout')}
                 onPress={openActionSheet}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingBottom: 40,
   },
 });

@@ -72,14 +72,12 @@ const SettingsRow = ({
   const content = (
     <View style={styles.row}>
       {icon ? (
-        <View style={[styles.iconContainer, { backgroundColor: iconColor || '#007AFF' }]}>
-          <SymbolView
-            name={icon}
-            style={styles.icon}
-            tintColor='#FFFFFF'
-            resizeMode='scaleAspectFit'
-          />
-        </View>
+        <SymbolView
+          name={icon}
+          style={styles.icon}
+          tintColor={iconColor || '#007AFF'}
+          resizeMode='scaleAspectFit'
+        />
       ) : null}
       <View style={styles.content}>
         <View style={styles.textContainer}>
@@ -101,7 +99,7 @@ const SettingsRow = ({
     return (
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => pressed ? { opacity: 0.6 } : null}
+        style={({ pressed }) => pressed ? { opacity: 0.7 } : null}
       >
         {content}
       </Pressable>
@@ -115,28 +113,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 44,
-    paddingLeft: 16,
-  },
-  iconContainer: {
-    width: 29,
-    height: 29,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    minHeight: 52,
+    paddingHorizontal: 20,
+    gap: 14,
   },
   icon: {
-    width: 17,
-    height: 17,
+    width: 28,
+    height: 28,
   },
   content: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 11,
-    paddingRight: 16,
-    marginLeft: 12,
+    paddingVertical: 12,
   },
   textContainer: {
     flex: 1,
