@@ -555,14 +555,14 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {series.recommendations.results
                       .slice(0, 50)
-                      .map((series, idx) => (
+                      .map((item, idx) => (
                             <Pressable
                               style={styles.moviesCard}
-                              key={idx}
+                              key={item.id || idx}
                               onPress={() =>
                                 navigation.push('SeriesDetails', {
-                                  id: series.id,
-                                  headerTitle: series.original_name,
+                                  id: item.id,
+                                  headerTitle: item.original_name,
                                 })
                               }
                             >
@@ -570,8 +570,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 <Image
                                   style={[styles.posterImage, { width: posterW, height: posterH }]}
                                   source={
-                                    series.poster_path
-                                      ? { uri: `${basePosterUrl}${series.poster_path}` }
+                                    item.poster_path
+                                      ? { uri: `${basePosterUrl}${item.poster_path}` }
                                       : noImage
                                   }
                                   placeholder={imageBlurhash}
@@ -587,7 +587,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((series.vote_average * 100) / 10)}
+                                  {Math.floor((item.vote_average * 100) / 10)}
                                   %
                                 </Text>
                               </View>
@@ -607,14 +607,14 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {series.similar.results.slice(0, 50).map((series, idx) => (
+                    {series.similar.results.slice(0, 50).map((item, idx) => (
                           <Pressable
                             style={styles.moviesCard}
-                            key={idx}
+                            key={item.id || idx}
                             onPress={() =>
                               navigation.push('SeriesDetails', {
-                                id: series.id,
-                                headerTitle: series.original_name,
+                                id: item.id,
+                                headerTitle: item.original_name,
                               })
                             }
                           >
@@ -622,8 +622,8 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                               <Image
                                 style={[styles.posterImage, { width: posterW, height: posterH }]}
                                 source={
-                                  series.poster_path
-                                    ? { uri: `${basePosterUrl}${series.poster_path}` }
+                                  item.poster_path
+                                    ? { uri: `${basePosterUrl}${item.poster_path}` }
                                     : noImage
                                 }
                                 placeholder={imageBlurhash}
@@ -637,7 +637,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((series.vote_average * 100) / 10)}%
+                                {Math.floor((item.vote_average * 100) / 10)}%
                               </Text>
                             </View>
                           </Pressable>

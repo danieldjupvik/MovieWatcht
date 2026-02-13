@@ -3,7 +3,6 @@ import {
   Text,
   View,
   StyleSheet,
-  useWindowDimensions,
   Alert,
   TextInput,
 } from 'react-native';
@@ -165,12 +164,10 @@ const Login = ({ navigation, route }) => {
     });
   }, [navigation, route.params.color]);
 
-  const { width: deviceWidth } = useWindowDimensions();
-
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
-        <ScrollView style={[styles.main, { width: deviceWidth }]}>
+        <ScrollView style={styles.main}>
           <View style={styles.loginWrap}>
             <Image
               source={tmdbLogo}

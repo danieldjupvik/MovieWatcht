@@ -50,10 +50,23 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme, cardWidth,
         }
       );
     } else {
+      const resetScale = () => scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 });
       Alert.alert(name, '', [
-        { text: 'Cancel', style: 'cancel', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); } },
-        { text: 'Share', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); Share.share({ title: name, message: `${name} ${tmdbUrl}`, url: tmdbUrl }); } },
-        { text: 'Open on TMDb', onPress: () => { scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 }); Linking.openURL(tmdbUrl); } },
+        { text: 'Cancel', style: 'cancel', onPress: resetScale },
+        {
+          text: 'Share',
+          onPress: () => {
+            resetScale();
+            Share.share({ title: name, message: `${name} ${tmdbUrl}`, url: tmdbUrl });
+          },
+        },
+        {
+          text: 'Open on TMDb',
+          onPress: () => {
+            resetScale();
+            Linking.openURL(tmdbUrl);
+          },
+        },
       ]);
     }
   }, [name, tmdbUrl, scale]);

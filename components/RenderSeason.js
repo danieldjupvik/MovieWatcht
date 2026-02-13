@@ -92,7 +92,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                       {(episodes?.episodes ?? []).map((episode, idx) => {
                         const releaseDate = formatDate(episode.air_date);
                         return (
-                          <View key={idx} style={{ width: stillWidth, marginRight: 20 }}>
+                          <View key={episode.id} style={{ width: stillWidth, marginRight: 20 }}>
                             <Image
                               source={
                                 episode.still_path
@@ -126,7 +126,7 @@ const RenderSeason = ({ navigation, id, season }) => {
                   {(episodes?.episodes ?? []).map((episode, idx) => {
                     const releaseDate = formatDate(episode.air_date);
                     return (
-                      <View key={idx} style={styles.cards}>
+                      <View key={episode.id} style={styles.cards}>
                         <View style={styles.stillImgDiv}>
                           <Image
                             source={

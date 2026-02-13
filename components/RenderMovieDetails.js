@@ -567,14 +567,14 @@ const RenderDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {movie.recommendations.results
                       .slice(0, 50)
-                      .map((movie, idx) => (
+                      .map((item, idx) => (
                             <Pressable
                               style={styles.moviesCard}
-                              key={idx}
+                              key={item.id || idx}
                               onPress={() =>
                                 navigation.push('Details', {
-                                  id: movie.id,
-                                  headerTitle: movie.title,
+                                  id: item.id,
+                                  headerTitle: item.title,
                                 })
                               }
                             >
@@ -582,8 +582,8 @@ const RenderDetails = ({ navigation, id }) => {
                                 <Image
                                   style={[styles.posterImage, { width: posterW, height: posterH }]}
                                   source={
-                                    movie.poster_path
-                                      ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                    item.poster_path
+                                      ? { uri: `${basePosterUrl}${item.poster_path}` }
                                       : noImage
                                   }
                                   placeholder={imageBlurhash}
@@ -599,7 +599,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((movie.vote_average * 100) / 10)}%
+                                  {Math.floor((item.vote_average * 100) / 10)}%
                                 </Text>
                               </View>
                             </Pressable>
@@ -618,14 +618,14 @@ const RenderDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {movie.similar.results.slice(0, 50).map((movie, idx) => (
+                    {movie.similar.results.slice(0, 50).map((item, idx) => (
                           <Pressable
                             style={styles.moviesCard}
-                            key={idx}
+                            key={item.id || idx}
                             onPress={() =>
                               navigation.push('Details', {
-                                id: movie.id,
-                                headerTitle: movie.title,
+                                id: item.id,
+                                headerTitle: item.title,
                               })
                             }
                           >
@@ -633,8 +633,8 @@ const RenderDetails = ({ navigation, id }) => {
                               <Image
                                 style={[styles.posterImage, { width: posterW, height: posterH }]}
                                 source={
-                                  movie.poster_path
-                                    ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                  item.poster_path
+                                    ? { uri: `${basePosterUrl}${item.poster_path}` }
                                     : noImage
                                 }
                                 placeholder={imageBlurhash}
@@ -648,7 +648,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((movie.vote_average * 100) / 10)}%
+                                {Math.floor((item.vote_average * 100) / 10)}%
                               </Text>
                             </View>
                           </Pressable>

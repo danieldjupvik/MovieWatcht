@@ -74,8 +74,8 @@ const PersonDetails = ({ route, navigation }) => {
           `${personUrl + id + apiKey}&append_to_response=combined_credits,images`
         );
         setPerson(response.data);
-      } catch (_e) {
-
+      } catch (e) {
+        console.error('Failed to fetch person details:', e);
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);
@@ -86,7 +86,8 @@ const PersonDetails = ({ route, navigation }) => {
       try {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
-      } catch (_e) {
+      } catch (e) {
+        console.error('Failed to fetch person credits:', e);
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);
