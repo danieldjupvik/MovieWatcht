@@ -165,8 +165,8 @@ const WatchList = ({ navigation }) => {
         return [...current, ...unique];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to load next page:', e);
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
@@ -182,8 +182,8 @@ const WatchList = ({ navigation }) => {
       setAllMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to refresh watchlist:', e);
     } finally {
       setRefreshing(false);
       setWhileLoading(true);

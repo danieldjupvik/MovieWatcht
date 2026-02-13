@@ -387,7 +387,7 @@ const RenderDetails = ({ navigation, id }) => {
                           />
                           <View style={styles.ratingElem}>
                             <Text style={[themeTextStyle]}>
-                              {Math.floor((movie.vote_average * 100) / 10)}%{' '}
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%{' '}
                             </Text>
                             <Text style={[styles.ratingCounter, themeTextStyle]}>
                               {numFormatter(movie.vote_count)}
@@ -596,7 +596,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((item.vote_average * 100) / 10)}%
+                                  {Math.floor(((item.vote_average || 0) * 100) / 10)}%
                                 </Text>
                               </View>
                             </Pressable>
@@ -645,7 +645,7 @@ const RenderDetails = ({ navigation, id }) => {
                                 contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((item.vote_average * 100) / 10)}%
+                                {Math.floor(((item.vote_average || 0) * 100) / 10)}%
                               </Text>
                             </View>
                           </Pressable>

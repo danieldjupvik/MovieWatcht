@@ -266,7 +266,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                         />
                         <View style={styles.ratingElem}>
                           <Text style={[themeTextStyle]}>
-                            {Math.floor((series.vote_average * 100) / 10)}%{' '}
+                            {Math.floor(((series.vote_average || 0) * 100) / 10)}%{' '}
                           </Text>
                           <Text style={[styles.ratingCounter, themeTextStyle]}>
                             {numFormatter(series.vote_count)}
@@ -586,7 +586,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((item.vote_average * 100) / 10)}
+                                  {Math.floor(((item.vote_average || 0) * 100) / 10)}
                                   %
                                 </Text>
                               </View>
@@ -636,7 +636,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
                                 contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((item.vote_average * 100) / 10)}%
+                                {Math.floor(((item.vote_average || 0) * 100) / 10)}%
                               </Text>
                             </View>
                           </Pressable>
