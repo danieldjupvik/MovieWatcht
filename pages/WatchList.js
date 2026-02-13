@@ -33,6 +33,7 @@ const WatchList = ({ navigation }) => {
   const [pageNumber, setPageNumber] = useState(2);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const isBottomLoadingRef = useRef(false);
   const listRef = useRef(null);
   useScrollToTop(listRef);
@@ -108,6 +109,7 @@ const WatchList = ({ navigation }) => {
 
   const getWatchListMovies = useCallback(async (accountIdParam, sessionIdParam) => {
     setLoader(true);
+    setFetchError(false);
     isBottomLoadingRef.current = false;
     try {
       const response = await axios.get(
@@ -119,6 +121,7 @@ const WatchList = ({ navigation }) => {
       setRefreshing(false);
     } catch (e) {
       console.error('Failed to fetch watchlist:', e);
+      setFetchError(true);
     } finally {
       setLoader(false);
       setWhileLoading(true);
@@ -189,6 +192,7 @@ const WatchList = ({ navigation }) => {
 
   function onRefresh() {
     setRefreshing(true);
+    setFetchError(false);
     refreshFetch();
     setWhileLoading(true);
     setPageNumber(2);
@@ -228,7 +232,13 @@ const WatchList = ({ navigation }) => {
 
   const ListEmpty = useCallback(() => (
     <>
-      {whileLoading ? (
+      {fetchError ? (
+        <View style={styles.noMoviesDiv}>
+          <Text style={[styles.noMoviesText, themeTextStyle]}>
+            {i18n.t('errorLoading')}
+          </Text>
+        </View>
+      ) : whileLoading ? (
         <View style={styles.noMoviesDiv}>
           <Text style={[styles.noMoviesText, themeTextStyle]}>
             {i18n.t('noMoviesInWatchlist')}
@@ -240,7 +250,7 @@ const WatchList = ({ navigation }) => {
         </View>
       ) : null}
     </>
-  ), [whileLoading, themeTextStyle]);
+  ), [whileLoading, fetchError, themeTextStyle]);
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
