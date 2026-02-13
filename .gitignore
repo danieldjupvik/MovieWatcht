@@ -12,5 +12,10 @@ web-build/
 dist/
 ios/
 
+.env
+.env.local
+
+telemetry-id
+
 # macOS
 .DS_Store

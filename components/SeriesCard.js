@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { Text, View, Pressable, Share, Dimensions, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
+import { Text, View, Pressable, Share, StyleSheet, Linking, ActionSheetIOS, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { basePosterUrl } from '../settings/api';
 import { imageBlurhash } from '../settings/imagePlaceholder';
 import noImage from '../assets/no-image.jpg';
@@ -10,10 +11,13 @@ import { borderRadius } from '../styles/globalStyles';
 import { textColorDark, textColorLight } from '../colors/colors';
 import * as Haptics from 'expo-haptics';
 
-const deviceWidth = Dimensions.get('window').width;
-
-const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
+const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme, cardWidth, cardHeight }) => {
   const navigation = useNavigation();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -28,8 +32,7 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
     navigation.navigate('SeriesDetails', { id, headerTitle: name });
   }, [id, name, navigation]);
 
-  const handleLongPress = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  const showActionSheet = useCallback(() => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -38,6 +41,7 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
           title: name,
         },
         (buttonIndex) => {
+          scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 });
           if (buttonIndex === 1) {
             Share.share({ title: name, url: tmdbUrl });
           } else if (buttonIndex === 2) {
@@ -46,21 +50,40 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
         }
       );
     } else {
+      const resetScale = () => scale.value = withSpring(1, { duration: 500, dampingRatio: 0.7 });
       Alert.alert(name, '', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Share', onPress: () => Share.share({ title: name, message: `${name} ${tmdbUrl}`, url: tmdbUrl }) },
-        { text: 'Open on TMDb', onPress: () => Linking.openURL(tmdbUrl) },
+        { text: 'Cancel', style: 'cancel', onPress: resetScale },
+        {
+          text: 'Share',
+          onPress: () => {
+            resetScale();
+            Share.share({ title: name, message: `${name} ${tmdbUrl}`, url: tmdbUrl });
+          },
+        },
+        {
+          text: 'Open on TMDb',
+          onPress: () => {
+            resetScale();
+            Linking.openURL(tmdbUrl);
+          },
+        },
       ]);
     }
-  }, [name, tmdbUrl]);
+  }, [name, tmdbUrl, scale]);
+
+  const handleLongPress = useCallback(() => {
+    scale.value = withSpring(1.04, { duration: 350, dampingRatio: 0.85 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimeout(showActionSheet, 250);
+  }, [scale, showActionSheet]);
 
   return (
     <Pressable onPress={handlePress} onLongPress={handleLongPress}>
-      <View style={styles.cards}>
+      <Animated.View style={[styles.cards, animatedStyle]}>
         <View style={styles.imageDiv}>
           <Image
             source={posterImage}
-            style={styles.image}
+            style={cardWidth ? [styles.image, { width: cardWidth, height: cardHeight }] : styles.image}
             placeholder={imageBlurhash}
             placeholderContentFit='cover'
             transition={300}
@@ -73,18 +96,18 @@ const SeriesCard = ({ id, posterPath, name, voteAverage, colorScheme }) => {
             contentFit='contain'
           />
           <Text style={[styles.rating, themeTextStyle]}>
-            {Math.floor((voteAverage * 100) / 10)}%
+            {Math.floor(((voteAverage || 0) * 100) / 10)}%
           </Text>
         </View>
-      </View>
+      </Animated.View>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   image: {
-    width: deviceWidth / 3.3,
-    height: deviceWidth / 2.24,
+    width: 120,
+    height: 180,
     backgroundColor: 'grey',
     borderRadius: borderRadius,
   },

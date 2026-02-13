@@ -12,12 +12,14 @@ import axios from 'axios';
 import { apiKey } from '../settings/api';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
+import useResponsive from '../hooks/useResponsive';
 import { FontAwesome5 } from '@expo/vector-icons';
 import i18n from '../language/i18n';
 import logoDark from '../assets/MovieWatcht-dark.png';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sharedStyles as styles } from '../styles/sharedStyles';
 import ButtonStyles from '../styles/buttons';
+import { useScrollToTop } from '@react-navigation/native';
 
 const WatchList = ({ navigation }) => {
   const [allMovies, setAllMovies] = useState([]);
@@ -31,9 +33,13 @@ const WatchList = ({ navigation }) => {
   const [pageNumber, setPageNumber] = useState(2);
   const [totalPageNumberFromApi, setTotalPageNumberFromApi] = useState();
   const [whileLoading, setWhileLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const isBottomLoadingRef = useRef(false);
+  const listRef = useRef(null);
+  useScrollToTop(listRef);
 
   const { colorScheme } = useAppearance();
+  const { numColumns, posterWidth, posterHeight } = useResponsive();
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
@@ -67,8 +73,8 @@ const WatchList = ({ navigation }) => {
         'accountId',
         'sessionId',
       ]);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
       return;
     }
     const accountId = fromLocalStorage[0][1];
@@ -89,8 +95,8 @@ const WatchList = ({ navigation }) => {
         'accountId',
         'sessionId',
       ]);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
+
       return;
     }
     const storedAccountId = fromLocalStorage[0][1];
@@ -103,6 +109,7 @@ const WatchList = ({ navigation }) => {
 
   const getWatchListMovies = useCallback(async (accountIdParam, sessionIdParam) => {
     setLoader(true);
+    setFetchError(false);
     isBottomLoadingRef.current = false;
     try {
       const response = await axios.get(
@@ -113,7 +120,8 @@ const WatchList = ({ navigation }) => {
       setPageNumber(2);
       setRefreshing(false);
     } catch (e) {
-      console.log(e);
+      console.error('Failed to fetch watchlist:', e);
+      setFetchError(true);
     } finally {
       setLoader(false);
       setWhileLoading(true);
@@ -158,9 +166,8 @@ const WatchList = ({ navigation }) => {
       });
       setPageNumber((currentPage) => currentPage + 1);
     } catch (e) {
-      console.log(e);
+      console.error('Failed to load next page:', e);
     } finally {
-      console.log('loaded new page');
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
     }
@@ -176,7 +183,7 @@ const WatchList = ({ navigation }) => {
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
     } catch (e) {
-      console.log(e);
+      console.error('Failed to refresh watchlist:', e);
     } finally {
       setRefreshing(false);
       setWhileLoading(true);
@@ -185,6 +192,7 @@ const WatchList = ({ navigation }) => {
 
   function onRefresh() {
     setRefreshing(true);
+    setFetchError(false);
     refreshFetch();
     setWhileLoading(true);
     setPageNumber(2);
@@ -208,8 +216,10 @@ const WatchList = ({ navigation }) => {
       title={item.title}
       voteAverage={item.vote_average}
       colorScheme={colorScheme}
+      cardWidth={posterWidth}
+      cardHeight={posterHeight}
     />
-  ), [colorScheme]);
+  ), [colorScheme, posterWidth, posterHeight]);
 
   const ListFooter = useCallback(() => (
     <>
@@ -222,7 +232,13 @@ const WatchList = ({ navigation }) => {
 
   const ListEmpty = useCallback(() => (
     <>
-      {whileLoading ? (
+      {fetchError ? (
+        <View style={styles.noMoviesDiv}>
+          <Text style={[styles.noMoviesText, themeTextStyle]}>
+            {i18n.t('errorLoading')}
+          </Text>
+        </View>
+      ) : whileLoading ? (
         <View style={styles.noMoviesDiv}>
           <Text style={[styles.noMoviesText, themeTextStyle]}>
             {i18n.t('noMoviesInWatchlist')}
@@ -234,7 +250,7 @@ const WatchList = ({ navigation }) => {
         </View>
       ) : null}
     </>
-  ), [whileLoading, themeTextStyle]);
+  ), [whileLoading, fetchError, themeTextStyle]);
 
   return (
     <View style={[styles.container, themeContainerStyle]}>
@@ -244,10 +260,12 @@ const WatchList = ({ navigation }) => {
             <Loader loadingStyle={styles.loaderStyle} />
           ) : (
             <FlatList
+              ref={listRef}
+              key={numColumns}
               data={filteredMovies}
               renderItem={renderItem}
               keyExtractor={keyExtractor}
-              numColumns={3}
+              numColumns={numColumns}
               style={[styles.scrollView, themeContainerStyle]}
               contentContainerStyle={styles.flatListContent}
               contentInsetAdjustmentBehavior='automatic'

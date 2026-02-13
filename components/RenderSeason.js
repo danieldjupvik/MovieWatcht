@@ -4,7 +4,7 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
@@ -14,6 +14,7 @@ import {
   basePosterUrl,
   baseStillImageUrl,
 } from '../settings/api';
+import noImage from '../assets/no-image.jpg';
 import Loader from '../components/Loader';
 import axios from 'axios';
 import {
@@ -24,25 +25,22 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
+import PosterGalleryModal from './PosterGalleryModal';
+import { formatDate } from '../utils/dateUtils';
 
-export const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 const RenderSeason = ({ navigation, id, season }) => {
   const [loader, setLoader] = useState(true);
   const [episodes, setEpisodes] = useState([]);
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
+  const stillWidth = isTablet ? 280 : Math.min(width / 3, 160);
+  const stillHeight = stillWidth / 1.6;
+  const seasonPosterW = isTablet ? 180 : 140;
+  const seasonPosterH = Math.round(seasonPosterW * 1.5);
+  const thumbW = isTablet ? 64 : 44;
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -53,11 +51,11 @@ const RenderSeason = ({ navigation, id, season }) => {
     const getSeason = async () => {
       try {
         const response = await axios.get(
-          `${detailsSeriesUrl + id + `/season/${season}` + apiKey}`
+          `${detailsSeriesUrl + id + `/season/${season}` + apiKey}&append_to_response=images&include_image_language=en,null`
         );
         setEpisodes(response.data);
       } catch (e) {
-        console.log(e);
+        console.error('Failed to fetch season:', e);
       } finally {
         setLoader(false);
       }
@@ -71,70 +69,110 @@ const RenderSeason = ({ navigation, id, season }) => {
         <Loader loadingStyle={styles.Loader} />
       ) : (
         <View style={styles.scrollViewWrapper}>
-          <ScrollView indicatorStyle={scrollBarTheme}>
+          <ScrollView indicatorStyle={scrollBarTheme} contentContainerStyle={{ paddingBottom: isTablet ? 0 : 50 }}>
             <View style={styles.main}>
-              <View style={[styles.imageDiv, boxShadow]}>
-                <Image
-                  source={{
-                    uri: `${basePosterUrl + (episodes?.poster_path ?? '')}`,
-                  }}
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={styles.posterImg}
-                />
-              </View>
-              <View style={styles.cardsDiv}>
-                {(episodes?.episodes ?? []).map((episode, idx) => {
-                  let releaseDate = '';
-                  if (episode.air_date) {
-                    let d = new Date(episode.air_date);
-                    let year = d.getFullYear();
-                    let month = monthNames[d.getMonth()];
-                    let day = d.getDate();
-                    releaseDate = `${day}. ${month} ${year}`;
-                  }
-                  return (
-                    <View key={idx} style={styles.cards}>
-                      <View style={styles.stillImgDiv}>
-                        <Image
-                          source={{
-                            uri: `${baseStillImageUrl + (episode.still_path ?? '')}`,
-                          }}
-                          placeholder={imageBlurhash}
-                          placeholderContentFit='cover'
-                          style={styles.stillImg}
-
-
-                        />
-                      </View>
-                      <View style={styles.infoDiv}>
-                        <Text style={[styles.episodeName, themeTextStyle]}>
-                          {episode.episode_number} - {episode.name}
-                        </Text>
-                        <Text style={[styles.releaseDate, themeTextStyle]}>
-                          {releaseDate}
-                        </Text>
-                        <Text
-                          numberOfLines={2}
-                          style={[styles.overview, themeTextStyle]}
-                        >
-                          {episode.overview}
-                        </Text>
-                      </View>
+              <Pressable onPress={() => { if (episodes.images?.posters?.length > 0) setGalleryVisible(true); }}>
+                <View style={[styles.imageDiv, boxShadow]}>
+                  <Image
+                    source={
+                      episodes?.poster_path
+                        ? { uri: `${basePosterUrl}${episodes.poster_path}` }
+                        : noImage
+                    }
+                    placeholder={imageBlurhash}
+                    placeholderContentFit='cover'
+                    style={[styles.posterImg, { width: seasonPosterW, height: seasonPosterH }]}
+                  />
+                </View>
+              </Pressable>
+              {isTablet ? (
+                <View style={styles.cardsDiv}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={{ flexDirection: 'row' }}>
+                      {(episodes?.episodes ?? []).map((episode, idx) => {
+                        const releaseDate = formatDate(episode.air_date);
+                        return (
+                          <View key={episode.id} style={{ width: stillWidth, marginRight: 20 }}>
+                            <Image
+                              source={
+                                episode.still_path
+                                  ? { uri: `${baseStillImageUrl}${episode.still_path}` }
+                                  : noImage
+                              }
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
+                              style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
+                            />
+                            <Text style={[styles.episodeName, themeTextStyle, { marginTop: 10 }]}>
+                              {episode.episode_number} - {episode.name}
+                            </Text>
+                            <Text style={[styles.releaseDate, themeTextStyle]}>
+                              {releaseDate}
+                            </Text>
+                            <Text
+                              numberOfLines={3}
+                              style={[styles.overview, themeTextStyle]}
+                            >
+                              {episode.overview}
+                            </Text>
+                          </View>
+                        );
+                      })}
                     </View>
-                  );
-                })}
-              </View>
+                  </ScrollView>
+                </View>
+              ) : (
+                <View style={styles.cardsDiv}>
+                  {(episodes?.episodes ?? []).map((episode, idx) => {
+                    const releaseDate = formatDate(episode.air_date);
+                    return (
+                      <View key={episode.id} style={styles.cards}>
+                        <View style={styles.stillImgDiv}>
+                          <Image
+                            source={
+                              episode.still_path
+                                ? { uri: `${baseStillImageUrl}${episode.still_path}` }
+                                : noImage
+                            }
+                            placeholder={imageBlurhash}
+                            placeholderContentFit='cover'
+                            style={[styles.stillImg, { width: stillWidth, height: stillHeight }]}
+                          />
+                        </View>
+                        <View style={styles.infoDiv}>
+                          <Text style={[styles.episodeName, themeTextStyle]}>
+                            {episode.episode_number} - {episode.name}
+                          </Text>
+                          <Text style={[styles.releaseDate, themeTextStyle]}>
+                            {releaseDate}
+                          </Text>
+                          <Text
+                            numberOfLines={2}
+                            style={[styles.overview, themeTextStyle]}
+                          >
+                            {episode.overview}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
       )}
+      <PosterGalleryModal
+        visible={galleryVisible}
+        onClose={() => setGalleryVisible(false)}
+        images={episodes.images?.posters}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -142,8 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollViewWrapper: {
-    paddingBottom: 45,
-    height: '100%',
+    marginBottom: 45,
   },
   main: {
     marginLeft: 22,
@@ -161,19 +198,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   posterImg: {
-    width: 140,
-    height: 200,
     marginTop: 20,
     borderRadius: borderRadius,
   },
   stillImg: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 5,
     borderRadius: borderRadius,
   },
   stillImgDiv: {},
   infoDiv: {
-    width: deviceWidth - 185,
+    flex: 1,
     marginLeft: 15,
   },
   imageDiv: {
@@ -196,7 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   Loader: {
-    marginBottom: deviceHeight / 9,
+    marginBottom: 80,
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,

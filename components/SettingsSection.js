@@ -7,34 +7,18 @@ const SettingsSection = ({ header, footer, children }) => {
   const { colorScheme } = useAppearance();
   const colors = systemColors[colorScheme] || systemColors.light;
 
-  const childArray = React.Children.toArray(children);
-
   return (
     <View style={styles.section}>
       {header ? (
-        <Text style={[styles.header, { color: colors.secondaryLabel }]}>
-          {header.toUpperCase()}
+        <Text style={[styles.header, { color: colors.label }]}>
+          {header}
         </Text>
       ) : null}
-      <View
-        style={[
-          styles.group,
-          { backgroundColor: colors.secondarySystemGroupedBackground },
-        ]}
-      >
-        {childArray.map((child, index) => (
-          <React.Fragment key={index}>
-            {child}
-            {index < childArray.length - 1 ? (
-              <View style={styles.separatorRow}>
-                <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-              </View>
-            ) : null}
-          </React.Fragment>
-        ))}
+      <View style={styles.group}>
+        {children}
       </View>
       {footer ? (
-        <Text style={[styles.footer, { color: colors.secondaryLabel }]}>
+        <Text style={[styles.footer, { color: colors.tertiaryLabel }]}>
           {footer}
         </Text>
       ) : null}
@@ -44,31 +28,24 @@ const SettingsSection = ({ header, footer, children }) => {
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: 22,
+    marginTop: 24,
   },
   header: {
-    fontSize: 13,
-    fontWeight: '400',
-    marginBottom: 7,
-    paddingHorizontal: 16,
-    letterSpacing: -0.08,
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 10,
+    paddingHorizontal: 20,
+    letterSpacing: -0.4,
   },
   footer: {
     fontSize: 13,
     fontWeight: '400',
-    marginTop: 7,
-    paddingHorizontal: 16,
+    marginTop: 8,
+    paddingHorizontal: 20,
     letterSpacing: -0.08,
   },
   group: {
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  separatorRow: {
-    paddingLeft: 52,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
+    gap: 2,
   },
 });
 

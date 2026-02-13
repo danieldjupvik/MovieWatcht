@@ -16,7 +16,7 @@ const ContentSettings = ({ navigation }) => {
         <View style={styles.content}>
           <SettingsSection header={i18n.t('languageAndRegion')}>
             <SettingsRow
-              icon='globe.europe.africa.fill'
+              icon='globe.europe.africa'
               iconColor='#30B0C7'
               title={i18n.t('region')}
               accessory='chevron'
@@ -30,7 +30,7 @@ const ContentSettings = ({ navigation }) => {
 
           <SettingsSection header={i18n.t('content')}>
             <SettingsRow
-              icon='exclamationmark.triangle.fill'
+              icon='exclamationmark.triangle'
               iconColor='#FF9500'
               title={i18n.t('adult')}
               accessory='chevron'
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingBottom: 40,
   },
 });

@@ -113,5 +113,8 @@
   "nextEpisodeToAir": "Neste episode som sendes",
   "lastEpisodeToAir": "Sist episode som sendtes",
   "airsIn": "Sendes om",
-  "appearsIn": "Medvirkende i"
+  "appearsIn": "Medvirkende i",
+  "errorLoading": "Kunne ikke laste innhold. Prøv igjen.",
+  "error": "Feil",
+  "logoutFailed": "Utlogging feilet. Prøv igjen."
 }

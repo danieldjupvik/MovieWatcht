@@ -90,7 +90,8 @@ const TopRated = ({ navigation }) => {
         setRefreshing(false);
         setLoader(false);
       } catch (e) {
-        console.log(e);
+        console.error('Failed to fetch movies:', e);
+        setLoader(false);
       }
     };
     getMovies();
@@ -107,8 +108,8 @@ const TopRated = ({ navigation }) => {
         setMovies(response.data.results);
         setTotalPageNumberFromApi(response.data.total_pages);
         setPageNumber(2);
-      } catch (e) {
-        console.log(e);
+      } catch (_e) {
+
       } finally {
         setRefreshing(false);
       }
@@ -143,8 +144,7 @@ const TopRated = ({ navigation }) => {
         return [...currentMovies, ...uniqueNewMovies];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
@@ -163,8 +163,7 @@ const TopRated = ({ navigation }) => {
     try {
       const response = await axios.get(`${searchMovieUrl + `&query=${title}`}`);
       setMovies(response.data.results);
-    } catch (e) {
-      console.log(e);
+    } catch (_e) {
     } finally {
       setLoader(false);
     }

@@ -29,7 +29,7 @@ const Home = () => {
     { key: 'third', title: i18n.t('nowPlaying') },
     { key: 'fourth', title: i18n.t('topRated') },
     { key: 'fifth', title: i18n.t('upcoming') },
-  ], [i18n.locale]);
+  ], []);
 
   const renderScene = React.useCallback(({ route }) => {
     switch (route.key) {

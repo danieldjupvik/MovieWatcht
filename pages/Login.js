@@ -3,7 +3,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Dimensions,
   Alert,
   TextInput,
 } from 'react-native';
@@ -65,9 +64,9 @@ const Login = ({ navigation, route }) => {
       const response = await axios.get(`${getTokenUrl}`);
       getRequestToken(response.data.request_token);
     } catch (e) {
+      console.error('Failed to get token:', e);
       setLoginDisabled(false);
-      console.log(e);
-    } finally {
+      setShowError(true);
     }
   };
 
@@ -107,11 +106,11 @@ const Login = ({ navigation, route }) => {
       getAccount(response.data.session_id);
       testVariable = false;
       navigation.goBack();
-    } catch (e) {
+    } catch (_e) {
       setShowError(true);
       usernameInput.clear();
       passwordInput.clear();
-      console.log(e);
+
       setLoginDisabled(false);
     } finally {
       setLoginDisabled(false);
@@ -123,8 +122,8 @@ const Login = ({ navigation, route }) => {
       const response = await axios.get(`${accountUrl + `&session_id=${id}`}`);
       storeAccountId(JSON.stringify(response.data.id));
     } catch (e) {
-      console.log(e);
-    } finally {
+      console.error('Failed to fetch account:', e);
+      setShowError(true);
     }
   };
 
@@ -164,6 +163,7 @@ const Login = ({ navigation, route }) => {
       ),
     });
   }, [navigation, route.params.color]);
+
   return (
     <>
       <View style={[styles.container, themeContainerStyle]}>
@@ -274,7 +274,7 @@ const Login = ({ navigation, route }) => {
     </>
   );
 };
-const deviceWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -282,12 +282,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   main: {
-    width: Dimensions.get('window').width,
+    width: '100%',
   },
   loginBox: {
     marginTop: 20,
     padding: 15,
-    width: deviceWidth - 50,
+    width: '85%',
+    alignSelf: 'center',
     borderRadius: borderRadius,
   },
   loginViewEmail: {

@@ -5,7 +5,7 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   ActionSheetIOS,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -55,7 +55,8 @@ const Account = ({ navigation }) => {
       await deleteSession();
       navigation.goBack();
     } catch (e) {
-      console.log(e);
+      console.error('Failed to logout:', e);
+      Alert.alert(i18n.t('error'), i18n.t('logoutFailed'));
     }
   };
 
@@ -93,7 +94,7 @@ const Account = ({ navigation }) => {
         },
       });
     } catch (e) {
-      console.log(e);
+      console.error('Failed to delete session on server:', e);
     }
   };
 
@@ -101,7 +102,7 @@ const Account = ({ navigation }) => {
     uri: `${baseProfileUrl + accountInfo?.avatar?.tmdb?.avatar_path}`,
   };
 
-  const deviceHeight = Dimensions.get('window').height;
+  const { height: deviceHeight } = useWindowDimensions();
 
   return (
     <View style={[styles.container, { backgroundColor: containerBg }]}>
@@ -135,7 +136,7 @@ const Account = ({ navigation }) => {
 
             <SettingsSection>
               <SettingsRow
-                icon='rectangle.portrait.and.arrow.right.fill'
+                icon='rectangle.portrait.and.arrow.right'
                 iconColor='#FF3B30'
                 title={i18n.t('logout')}
                 onPress={openActionSheet}
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingBottom: 40,
   },
   avatarContainer: {

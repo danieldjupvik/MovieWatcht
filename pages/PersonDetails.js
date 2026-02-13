@@ -4,18 +4,16 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions,
-  Pressable
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import {
-  baseBackdropUrl,
-  baseBackdropPlaceholderUrl,
   apiKey,
   basePosterUrl,
   personUrl,
   creditPerson,
 } from '../settings/api';
+import ProgressiveBackdrop from '../components/ProgressiveBackdrop';
 import Loader from '../components/Loader';
 import * as WebBrowser from 'expo-web-browser';
 import i18n from '../language/i18n';
@@ -30,7 +28,9 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
-import { monthNames } from '../components/RenderMovieDetails';
+import useResponsive from '../hooks/useResponsive';
+import { formatDate } from '../utils/dateUtils';
+import PosterGalleryModal from '../components/PosterGalleryModal';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import noImage from '../assets/no-image.jpg';
 
@@ -41,9 +41,12 @@ const PersonDetails = ({ route, navigation }) => {
   const [loader, setLoader] = useState(true);
   const [person, setPerson] = useState({});
   const [personCredit, setPersonCredit] = useState({});
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const pendingRequests = useRef(0);
 
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
@@ -54,6 +57,13 @@ const PersonDetails = ({ route, navigation }) => {
       ? styles.lightThemeBtnBackground
       : styles.darkThemeBtnBackground;
 
+  const backdropHeight = isTablet ? 560 : 250;
+  const posterImgW = isTablet ? 200 : 120;
+  const posterImgH = posterImgW * 1.5;
+  const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
+  const posterH = posterW * 1.5;
+  const thumbW = isTablet ? 64 : 44;
+
   useEffect(() => {
     pendingRequests.current = creditId ? 2 : 1;
     setLoader(true);
@@ -61,11 +71,11 @@ const PersonDetails = ({ route, navigation }) => {
     const getPerson = async () => {
       try {
         const response = await axios.get(
-          `${personUrl + id + apiKey}&append_to_response=combined_credits`
+          `${personUrl + id + apiKey}&append_to_response=combined_credits,images`
         );
         setPerson(response.data);
       } catch (e) {
-        console.log(e);
+        console.error('Failed to fetch person details:', e);
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);
@@ -77,7 +87,7 @@ const PersonDetails = ({ route, navigation }) => {
         const response = await axios.get(`${creditPerson + creditId + apiKey}`);
         setPersonCredit(response.data);
       } catch (e) {
-        console.log(e);
+        console.error('Failed to fetch person credits:', e);
       } finally {
         pendingRequests.current -= 1;
         if (pendingRequests.current <= 0) setLoader(false);
@@ -88,17 +98,8 @@ const PersonDetails = ({ route, navigation }) => {
     if (creditId) getCreditPerson();
   }, [id, creditId]);
 
-  let birthday = '';
-  if (person.birthday) {
-    const dBirthday = new Date(person.birthday);
-    birthday = `${dBirthday.getDate()}. ${monthNames[dBirthday.getMonth()]} ${dBirthday.getFullYear()}`;
-  }
-
-  let deathday = '';
-  if (person.deathday) {
-    const dDeathday = new Date(person.deathday);
-    deathday = `${dDeathday.getDate()}. ${monthNames[dDeathday.getMonth()]} ${dDeathday.getFullYear()}`;
-  }
+  let birthday = formatDate(person.birthday);
+  let deathday = formatDate(person.deathday);
 
   const knownForItems = (person.combined_credits?.cast || [])
     .slice()
@@ -119,97 +120,88 @@ const PersonDetails = ({ route, navigation }) => {
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={styles.backdrop}>
-                <Image
-                  source={
-                    personCredit.media?.backdrop_path
-                      ? {
-                          uri: `${baseBackdropUrl + personCredit.media.backdrop_path}`,
+              <ProgressiveBackdrop
+                backdropPath={personCredit.media?.backdrop_path}
+                height={backdropHeight}
+                backgroundColor={colorScheme === 'light' ? backgroundColorLight : backgroundColorDark}
+              />
+              <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0, marginBottom: isTablet ? 30 : 0 }}>
+                <View style={isTablet ? { alignItems: 'center' } : undefined}>
+                  <Pressable onPress={() => { if (person.images?.profiles?.length > 0) setGalleryVisible(true); }}>
+                    <View style={boxShadow}>
+                      <Image
+                        source={
+                          person.profile_path
+                            ? { uri: `${basePosterUrl + person.profile_path}` }
+                            : noImage
                         }
-                      : noImage
-                  }
-                  style={StyleSheet.absoluteFill}
-                  placeholder={
-                    personCredit.media?.backdrop_path
-                      ? {
-                          uri: `${
-                            baseBackdropPlaceholderUrl +
-                            personCredit.media.backdrop_path
-                          }`,
-                        }
-                      : imageBlurhash
-                  }
-                  placeholderContentFit='cover'
-                  transition={350}
-                  contentFit='cover'
-                />
-                <View style={styles.child} />
-              </View>
-              <View style={boxShadow}>
-                <Image
-                  source={
-                    person.profile_path
-                      ? { uri: `${basePosterUrl + person.profile_path}` }
-                      : noImage
-                  }
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={styles.posterImg}
-                />
-              </View>
-              <Text style={[styles.title, styles.runtime, themeTextStyle]}>
-                {person.name}
-              </Text>
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
-                {birthday}
-              </Text>
-
-              {person.deathday ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
-                  {deathday}
-                </Text>
-              ) : null}
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
-                {person.gender === 1
-                  ? i18n.t('female')
-                  : person.gender === 2
-                    ? i18n.t('male')
-                    : person.gender === 3
-                      ? i18n.t('nonBinary')
-                      : ''}
-              </Text>
-
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
-                {person.place_of_birth}
-              </Text>
-
-              {person.homepage ? (
-                <View style={styles.homepageButtonMain}>
-                  <Pressable
-                    style={styles.homepageButtonDiv}
-                    onPress={goToWebsite}
-                  >
-                    <Text
-                      style={[
-                        styles.homepageButton,
-                        themeTextStyle,
-                        themeBtnBackground,
-                      ]}
-                    >
-                      {i18n.t('homepage')}
-                    </Text>
+                        placeholder={imageBlurhash}
+                        placeholderContentFit='cover'
+                        style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
+                      />
+                    </View>
                   </Pressable>
                 </View>
-              ) : null}
-              <Text style={[styles.overview, styles.runtime, themeTextStyle]}>
-                {person.biography}
-              </Text>
+                <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
+                  <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
+                    <Text style={[styles.title, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, fontSize: 24, marginTop: 10, color: 'white' }]}>
+                      {person.name}
+                    </Text>
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('birthday')}</Text>{' '}
+                      {birthday}
+                    </Text>
+
+                    {person.deathday ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('deathday')}</Text>{' '}
+                        {deathday}
+                      </Text>
+                    ) : null}
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('gender')}</Text>{' '}
+                      {person.gender === 1
+                        ? i18n.t('female')
+                        : person.gender === 2
+                          ? i18n.t('male')
+                          : person.gender === 3
+                            ? i18n.t('nonBinary')
+                            : ''}
+                    </Text>
+
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('birthPlace')}</Text>{' '}
+                      {person.place_of_birth}
+                    </Text>
+
+                    {person.homepage ? (
+                      <View style={styles.homepageButtonMain}>
+                        <Pressable
+                          style={[styles.homepageButtonDiv, isTablet && { marginLeft: 0 }]}
+                          onPress={goToWebsite}
+                        >
+                          <Text
+                            style={[
+                              styles.homepageButton,
+                              themeTextStyle,
+                              themeBtnBackground,
+                            ]}
+                          >
+                            {i18n.t('homepage')}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
+                    <Text style={[styles.overview, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 10 }]}>
+                      {person.biography}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
 
             <View style={styles.moviesMain}>
@@ -218,9 +210,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {knownForItems
-                    .filter((movie) => movie.poster_path !== null)
-                    .map((movie) => {
+                  {knownForItems.map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
@@ -236,10 +226,14 @@ const PersonDetails = ({ route, navigation }) => {
                         >
                           <View style={boxShadow}>
                             <Image
-                              style={styles.posterImage}
-                              source={{
-                                uri: `${basePosterUrl + movie.poster_path}`,
-                              }}
+                              style={[styles.posterImage, { width: posterW, height: posterH }]}
+                              source={
+                                movie.poster_path
+                                  ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                  : noImage
+                              }
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -249,7 +243,7 @@ const PersonDetails = ({ route, navigation }) => {
                               contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
-                              {Math.floor((movie.vote_average * 100) / 10)}%
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%
                             </Text>
                           </View>
                         </Pressable>
@@ -265,9 +259,7 @@ const PersonDetails = ({ route, navigation }) => {
               </Text>
               <ScrollView horizontal={true} indicatorStyle={scrollBarTheme}>
                 <View style={styles.moviesDiv}>
-                  {appearsInItems
-                    .filter((movie) => movie.poster_path !== null)
-                    .map((movie) => {
+                  {appearsInItems.map((movie) => {
                       const mediaType = movie.media_type === 'movie' ? 'Details' : 'SeriesDetails';
                       return (
                         <Pressable
@@ -283,10 +275,14 @@ const PersonDetails = ({ route, navigation }) => {
                         >
                           <View style={boxShadow}>
                             <Image
-                              style={styles.posterImage}
-                              source={{
-                                uri: `${basePosterUrl + movie.poster_path}`,
-                              }}
+                              style={[styles.posterImage, { width: posterW, height: posterH }]}
+                              source={
+                                movie.poster_path
+                                  ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                                  : noImage
+                              }
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <View style={styles.ratingDiv}>
@@ -296,7 +292,7 @@ const PersonDetails = ({ route, navigation }) => {
                               contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
-                              {Math.floor((movie.vote_average * 100) / 10)}%
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%
                             </Text>
                           </View>
                           <View style={styles.ratingDiv}>
@@ -313,6 +309,14 @@ const PersonDetails = ({ route, navigation }) => {
           </ScrollView>
         </View>
       )}
+      <PosterGalleryModal
+        visible={galleryVisible}
+        onClose={() => setGalleryVisible(false)}
+        images={person.images?.profiles}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
@@ -320,7 +324,6 @@ const PersonDetails = ({ route, navigation }) => {
 const globalFontsize = 16;
 const globalPadding = 5;
 const normalFontWeight = '400';
-const deviceWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   main: {
-    width: deviceWidth,
+    width: '100%',
     justifyContent: 'center',
   },
   scrollViewWrapper: {
@@ -374,10 +377,6 @@ const styles = StyleSheet.create({
   runtime: {
     marginBottom: globalPadding * 4,
   },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
   rating: {
     marginLeft: 22,
     fontSize: globalFontsize,
@@ -408,8 +407,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   profileImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 4.5,
+    width: 85,
+    height: 85,
     marginBottom: 5,
     borderRadius: 50,
   },
@@ -453,9 +452,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   posterImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 3,
     marginBottom: 13,
+    borderRadius: borderRadius,
   },
   ratingDiv: {
     marginTop: 10,

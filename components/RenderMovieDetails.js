@@ -4,20 +4,19 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Alert,
-  Pressable
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppearance } from './AppearanceContext';
 import {
   detailsMovieUrl,
   apiKey,
+  omdbApiKey,
   basePosterUrl,
-  baseBackdropUrl,
-  baseBackdropPlaceholderUrl,
   baseProfileUrl,
 } from '../settings/api';
+import ProgressiveBackdrop from './ProgressiveBackdrop';
 import { FontAwesome5 } from '@expo/vector-icons';
 import Loader from './Loader';
 import * as Haptics from 'expo-haptics';
@@ -31,47 +30,51 @@ import {
 } from '../colors/colors';
 import { borderRadius, boxShadow } from '../styles/globalStyles';
 import { imageBlurhash } from '../settings/imagePlaceholder';
+import useResponsive from '../hooks/useResponsive';
 import noImage from '../assets/no-image.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WebView } from 'react-native-webview';
+import * as WebBrowser from 'expo-web-browser';
 import imdbLogo from '../assets/imdb-logo.png';
 import tmdbLogo from '../assets/tmdb-logo-small.png';
 import freshNegative from '../assets/freshNegative.png';
 import freshPositive from '../assets/freshPositive.png';
+import PosterGalleryModal from './PosterGalleryModal';
+import { formatDate } from '../utils/dateUtils';
 
-export const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
   const [movie, setMovie] = useState({});
+  const [error, setError] = useState(false);
   const [videos, setVideos] = useState([]);
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
+  const [accountId, setAccountId] = useState();
   const [stateFinish, setStateFinish] = useState(true);
   const [digitalRelease, setDigitalRelease] = useState();
   const [releaseNote, setReleaseNote] = useState();
   const [omdb, setOmdb] = useState();
   const [rottenTomato, setRottenTomato] = useState();
   const [imdbVotes, setImdbVotes] = useState();
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   const { colorScheme } = useAppearance();
+  const { width, isTablet } = useResponsive();
   const scrollBarTheme = colorScheme === 'light' ? 'black' : 'white';
   const themeTextStyle =
     colorScheme === 'light' ? styles.lightThemeText : styles.darkThemeText;
   const themeContainerStyle =
     colorScheme === 'light' ? styles.lightContainer : styles.darkContainer;
+
+  const backdropHeight = isTablet ? 560 : 250;
+  const posterImgW = isTablet ? 200 : 120;
+  const posterImgH = posterImgW * 1.5;
+  const videoWidth = isTablet ? Math.min(width * 0.4, 400) : Math.min(width * 0.52, 320);
+  const videoHeight = videoWidth / 1.78;
+  const castSize = isTablet ? 110 : Math.min(width / 4.5, 100);
+  const posterW = isTablet ? 140 : Math.min(width / 4.5, 130);
+  const posterH = posterW * 1.5;
+  const thumbW = isTablet ? 64 : 44;
   useEffect(() => {
     setStateFinish(false);
     const getMovie = async () => {
@@ -80,18 +83,20 @@ const RenderDetails = ({ navigation, id }) => {
           `https://api.themoviedb.org/3/movie/${id}/videos${apiKey}&language=en-US`
         );
         const sessionId = await AsyncStorage.getItem('sessionId');
+        const accountId = await AsyncStorage.getItem('accountId');
         const response = await axios.get(
           `${
             detailsMovieUrl +
             id +
             apiKey +
-            '&append_to_response=translations,recommendations,similar,credits,release_dates'
+            '&append_to_response=translations,recommendations,similar,credits,release_dates,images&include_image_language=en,null'
           }`
         );
         setVideos(videos.data.results);
         getOmdbInfo(response.data.imdb_id);
         setMovie(response.data);
         setSessionId(sessionId);
+        setAccountId(accountId);
         const usRelease = response.data.release_dates.results
           .filter((region) => region.iso_3166_1 === 'US')[0]
           ?.release_dates.filter((type) => type.type === 4)[0];
@@ -104,7 +109,9 @@ const RenderDetails = ({ navigation, id }) => {
           getMovieState(sessionId);
         }
       } catch (e) {
-        console.log(e);
+        console.error('Failed to fetch movie:', e);
+        setError(true);
+        setLoader(false);
       }
     };
     getMovie();
@@ -114,22 +121,21 @@ const RenderDetails = ({ navigation, id }) => {
   const getOmdbInfo = async (imdbId) => {
     try {
       const response = await axios.get(
-        `https://www.omdbapi.com/?apikey=f2b37edc&i=${imdbId}`
+        `https://www.omdbapi.com/?apikey=${omdbApiKey}&i=${imdbId}`
       );
       setOmdb(response.data);
-      setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
-      setRottenTomato(
-        JSON.parse(
-          response.data.Ratings.filter(
-            (source) => source.Source === 'Rotten Tomatoes'
-          )
-            .map((type) => type.Value)[0]
-            .replace('%', '')
-        )
+      if (response.data.imdbVotes && response.data.imdbVotes !== 'N/A') {
+        setImdbVotes(JSON.parse(response.data.imdbVotes.replaceAll(',', '')));
+      }
+      const rtRating = response.data.Ratings?.find(
+        (source) => source.Source === 'Rotten Tomatoes'
       );
+      if (rtRating) {
+        setRottenTomato(JSON.parse(rtRating.Value.replace('%', '')));
+      }
       return response;
     } catch (e) {
-      console.log(e);
+      console.error('Failed to fetch OMDB info:', e);
     } finally {
       setLoader(false);
     }
@@ -140,11 +146,10 @@ const RenderDetails = ({ navigation, id }) => {
       const response = await axios.get(
         `https://api.themoviedb.org/3/movie/${id}/account_states${apiKey}&session_id=${session}`
       );
-      console.log(response.data.watchlist);
       setMovieExist(response.data.watchlist);
       return response;
     } catch (e) {
-      console.log(e);
+      console.error('Failed to fetch movie state:', e);
     } finally {
       setStateFinish(true);
     }
@@ -156,11 +161,9 @@ const RenderDetails = ({ navigation, id }) => {
       if (movieExist) {
         removeMovieToWatchlist();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        console.log('movie was removed');
       } else {
         setMovieToWatchlist();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        console.log('movie was added');
       }
     } else {
       Alert.alert(i18n.t('watchlistModalTex'), '', [{ text: i18n.t('close') }]);
@@ -171,7 +174,7 @@ const RenderDetails = ({ navigation, id }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
+        url: `https://api.themoviedb.org/3/account/${accountId}/watchlist${apiKey}&session_id=${sessionId}`,
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
         },
@@ -183,7 +186,7 @@ const RenderDetails = ({ navigation, id }) => {
       });
       return response;
     } catch (e) {
-      console.log(e);
+      console.error('Failed to add movie to watchlist:', e);
     }
   };
 
@@ -191,7 +194,7 @@ const RenderDetails = ({ navigation, id }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
+        url: `https://api.themoviedb.org/3/account/${accountId}/watchlist${apiKey}&session_id=${sessionId}`,
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
         },
@@ -203,7 +206,7 @@ const RenderDetails = ({ navigation, id }) => {
       });
       return response;
     } catch (e) {
-      console.log(e);
+      console.error('Failed to remove movie from watchlist:', e);
     }
   };
 
@@ -211,20 +214,13 @@ const RenderDetails = ({ navigation, id }) => {
   let year = '';
   let releaseDate = '';
   if (movie.release_date) {
-    let d = new Date(movie.release_date);
-    year = d.getFullYear();
-    let month = monthNames[d.getMonth()];
-    let day = d.getDate();
-    releaseDate = `${day}. ${month} ${year}`;
+    year = movie.release_date.split('-')[0];
+    releaseDate = formatDate(movie.release_date);
   }
 
   let digitalReleaseDate = '';
   if (digitalRelease) {
-    let dd = new Date(digitalRelease);
-    let yearDigital = dd.getFullYear();
-    let monthDigital = monthNames[dd.getMonth()];
-    let dayDigital = dd.getDate();
-    digitalReleaseDate = `${dayDigital}. ${monthDigital} ${yearDigital}`;
+    digitalReleaseDate = formatDate(digitalRelease);
   }
 
   // Runtime
@@ -255,237 +251,259 @@ const RenderDetails = ({ navigation, id }) => {
     <View style={[styles.container, themeContainerStyle]}>
       {loader ? (
         <Loader loadingStyle={styles.Loader} />
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, themeTextStyle]}>
+            {i18n.t('errorLoading')}
+          </Text>
+        </View>
       ) : (
         <View style={styles.scrollViewWrapper}>
           <ScrollView indicatorStyle={scrollBarTheme}>
             <View style={styles.main}>
-              <View style={styles.backdrop}>
-                <Image
-                  source={
-                    movie.backdrop_path
-                      ? {
-                          uri: `${baseBackdropUrl + movie.backdrop_path}`,
+              <ProgressiveBackdrop
+                backdropPath={movie.backdrop_path}
+                height={backdropHeight}
+                backgroundColor={colorScheme === 'light' ? backgroundColorLight : backgroundColorDark}
+              />
+              <View style={{ flexDirection: isTablet ? 'row' : 'column', paddingHorizontal: isTablet ? 22 : 0, marginTop: isTablet ? -backdropHeight * 0.6 : 0 }}>
+                <View style={isTablet ? { alignItems: 'center' } : [styles.imageDiv, boxShadow]}>
+                  <Pressable onPress={() => { if (movie.images?.posters?.length > 0) setGalleryVisible(true); }}>
+                    <View style={boxShadow}>
+                      <Image
+                        source={
+                          movie.poster_path
+                            ? { uri: `${basePosterUrl}${movie.poster_path}` }
+                            : noImage
                         }
-                      : noImage
-                  }
-                  style={StyleSheet.absoluteFill}
-                  placeholder={
-                    movie.backdrop_path
-                      ? {
-                          uri: `${
-                            baseBackdropPlaceholderUrl + movie.backdrop_path
-                          }`,
-                        }
-                      : imageBlurhash
-                  }
-                  placeholderContentFit='cover'
-                  transition={350}
-                  contentFit='cover'
-                />
-                <View style={styles.child} />
-              </View>
-              <View style={[styles.imageDiv, boxShadow]}>
-                <Image
-                  source={{
-                    uri: `${basePosterUrl + movie.poster_path}`,
-                  }}
-                  placeholder={imageBlurhash}
-                  placeholderContentFit='cover'
-                  style={styles.posterImg}
-                />
-                {!stateFinish && sessionId ? (
-                  <Loader
-                    loadingStyle={styles.watchListLoader}
-                    color={'white'}
-                    size={'small'}
-                  />
-                ) : (
-                  <Pressable onPress={watchListFunction}>
-                    <View style={styles.watchListDiv}>
-                      <FontAwesome5
-                        name={'bookmark'}
-                        solid={movieExist}
-                        style={{ color: 'red', fontSize: 25 }}
+                        placeholder={imageBlurhash}
+                        placeholderContentFit='cover'
+                        style={[styles.posterImg, { width: posterImgW, height: posterImgH, marginTop: isTablet ? 0 : -backdropHeight / 2, marginLeft: isTablet ? 0 : 20 }]}
                       />
-                      <Text style={styles.watchListText}>
-                        {i18n.t('watchlistBtn')}
-                      </Text>
                     </View>
                   </Pressable>
-                )}
-              </View>
-              <Text style={[styles.title, themeTextStyle]} selectable>
-                {movie.title}
-              </Text>
-              <View style={styles.underTitleDiv}>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {year}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {runtime}
-                  </Text>
-                </View>
-                <Text style={[styles.separators, themeTextStyle]}>•</Text>
-                <View style={styles.underTitleElem}>
-                  <Text style={[styles.underTitle, themeTextStyle]}>
-                    {omdb?.Rated}
-                  </Text>
-                </View>
-              </View>
-              <Text style={[styles.rating, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
-                {releaseDate}
-              </Text>
-              {digitalRelease ? (
-                <Text style={[styles.genre, styles.runtime, themeTextStyle]}>
-                  <Text style={styles.category}>
-                    {i18n.t('digitalReleaseDate')}
-                  </Text>{' '}
-                  {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
-                </Text>
-              ) : null}
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
-                {movie.status}
-              </Text>
-              {movie.budget !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('budget')}</Text> $
-                  {movie.budget.toLocaleString()}
-                </Text>
-              ) : null}
-              {movie.revenue !== 0 ? (
-                <Text style={[styles.genre, themeTextStyle]}>
-                  <Text style={styles.category}>{i18n.t('revenue')}</Text> $
-                  {movie.revenue.toLocaleString()}
-                </Text>
-              ) : null}
-              {movie.credits?.crew?.find((c) => c.job === 'Director') ? (
-                <Text
-                  style={[styles.genre, themeTextStyle]}
-                  onPress={() => {
-                    const director = movie.credits.crew.find((c) => c.job === 'Director');
-                    navigation.push('PersonDetails', {
-                      id: director.id,
-                      creditId: director.credit_id,
-                      headerTitle: director.name,
-                    });
-                  }}
-                >
-                  <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
-                  {movie.credits.crew.find((c) => c.job === 'Director').name}
-                </Text>
-              ) : null}
-              <Text style={[styles.genre, themeTextStyle]}>
-                <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
-                {movie.genres?.map((genre) => genre.name).join(', ')}
-              </Text>
-
-              <View style={[styles.rating, styles.ratingDiv]}>
-                {movie.vote_average !== 0 ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={tmdbLogo}
-                      style={styles.tmdbLogo}
-                      contentFit='contain'
+                  {!stateFinish && sessionId ? (
+                    <Loader
+                      loadingStyle={isTablet ? { marginTop: 12 } : styles.watchListLoader}
+                      color={'white'}
+                      size={'small'}
                     />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>
-                        {Math.floor((movie.vote_average * 100) / 10)}%{' '}
-                      </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {numFormatter(movie.vote_count)}
-                      </Text>
+                  ) : (
+                    <Pressable onPress={watchListFunction}>
+                      <View style={isTablet ? { marginTop: 12, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' } : styles.watchListDiv}>
+                        <FontAwesome5
+                          name={'bookmark'}
+                          solid={movieExist}
+                          style={{ color: 'red', fontSize: 25 }}
+                        />
+                        <Text style={styles.watchListText}>
+                          {i18n.t('watchlistBtn')}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )}
+                </View>
+                <View style={isTablet ? { flex: 1, marginLeft: 22, flexDirection: 'row', gap: 32, alignItems: 'flex-start' } : undefined}>
+                  <View style={isTablet ? { flexShrink: 0, maxWidth: 250 } : undefined}>
+                    <Text style={[styles.title, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0, fontSize: 24, marginTop: 10, color: 'white' }]} selectable>
+                      {movie.title}
+                    </Text>
+                    <View style={[styles.underTitleDiv, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {year}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {runtime}
+                        </Text>
+                      </View>
+                      <Text style={[styles.separators, themeTextStyle]}>•</Text>
+                      <View style={styles.underTitleElem}>
+                        <Text style={[styles.underTitle, themeTextStyle]}>
+                          {omdb?.Rated}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                ) : null}
-
-                {omdb?.imdbRating && omdb.imdbRating !== 'N/A' ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={imdbLogo}
-                      style={styles.imdbLogo}
-                      contentFit='contain'
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>
-                        {omdb?.imdbRating}/10
+                    <Text style={[styles.rating, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('releaseDate')}</Text>{' '}
+                      {releaseDate}
+                    </Text>
+                    {digitalRelease ? (
+                      <Text style={[styles.genre, styles.runtime, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>
+                          {i18n.t('digitalReleaseDate')}
+                        </Text>{' '}
+                        {digitalReleaseDate} {releaseNote ? `(${releaseNote})` : null}
                       </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {numFormatter(imdbVotes)}
+                    ) : null}
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('status')}</Text>{' '}
+                      {movie.status}
+                    </Text>
+                    {Number.isFinite(movie.budget) && movie.budget !== 0 ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('budget')}</Text> $
+                        {movie.budget.toLocaleString()}
                       </Text>
-                    </View>
-                  </View>
-                ) : null}
-                {rottenTomato ? (
-                  <View style={[styles.ratingWrapper]}>
-                    <Image
-                      source={rottenTomato > 60 ? freshPositive : freshNegative}
-                      style={styles.rottenLogo}
-                    />
-                    <View style={styles.ratingElem}>
-                      <Text style={[themeTextStyle]}>{rottenTomato}% </Text>
-                      <Text style={[styles.ratingCounter, themeTextStyle]}>
-                        {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                    ) : null}
+                    {Number.isFinite(movie.revenue) && movie.revenue !== 0 ? (
+                      <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                        <Text style={styles.category}>{i18n.t('revenue')}</Text> $
+                        {movie.revenue.toLocaleString()}
                       </Text>
-                    </View>
+                    ) : null}
+                    {movie.credits?.crew?.find((c) => c.job === 'Director') ? (
+                      <Text
+                        style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}
+                        onPress={() => {
+                          const director = movie.credits.crew.find((c) => c.job === 'Director');
+                          navigation.push('PersonDetails', {
+                            id: director.id,
+                            creditId: director.credit_id,
+                            headerTitle: director.name,
+                          });
+                        }}
+                      >
+                        <Text style={styles.category}>{i18n.t('director')}</Text>{' '}
+                        {movie.credits.crew.find((c) => c.job === 'Director').name}
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.genre, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      <Text style={styles.category}>{i18n.t('genres')}</Text>{' '}
+                      {movie.genres?.map((genre) => genre.name).join(', ')}
+                    </Text>
                   </View>
-                ) : null}
-              </View>
-              <Text style={[styles.overview, themeTextStyle]}>
-                {movie.overview}
-              </Text>
-            </View>
-            <View style={styles.trailerMain}>
-              <Text style={[styles.trailerHeading, themeTextStyle]}>
-                {i18n.t('extras')}
-              </Text>
-              <ScrollView
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-              >
-                <View style={styles.trailerDiv}>
-                  {videos
-                    .filter(
-                      (type) =>
-                        type.type === 'Trailer' && type.site === 'YouTube'
-                    )
-                    .map((video, idx) => {
-                      let maxLimit = 32;
-                      return (
-                        <View style={styles.videoDiv} key={idx}>
-                          <View style={boxShadow}>
-                            <WebView
-                              allowsFullscreenVideo
-                              useWebKit
-                              allowsInlineMediaPlayback
-                              mediaPlaybackRequiresUserAction
-                              javaScriptEnabled
-                              scrollEnabled={false}
-                              style={styles.videoElem}
-                              source={{
-                                uri: `https://www.youtube.com/embed/${video.key}`,
-                              }}
-                            />
+                  <View style={isTablet ? { flex: 1, maxWidth: 500, marginTop: 52 } : undefined}>
+                    <View style={[styles.rating, styles.ratingDiv, isTablet && { marginLeft: 0, marginRight: 0, marginTop: 0, marginBottom: 0, flex: 0 }]}>
+                      {movie.vote_average !== 0 ? (
+                        <Pressable
+                          style={[styles.ratingWrapper]}
+                          onPress={() => WebBrowser.openBrowserAsync(`https://www.themoviedb.org/movie/${movie.id}`)}
+                        >
+                          <Image
+                            source={tmdbLogo}
+                            style={styles.tmdbLogo}
+                            contentFit='contain'
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%{' '}
+                            </Text>
+                            <Text style={[styles.ratingCounter, themeTextStyle]}>
+                              {numFormatter(movie.vote_count)}
+                            </Text>
                           </View>
-                          <Text style={[styles.videoText, themeTextStyle]}>
-                            {video.name.length > maxLimit
-                              ? video.name.substring(0, maxLimit - 3) + '...'
-                              : video.name}
-                          </Text>
-                          <Text style={[styles.typeText, themeTextStyle]}>
-                            {video.type}
-                          </Text>
-                        </View>
-                      );
-                    })}
+                        </Pressable>
+                      ) : null}
+
+                      {omdb ? (
+                        <Pressable
+                          style={[styles.ratingWrapper]}
+                          onPress={() => WebBrowser.openBrowserAsync(`https://www.imdb.com/title/${movie.imdb_id}/`)}
+                        >
+                          <Image
+                            source={imdbLogo}
+                            style={styles.imdbLogo}
+                            contentFit='contain'
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {omdb.imdbRating && omdb.imdbRating !== 'N/A'
+                                ? `${omdb.imdbRating}/10`
+                                : '—'}
+                            </Text>
+                            {imdbVotes ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {numFormatter(imdbVotes)}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </Pressable>
+                      ) : null}
+                      {omdb ? (
+                        <Pressable
+                          style={[styles.ratingWrapper]}
+                          onPress={() => WebBrowser.openBrowserAsync(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(movie.title)}`)}
+                        >
+                          <Image
+                            source={rottenTomato ? (rottenTomato > 60 ? freshPositive : freshNegative) : freshPositive}
+                            style={styles.rottenLogo}
+                          />
+                          <View style={styles.ratingElem}>
+                            <Text style={[themeTextStyle]}>
+                              {rottenTomato ? `${rottenTomato}%` : '—'}
+                            </Text>
+                            {rottenTomato ? (
+                              <Text style={[styles.ratingCounter, themeTextStyle]}>
+                                {rottenTomato > 60 ? 'Fresh' : 'Rotten'}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                    <Text style={[styles.overview, themeTextStyle, isTablet && { marginLeft: 0, marginRight: 0 }]}>
+                      {movie.overview}
+                    </Text>
+                  </View>
                 </View>
-              </ScrollView>
+              </View>
             </View>
+            {videos.filter((v) => v.type === 'Trailer' && v.site === 'YouTube').length > 0 ? (
+              <View style={styles.trailerMain}>
+                <Text style={[styles.trailerHeading, themeTextStyle]}>
+                  {i18n.t('extras')}
+                </Text>
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                >
+                  <View style={styles.trailerDiv}>
+                    {videos
+                      .filter(
+                        (type) =>
+                          type.type === 'Trailer' && type.site === 'YouTube'
+                      )
+                      .map((video, idx) => {
+                        let maxLimit = 32;
+                        return (
+                          <View style={styles.videoDiv} key={idx}>
+                            <Pressable
+                              onPress={() => WebBrowser.openBrowserAsync(`https://www.youtube.com/watch?v=${video.key}`)}
+                              style={[boxShadow, { width: videoWidth, height: videoHeight, borderRadius: borderRadius, overflow: 'hidden' }]}
+                            >
+                              <Image
+                                source={{ uri: `https://img.youtube.com/vi/${video.key}/hqdefault.jpg` }}
+                                style={{ width: videoWidth, height: videoHeight }}
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
+                                contentFit='cover'
+                                transition={200}
+                              />
+                              <View style={styles.playOverlay}>
+                                <View style={styles.playButton}>
+                                  <FontAwesome5 name='play' solid style={styles.playIcon} />
+                                </View>
+                              </View>
+                            </Pressable>
+                            <Text style={[styles.videoText, themeTextStyle]}>
+                              {video.name.length > maxLimit
+                                ? video.name.substring(0, maxLimit - 3) + '...'
+                                : video.name}
+                            </Text>
+                            <Text style={[styles.typeText, themeTextStyle]}>
+                              {video.type}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
             <View style={styles.castMain}>
               <Text style={[styles.castHeading, themeTextStyle]}>
                 {i18n.t('cast')}
@@ -495,7 +513,7 @@ const RenderDetails = ({ navigation, id }) => {
                 showsHorizontalScrollIndicator={false}
               >
                 <View style={styles.castDiv}>
-                  {movie.credits.cast.slice(0, 20).map((cast, idx) => {
+                  {movie.credits?.cast?.slice(0, 20).map((cast, idx) => {
                     const profilePicture = {
                       uri: `${baseProfileUrl + cast.profile_path}`,
                     };
@@ -510,15 +528,15 @@ const RenderDetails = ({ navigation, id }) => {
                           })
                         }
                       >
-                        <View style={styles.castCard}>
+                        <View style={[styles.castCard, { width: castSize }]}>
                           <View style={boxShadow}>
                             <Image
-                              style={styles.profileImage}
+                              style={[styles.profileImage, { width: castSize, height: castSize }]}
                               source={
                                 cast.profile_path ? profilePicture : noImage
                               }
-
-
+                              placeholder={imageBlurhash}
+                              placeholderContentFit='cover'
                             />
                           </View>
                           <Text style={[styles.textName, themeTextStyle]}>
@@ -537,7 +555,7 @@ const RenderDetails = ({ navigation, id }) => {
                 </View>
               </ScrollView>
             </View>
-            {movie.recommendations.results.length > 0 ? (
+            {movie.recommendations?.results?.length > 0 ? (
               <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('recommendations')}
@@ -549,27 +567,27 @@ const RenderDetails = ({ navigation, id }) => {
                   <View style={styles.moviesDiv}>
                     {movie.recommendations.results
                       .slice(0, 50)
-                      .map((movie, idx) => {
-                        if (movie.poster_path !== null) {
-                          return (
+                      .map((item, idx) => (
                             <Pressable
                               style={styles.moviesCard}
-                              key={idx}
+                              key={item.id || idx}
                               onPress={() =>
                                 navigation.push('Details', {
-                                  id: movie.id,
-                                  headerTitle: movie.title,
+                                  id: item.id,
+                                  headerTitle: item.title,
                                 })
                               }
                             >
                               <View style={boxShadow}>
                                 <Image
-                                  style={styles.posterImage}
-                                  source={{
-                                    uri: `${basePosterUrl + movie.poster_path}`,
-                                  }}
-    
-
+                                  style={[styles.posterImage, { width: posterW, height: posterH }]}
+                                  source={
+                                    item.poster_path
+                                      ? { uri: `${basePosterUrl}${item.poster_path}` }
+                                      : noImage
+                                  }
+                                  placeholder={imageBlurhash}
+                                  placeholderContentFit='cover'
                                 />
                               </View>
                               <View style={styles.ratingDivRec}>
@@ -581,18 +599,16 @@ const RenderDetails = ({ navigation, id }) => {
                                 <Text
                                   style={[styles.textRating, themeTextStyle]}
                                 >
-                                  {Math.floor((movie.vote_average * 100) / 10)}%
+                                  {Math.floor(((item.vote_average || 0) * 100) / 10)}%
                                 </Text>
                               </View>
                             </Pressable>
-                          );
-                        }
-                      })}
+                      ))}
                   </View>
                 </ScrollView>
               </View>
             ) : null}
-            {movie.similar.results.length > 0 ? (
+            {movie.similar?.results?.length > 0 ? (
               <View style={styles.moviesMain}>
                 <Text style={[styles.moviesHeading, themeTextStyle]}>
                   {i18n.t('similar')}
@@ -602,27 +618,27 @@ const RenderDetails = ({ navigation, id }) => {
                   showsHorizontalScrollIndicator={false}
                 >
                   <View style={styles.moviesDiv}>
-                    {movie.similar.results.slice(0, 50).map((movie, idx) => {
-                      if (movie.poster_path !== null) {
-                        return (
+                    {movie.similar.results.slice(0, 50).map((item, idx) => (
                           <Pressable
                             style={styles.moviesCard}
-                            key={idx}
+                            key={item.id || idx}
                             onPress={() =>
                               navigation.push('Details', {
-                                id: movie.id,
-                                headerTitle: movie.title,
+                                id: item.id,
+                                headerTitle: item.title,
                               })
                             }
                           >
                             <View style={boxShadow}>
                               <Image
-                                style={styles.posterImage}
-                                source={{
-                                  uri: `${basePosterUrl + movie.poster_path}`,
-                                }}
-  
-
+                                style={[styles.posterImage, { width: posterW, height: posterH }]}
+                                source={
+                                  item.poster_path
+                                    ? { uri: `${basePosterUrl}${item.poster_path}` }
+                                    : noImage
+                                }
+                                placeholder={imageBlurhash}
+                                placeholderContentFit='cover'
                               />
                             </View>
                             <View style={styles.ratingDivRec}>
@@ -632,13 +648,11 @@ const RenderDetails = ({ navigation, id }) => {
                                 contentFit='contain'
                               />
                               <Text style={[styles.textRating, themeTextStyle]}>
-                                {Math.floor((movie.vote_average * 100) / 10)}%
+                                {Math.floor(((item.vote_average || 0) * 100) / 10)}%
                               </Text>
                             </View>
                           </Pressable>
-                        );
-                      }
-                    })}
+                    ))}
                   </View>
                 </ScrollView>
               </View>
@@ -646,6 +660,14 @@ const RenderDetails = ({ navigation, id }) => {
           </ScrollView>
         </View>
       )}
+      <PosterGalleryModal
+        visible={galleryVisible}
+        onClose={() => setGalleryVisible(false)}
+        images={movie.images?.posters}
+        index={galleryIndex}
+        onIndexChange={setGalleryIndex}
+        thumbW={thumbW}
+      />
     </View>
   );
 };
@@ -653,8 +675,6 @@ const RenderDetails = ({ navigation, id }) => {
 const globalFontsize = 17;
 const globalPadding = 5;
 const normalFontWeight = '300';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -670,19 +690,15 @@ const styles = StyleSheet.create({
     marginBottom: 45,
   },
   main: {
-    width: deviceWidth,
+    width: '100%',
     justifyContent: 'center',
   },
   Loader: {
-    marginBottom: deviceHeight / 2.2,
+    marginBottom: 300,
   },
   backdrop: {
     width: '100%',
     height: 250,
-  },
-  child: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   posterImg: {
     width: 120,
@@ -822,11 +838,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   videoDiv: {
-    textAlign: 'center',
+    marginRight: 16,
   },
   videoText: {
     fontWeight: '600',
     fontSize: 13,
+    marginTop: 10,
   },
   typeText: {
     paddingTop: 5,
@@ -834,10 +851,26 @@ const styles = StyleSheet.create({
   },
   videoElem: {
     marginBottom: 10,
-    width: deviceWidth / 1.9,
-    height: deviceWidth / 3.4,
     marginRight: 30,
     borderRadius: borderRadius,
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    color: 'white',
+    fontSize: 18,
+    marginLeft: 3,
   },
   castMain: {
     marginTop: 25 + globalPadding,
@@ -852,12 +885,9 @@ const styles = StyleSheet.create({
   castCard: {
     alignItems: 'center',
     marginRight: 20,
-    width: deviceWidth / 4.5,
     textAlign: 'center',
   },
   profileImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 4.5,
     marginBottom: 8,
     borderRadius: 50,
   },
@@ -904,8 +934,6 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   posterImage: {
-    width: deviceWidth / 4.5,
-    height: deviceWidth / 3,
     marginBottom: 13,
     borderRadius: borderRadius,
   },
@@ -952,6 +980,16 @@ const styles = StyleSheet.create({
   },
   lightThemeBox: {
     backgroundColor: '#bfc5ce',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

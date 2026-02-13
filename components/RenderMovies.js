@@ -5,12 +5,12 @@ import {
   FlatList,
   View,
   RefreshControl,
-  Dimensions,
 } from 'react-native';
 import { useAppearance } from './AppearanceContext';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import MovieCard from '../components/MovieCard';
+import useResponsive from '../hooks/useResponsive';
 import i18n from '../language/i18n';
 import {
   backgroundColorDark,
@@ -20,7 +20,7 @@ import {
 } from '../colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useScrollToTop } from '@react-navigation/native';
 
 const RenderMovies = ({ baseUrl }) => {
   const [movies, setMovies] = useState([]);
@@ -32,9 +32,12 @@ const RenderMovies = ({ baseUrl }) => {
   const [regionsText, setRegionsText] = useState();
   const [regionFinal, setRegionFinal] = useState();
   const isBottomLoadingRef = useRef(false);
+  const listRef = useRef(null);
   const navigation = useNavigation();
+  useScrollToTop(listRef);
 
   const { colorScheme } = useAppearance();
+  const { numColumns, posterWidth, posterHeight } = useResponsive();
   const defaultRegion = Localization.getLocales()[0]?.regionCode || 'US';
 
   const getRegion = async () => {
@@ -81,7 +84,7 @@ const RenderMovies = ({ baseUrl }) => {
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
     } catch (e) {
-      console.log(e);
+      console.error('Failed to fetch first page:', e);
     } finally {
       setRefreshing(false);
     }
@@ -120,7 +123,7 @@ const RenderMovies = ({ baseUrl }) => {
       });
       setPageNumber((currentPage) => currentPage + 1);
     } catch (e) {
-      console.log(e);
+      console.error('Failed to load next page:', e);
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
@@ -141,8 +144,10 @@ const RenderMovies = ({ baseUrl }) => {
       title={item.title}
       voteAverage={item.vote_average}
       colorScheme={colorScheme}
+      cardWidth={posterWidth}
+      cardHeight={posterHeight}
     />
-  ), [colorScheme]);
+  ), [colorScheme, posterWidth, posterHeight]);
 
   const ListFooter = useCallback(() => (
     <>
@@ -163,10 +168,12 @@ const RenderMovies = ({ baseUrl }) => {
           <Loader loadingStyle={styles.loaderStyle} />
         ) : (
           <FlatList
+            ref={listRef}
+            key={numColumns}
             data={movies}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
-            numColumns={3}
+            numColumns={numColumns}
             style={[styles.scrollView, themeContainerStyle]}
             contentContainerStyle={styles.flatListContent}
             columnWrapperStyle={styles.columnWrapper}
@@ -189,15 +196,12 @@ const RenderMovies = ({ baseUrl }) => {
   );
 };
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: deviceWidth,
+    width: '100%',
   },
   view: {
     height: 75,
@@ -208,19 +212,19 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   flatListContent: {
-    alignItems: 'center',
-    width: deviceWidth,
+    paddingHorizontal: 5,
+    width: '100%',
   },
   columnWrapper: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   description: {
     fontSize: 15,
     paddingBottom: 20,
   },
   loaderStyle: {
-    paddingTop: deviceHeight / 4.5,
-    paddingBottom: deviceHeight,
+    paddingTop: 150,
+    paddingBottom: 600,
   },
   lightContainer: {
     backgroundColor: backgroundColorLight,
