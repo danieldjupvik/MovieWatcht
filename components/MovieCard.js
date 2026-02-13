@@ -96,7 +96,7 @@ const MovieCard = ({ id, posterPath, title, voteAverage, colorScheme, cardWidth,
             contentFit='contain'
           />
           <Text style={[styles.rating, themeTextStyle]}>
-            {Math.floor((voteAverage * 100) / 10)}%
+            {Math.floor(((voteAverage || 0) * 100) / 10)}%
           </Text>
         </View>
       </Animated.View>

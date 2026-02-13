@@ -243,7 +243,7 @@ const PersonDetails = ({ route, navigation }) => {
                               contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
-                              {Math.floor((movie.vote_average * 100) / 10)}%
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%
                             </Text>
                           </View>
                         </Pressable>
@@ -292,7 +292,7 @@ const PersonDetails = ({ route, navigation }) => {
                               contentFit='contain'
                             />
                             <Text style={[styles.rating, themeTextStyle]}>
-                              {Math.floor((movie.vote_average * 100) / 10)}%
+                              {Math.floor(((movie.vote_average || 0) * 100) / 10)}%
                             </Text>
                           </View>
                           <View style={styles.ratingDiv}>

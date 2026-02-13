@@ -39,7 +39,7 @@ import tmdbLogo from '../assets/tmdb-logo-small.png';
 import freshNegative from '../assets/freshNegative.png';
 import freshPositive from '../assets/freshPositive.png';
 import PosterGalleryModal from './PosterGalleryModal';
-import { monthNames, formatDate } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils';
 
 const RenderDetails = ({ navigation, id }) => {
   const [loader, setLoader] = useState(true);
@@ -211,11 +211,8 @@ const RenderDetails = ({ navigation, id }) => {
   let year = '';
   let releaseDate = '';
   if (movie.release_date) {
-    let d = new Date(movie.release_date);
-    year = d.getFullYear();
-    let month = monthNames[d.getMonth()];
-    let day = d.getDate();
-    releaseDate = `${day}. ${month} ${year}`;
+    year = movie.release_date.split('-')[0];
+    releaseDate = formatDate(movie.release_date);
   }
 
   let digitalReleaseDate = '';

@@ -124,8 +124,7 @@ const RenderSeriesDetails = ({ navigation, id }) => {
   let year = '';
   let releaseDate = '';
   if (series.first_air_date) {
-    const d = new Date(series.first_air_date);
-    year = d.getFullYear();
+    year = series.first_air_date.split('-')[0];
     releaseDate = formatDate(series.first_air_date);
   }
 
