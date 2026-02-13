@@ -265,7 +265,7 @@ const Search = ({ navigation }) => {
         </Text>
       </View>
     );
-  }, [loader, query, isDark]);
+  }, [loader, query, isDark, deviceHeight]);
 
   return (
     <View style={[styles.container, containerBg]}>

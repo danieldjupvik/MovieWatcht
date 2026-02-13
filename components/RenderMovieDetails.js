@@ -48,6 +48,7 @@ const RenderDetails = ({ navigation, id }) => {
   const [videos, setVideos] = useState([]);
   const [movieExist, setMovieExist] = useState();
   const [sessionId, setSessionId] = useState();
+  const [accountId, setAccountId] = useState();
   const [stateFinish, setStateFinish] = useState(true);
   const [digitalRelease, setDigitalRelease] = useState();
   const [releaseNote, setReleaseNote] = useState();
@@ -82,6 +83,7 @@ const RenderDetails = ({ navigation, id }) => {
           `https://api.themoviedb.org/3/movie/${id}/videos${apiKey}&language=en-US`
         );
         const sessionId = await AsyncStorage.getItem('sessionId');
+        const accountId = await AsyncStorage.getItem('accountId');
         const response = await axios.get(
           `${
             detailsMovieUrl +
@@ -94,6 +96,7 @@ const RenderDetails = ({ navigation, id }) => {
         getOmdbInfo(response.data.imdb_id);
         setMovie(response.data);
         setSessionId(sessionId);
+        setAccountId(accountId);
         const usRelease = response.data.release_dates.results
           .filter((region) => region.iso_3166_1 === 'US')[0]
           ?.release_dates.filter((type) => type.type === 4)[0];
@@ -171,7 +174,7 @@ const RenderDetails = ({ navigation, id }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
+        url: `https://api.themoviedb.org/3/account/${accountId}/watchlist${apiKey}&session_id=${sessionId}`,
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
         },
@@ -191,7 +194,7 @@ const RenderDetails = ({ navigation, id }) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: `https://api.themoviedb.org/3/account/${id}/watchlist${apiKey}&session_id=${sessionId}`,
+        url: `https://api.themoviedb.org/3/account/${accountId}/watchlist${apiKey}&session_id=${sessionId}`,
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
         },

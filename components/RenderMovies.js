@@ -83,8 +83,8 @@ const RenderMovies = ({ baseUrl }) => {
       setMovies(response.data.results);
       setTotalPageNumberFromApi(response.data.total_pages);
       setPageNumber(2);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to fetch first page:', e);
     } finally {
       setRefreshing(false);
     }
@@ -122,8 +122,8 @@ const RenderMovies = ({ baseUrl }) => {
         return [...currentMovies, ...uniqueNewMovies];
       });
       setPageNumber((currentPage) => currentPage + 1);
-    } catch (_e) {
-
+    } catch (e) {
+      console.error('Failed to load next page:', e);
     } finally {
       isBottomLoadingRef.current = false;
       setBottomLoader(false);
