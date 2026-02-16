@@ -12,6 +12,7 @@
         "axios": "^1.13.5",
         "expo": "^55.0.0-preview.10",
         "expo-blur": "~55.0.5",
+        "expo-dev-client": "~55.0.5",
         "expo-font": "~55.0.3",
         "expo-haptics": "~55.0.5",
         "expo-image": "~55.0.3",
@@ -777,6 +778,14 @@
     "expo-blur": ["expo-blur@55.0.5", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-6F6Vwr3gRy6FbYziT7kDDRG/kwP826Y/5E76VecyWBcXu9NgeTwOskc8Mk9tphupPjJOvGn0wcCmK1ZZBLWIkA=="],
 
     "expo-constants": ["expo-constants@55.0.4", "", { "dependencies": { "@expo/config": "~55.0.4", "@expo/env": "~2.1.0" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-zdPxsYnL8LrW91sXivdBIH5nouTDUG0npMZxaYhvEO/2p60iN0W4jK3n2sRFrPl31WctLWSs4ato/wIKnRuUFA=="],
+
+    "expo-dev-client": ["expo-dev-client@55.0.5", "", { "dependencies": { "expo-dev-launcher": "55.0.6", "expo-dev-menu": "55.0.5", "expo-dev-menu-interface": "55.0.1", "expo-manifests": "~55.0.5", "expo-updates-interface": "~55.1.1" }, "peerDependencies": { "expo": "*" } }, "sha512-p0xkyrCYXztUrVl6fqIrhUVR30Cxp5PbP9Vv1IXl2po8OkFDQklu5y908NBN/oeWpgv1lSgKpRTdZ1G2nsJ7IQ=="],
+
+    "expo-dev-launcher": ["expo-dev-launcher@55.0.6", "", { "dependencies": { "@expo/schema-utils": "^55.0.2", "expo-dev-menu": "55.0.5", "expo-manifests": "~55.0.5" }, "peerDependencies": { "expo": "*" } }, "sha512-Zrmdc0cgvizmX9Wd+Kc5iz0T5QQ2DSsx1Sedww9Ra4qQlUcL2GzoVnDqqw63zI5ax+rnMbBVWyiQUqHN1w/l/A=="],
+
+    "expo-dev-menu": ["expo-dev-menu@55.0.5", "", { "dependencies": { "expo-dev-menu-interface": "55.0.1" }, "peerDependencies": { "expo": "*" } }, "sha512-NCNvsUl+GaVD/FgzEiHtNBLoj4LCE2xE40FKsYsV25csNAp2JizeR5eSIAKW2NX4UTWvgdqOQMIoXhERt7pZBw=="],
+
+    "expo-dev-menu-interface": ["expo-dev-menu-interface@55.0.1", "", { "peerDependencies": { "expo": "*" } }, "sha512-FkNtwq1q6NmYoy28pj+ZLuHmirJgc039pQbJ167MZJIaprLcMN1yy67qA7xBHK+FNJ8AN8kGCtMTPByg5UC72A=="],
 
     "expo-eas-client": ["expo-eas-client@55.0.2", "", {}, "sha512-fjOgSXaZFBK2Xmzn/uw0DTF3BsYv97JEa4PYXXqVCEvNJPwJB1cV1eX6Xyq6iKGIhMPH9k62sOc+oUdt094WCw=="],
 

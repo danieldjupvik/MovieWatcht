@@ -1,0 +1,60 @@
+const IS_DEV = process.env.APP_ENV === 'development';
+
+module.exports = {
+  expo: {
+    name: IS_DEV ? 'MovieWatcht Dev' : 'MovieWatcht',
+    slug: 'MovieWatcht',
+    version: '1.4.0',
+    orientation: 'default',
+    icon: './assets/icon.png',
+    splash: {
+      image: './assets/splash.png',
+      resizeMode: 'cover',
+      backgroundColor: '#1D1D1C',
+    },
+    assetBundlePatterns: ['**/*'],
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: IS_DEV
+        ? 'com.danieldjupvik.MovieWatcht.dev'
+        : 'com.danieldjupvik.MovieWatcht',
+      userInterfaceStyle: 'automatic',
+      icon: './assets/MovieWatcht.icon',
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
+    },
+    android: {
+      package: 'com.danieldjupvik.MovieWatcht',
+      versionCode: 21,
+      adaptiveIcon: {
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: '#1D1D1C',
+      },
+      userInterfaceStyle: 'automatic',
+    },
+    web: {
+      favicon: './assets/favicon.png',
+    },
+    description: 'Search and find movies from THMDb',
+    githubUrl: 'https://github.com/danieldjupvik/MovieWatch-app',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    experiments: {
+      reactCompiler: true,
+    },
+    plugins: [
+      'expo-localization',
+      'expo-web-browser',
+      'expo-image',
+      'expo-font',
+    ],
+    extra: {
+      eas: {
+        projectId: 'a574474b-ca75-4d67-ae5d-a73b04e9b00b',
+      },
+    },
+    owner: 'danieldjupvik',
+  },
+};

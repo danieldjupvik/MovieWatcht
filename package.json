@@ -1,10 +1,10 @@
 {
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "dev": "expo start --ios",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
+    "dev": "expo start",
+    "dev:build": "APP_ENV=development expo run:ios",
+    "dev:device": "APP_ENV=development expo run:ios --device",
+    "dev:expo-go": "expo start --ios",
     "lint": "expo lint .",
     "env:pull": "npx eas-cli@latest env:pull --environment production",
     "build": "npx eas-cli@latest build --platform ios",
@@ -19,6 +19,7 @@
     "axios": "^1.13.5",
     "expo": "^55.0.0-preview.10",
     "expo-blur": "~55.0.5",
+    "expo-dev-client": "~55.0.5",
     "expo-font": "~55.0.3",
     "expo-haptics": "~55.0.5",
     "expo-image": "~55.0.3",
